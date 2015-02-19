@@ -1,0 +1,129 @@
+address: 80400A0C JP 1.0 (note: bytes here in backwards order?)
+00000001 - can't control link, time stops
+00000002 - frozen world (time still passes, sword works, don't try jumping)
+00000004 - camera pans above link, can't c-up, walk through actors, getting hurt causes you to get thrown
+00000008 - ??? pulling out bombs resets it
+00000010 - using zora magic
+00000020 - take away control, hud goes into cutscene mode
+00000040 - bombs stick in air?
+00000080 - link is dead (can only walk, walk through actors, time stops)
+
+00000100 - putting mask on effect appears sometimes
+00000200 - freeze everything (tatl still flies around, camera pans)
+00000400 - tatl flies to where the camera is
+00000800 - holding something (ground jump if nothing)
+00001000 - can't untarget
+00002000 - same as 00000004
+00004000 - similar to above
+00008000 - am z-targeting (again)
+
+00010000 - am z-targeting? (locked on?)
+00020000 - am z-targeting (persists angle)
+00040000 - am in air/jumping
+00080000 - janky camera (z-targeting?)
+00100000 - am c-uping? (stops camera from changing when talking)
+00200000 - spinny camera
+00400000 - shield enemy attacks
+00800000 - crash
+
+01000000 - ???
+02000000 - z-targeting (locked camera)
+04000000 - can't take damage (mostly)
+08000000 - strange immobile/sliding state (c-up related?)
+10000000 - freeze actors
+20000000 - freeze link
+40000000 - disable z targetting?
+80000000 - falling into grotto (loads mayor's)
+
+combinations:
+00000003 - set when using ocarina
+A0000000 - fall into floor (grotto + frozen link = doesn't load mayor's)
+00018000 - set when z-targetting with target
+00028000 - set when z-targetting
+7F000000 - can't do anything
+5F000000 - slidey link, locked camera
+20010040 - talking state
+FF7FFFFF - the most you can have on without crashing
+01000008 - all unknown flags at once
+
+address: 80400A10 JP 1.0 (note: bytes here in backwards order?)
+00000001 - ???
+00000002 - set when a target is available
+00000004 - ???
+00000008 - sometimes set when you're walking
+00000010 - link won't get pushed back by explosions
+00000020 - set when you're walking
+00000040 - set when deku spinning
+00000080 - ???
+
+00000100 - ??? sometimes causes a z target
+00000200 - ???
+00000400 - play surfacing water animation
+00000800 - displays dive timer on A button
+00001000 - ???
+00002000 - can't un-Z-target?
+00004000 - ???
+00008000 - freeze link in place (can still pause)
+
+00010000 - ???
+00020000 - screen pulsating?
+00040000 - ??? doesn't reset
+00080000 - ???
+00100000 - whether tatl is flying around link
+00200000 - tatl has something to say
+00400000 - ???
+00800000 - semi-fixed camera (can still rotate)
+
+01000000 - graphical error?
+02000000 - disables items, sword
+04000000 - causes weird model flipping on z axis?
+08000000 - disables actors and some loading (set when link is using ocarina)
+10000000 - link is doing an idle animation
+20000000 - link goes invisible and leaves his body (seriously this is silly)
+40000000 - ??? set when attacking sometimes
+80000000 - instant void out (crushed?)
+
+combinations:
+404D52C5 - all unknown flags at once
+(one of those causes an ice effect to appear at link's feet)
+
+address: 80400A14 JP 1.0 (note: bytes here in backwards order?)
+00000001 - fall through floor
+00000002 - ???
+00000004 - freeze link in place
+00000008 - camera doesn't rotate (and lags behind a little?)
+00000010 - ???
+00000020 - ???
+00000040 - set when charging up a shot (arrows, bubbles, etc)
+00000080 - link pull out an item. forever.
+
+00000100 - deku inside flower
+00000200 - deku firing out of flower (reduces descent, gravity?)
+00000400 - ???
+00000800 - ???
+00001000 - goron roll state
+00002000 - deku flying camera/angle
+00004000 - ???
+00008000 - distant camera (used for what?)
+
+00010000 - ???
+00020000 - set when changing masks
+00040000 - major graphical errors?
+00080000 - goron magic roll state (camera zooms out)
+00100000 - set when deku spinning (again) (gives the damage effect?)
+00200000 - puts a 6 on the A button?
+00400000 - ???
+00800000 - usually set after using boomerangs?
+
+01000000 - deku nuts on B (deku flying state)
+02000000 - set when link uses sword
+04000000 - ???
+08000000 - set when rolling (does not give invulnerability)
+10000000 - ???
+20000000 - disables items, sword (again)
+40000000 - link won't stop attacking (fierce deity related?)
+80000000 - allows third-person aiming items (arrows, bubbles, etc)
+
+combinations:
+01002200 - firing from deku flower state (rocket deku farts)
+14410C32 - all unknown flags at once
