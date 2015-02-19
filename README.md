@@ -22,7 +22,7 @@ i put together some sheets to see if glitches could have desirable results.
 
 [~crap-ton of addresses in Lua form~][noice]
 
-[noice]: /notwa/mm/blob/master/MM%20addrs.lua
+[noice]: /MM%20addrs.lua
 
 i'm working on REing every byte in link's struct. i don't really care if it's one struct or not, it's just easier to refer to it as such.
 
@@ -46,7 +46,7 @@ the checksum is a 16-bit sum of all bytes up to that point, allowing overflows. 
 
 owl saves always have 0x24 added to their checksum for some reason.
 
-[chksum]: /notwa/mm/blob/master/chksum.py
+[chksum]: /chksum.py
 
 save files are ordered as such, offset from the first:
 
@@ -91,4 +91,4 @@ sometime i'll bother checking what the bombers/lottery codes are for these.
 
 i documented the ones i could figure out for JP 1.0 here: [fgsdfgdsg][linkfields]
 
-[linkfields]: /notwa/mm/blob/master/mm-bitflags.txt 
+[linkfields]: /mm-bitflags.txt 
