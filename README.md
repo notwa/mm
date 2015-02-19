@@ -24,13 +24,11 @@ i put together some sheets to see if glitches could have desirable results.
 
 [noice]: /MM%20addrs.lua
 
-i'm working on REing every byte in link's struct. i don't really care if it's one struct or not, it's just easier to refer to it as such.
+link's struct begins at 801EF670 (US 1.0), and is some length long. i just pretend it's 0x4000 in size, since that's the most you can jam in a save file.
 
-the struct begins at 801EF670 (US 1.0), and is some length long. i just pretend it's 0x4000 in size, since that's the most you can jam in a save file.
+two regions of 0x960 bytes are allocated for all the scene flags in the game. the first (801EFAE0 US 1.0) is loaded from save files, the second (801F35D8 US 1.0) is used for in-game changes. basically, edit the first for save hacking, and the second for in-game hacking.
 
-there's two copies of scene flags, both 0x960 in size. the first (801EFAE0 US 1.0) is loaded from save files, the second (801F35D8 US 1.0) is used for in-game changes. basically, edit the first for save hacking, and the second for in-game hacking.
-
-[each area in the game][areas] uses 0x14 bytes of scene flags. this means there's 0x78 possible areas: 0x78*0x14 = 0x960.
+[each area in the game][areas] uses 0x14 bytes of scene flags. this implies there's 0x78 possible areas: 0x78*0x14 = 0x960.
 
 [areas]: https://docs.google.com/spreadsheets/d/1e9kDyAW0gxXHFWS-GNEtVIo-rp39wQJJOtf3B0ehhqY/edit#gid=2120585358
 
