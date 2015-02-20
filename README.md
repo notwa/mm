@@ -1,4 +1,4 @@
-# Majora's Mask crap
+# Majora's Mask resources
 
 i like to muck around in this game's memory.
 
@@ -24,23 +24,33 @@ i put together some sheets to see if glitches could have desirable results.
 
 [noice]: /MM%20addrs.lua
 
-link's struct begins at 801EF670 (US 1.0), and is some length long. i just pretend it's 0x4000 in size, since that's the most you can jam in a save file.
+link's struct begins at 801EF670 (US 1.0), and is some length long.
+i just pretend it's 0x4000 in size, since that's the most you can jam in a save file.
 
-two regions of 0x960 bytes are allocated for all the scene flags in the game. the first (801EFAE0 US 1.0) is loaded from save files, the second (801F35D8 US 1.0) is used for in-game changes. basically, edit the first for save hacking, and the second for in-game hacking.
+two regions of 0x960 bytes are allocated for all the scene flags in the game.
+the first (801EFAE0 US 1.0) is loaded from save files, the second (801F35D8 US 1.0) is used for in-game changes.
+basically, edit the first for save hacking, and the second for in-game hacking.
 
-[each area in the game][areas] uses 0x14 bytes of scene flags. this implies there's 0x78 possible areas: 0x78*0x14 = 0x960.
+[each area in the game][areas] uses 0x14 bytes of scene flags.
+this implies there's 0x78 possible areas: 0x78*0x14 = 0x960.
 
 [areas]: https://docs.google.com/spreadsheets/d/1e9kDyAW0gxXHFWS-GNEtVIo-rp39wQJJOtf3B0ehhqY/edit#gid=2120585358
 
 ## save files
 
-save files are just memory dumps of link's struct. regular SoT saves are 0x2000 in size, owl saves are 0x4000. owls use the extra space primarily (exclusively?) to store the pictograph picture.
+save files are just memory dumps of link's struct.
+regular SoT saves are 0x2000 in size, owl saves are 0x4000.
+owls use the extra space primarily (exclusively?) to store the pictograph picture.
 
 note that some values don't get copied when reading/writing save files, even owl saves.
 
-the game checks a checksum, and for the text "ZELDA3". each slot has one backup copy of itself. if one copy is considered corrupt (bad checksum), the game will load the other. if that one's corrupt as well, the slot will show up as empty in the menu.
+the game checks a checksum, and for the text "ZELDA3".
+each slot has one backup copy of itself.
+if one copy is considered corrupt (bad checksum), the game will load the other.
+if that one's corrupt as well, the slot will show up as empty in the menu.
 
-the checksum is a 16-bit sum of all bytes up to that point, allowing overflows. i've written [a checksum-fixing program][chksum] in python for bizhawk savefiles.
+the checksum is a 16-bit sum of all bytes up to that point, allowing overflows.
+i've written [a checksum-fixing program][chksum] in python for bizhawk savefiles.
 
 owl saves always have 0x24 added to their checksum for some reason.
 
@@ -57,7 +67,8 @@ save files are ordered as such, offset from the first:
 * 0x10000 - slot 2 (owl)
 * 0x14000 - slot 2 backup (owl)
 
-bizhawk save files, at the time of writing, have the first file offset to 0x20800. also, their byte order is wrong.
+bizhawk save files, at the time of writing, have the first file offset to 0x20800.
+also, their byte order is wrong.
 
 here's my usual process for hacking on save files:
 ```
@@ -87,6 +98,6 @@ sometime i'll bother checking what the bombers/lottery codes are for these.
 
 ### link's flags
 
-i documented the ones i could figure out for JP 1.0 here: [fgsdfgdsg][linkfields]
+here's [an incomplete document on some of link's bitfields][linkfields] for JP 1.0.
 
 [linkfields]: /mm-bitflags.txt 
