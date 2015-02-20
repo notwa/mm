@@ -45,9 +45,8 @@ owls use the extra space primarily (exclusively?) to store the pictograph pictur
 note that some values don't get copied when reading/writing save files, even owl saves.
 
 the game checks a checksum, and for the text "ZELDA3".
-each slot has one backup copy of itself.
-if one copy is considered corrupt (bad checksum), the game will load the other.
-if that one's corrupt as well, the slot will show up as empty in the menu.
+each slot has one backup copy of itself, though they don't seem to be used?
+if a slot is corrupted, it will show up as empty in the menu.
 
 the checksum is a 16-bit sum of all bytes up to that point, allowing overflows.
 i've written [a checksum-fixing program][chksum] in python for bizhawk savefiles.
