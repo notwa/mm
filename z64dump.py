@@ -21,6 +21,19 @@ W4 = lambda data: struct.pack('>I', data)
 # assume first entry is makerom (0x1060), and second entry begins from makerom
 fs_sig = b"\x00\x00\x00\x00\x00\x00\x10\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x60"
 
+class SubDir:
+    def __init__(self, d):
+        self.d = d
+    def __enter__(self):
+        self.cwd = os.getcwd()
+        try:
+            os.mkdir(self.d)
+        except FileExistsError:
+            pass
+        os.chdir(self.d)
+    def __exit__(self, type_, value, traceback):
+        os.chdir(self.cwd)
+
 def dump_as(b, fn):
     with open(fn, 'w+b') as f:
         f.write(b)
@@ -104,15 +117,9 @@ def dump_rom(fn):
         outdir = hashlib.sha1(data).hexdigest()
         del data
 
-        # TODO: a `with` would be suitable here for handling cwd
-        try:
-            os.mkdir(outdir)
-        except FileExistsError:
-            pass
-        os.chdir(outdir)
-
-        f.seek(0)
-        z_dump(f)
+        with SubDir(outdir):
+            f.seek(0)
+            z_dump(f)
 
 def z_read_file(path, fn=None):
     if fn == None:
@@ -197,7 +204,6 @@ def create_rom(d):
         f.write(W4(crc2))
 
 def run(args):
-    cwd = os.getcwd()
     for path in args:
         if os.path.isdir(path):
             create_rom(path)
@@ -205,7 +211,6 @@ def run(args):
             dump_rom(path)
         else:
             lament('no-op:', path)
-        os.chdir(cwd)
 
 if __name__ == '__main__':
     ret = 0
