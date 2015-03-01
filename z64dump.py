@@ -141,12 +141,8 @@ def z_read_file(path, fn=None):
 
 def create_rom(d):
     walker = os.walk(d)
-    if not walker:
-        return
-
     root, _, files = next(walker)
     del walker
-    #files = [os.path.join(root, fn) for fn in files]
 
     rom_size = 64*1024*1024
     with open(d+'.z64', 'w+b') as f:
