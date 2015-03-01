@@ -3,32 +3,47 @@
 
 local mm = mainmemory
 
-function M1(self, value)
-    return (value and mm.writebyte or mm.readbyte)(self.addr, value)
-end
-function M2(self, value)
-    return (value and mm.write_u16_be or mm.read_u16_be)(self.addr, value)
-end
-function M3(self, value)
-    return (value and mm.write_u24_be or mm.read_u24_be)(self.addr, value)
-end
-function M4(self, value)
-    return (value and mm.write_u32_be or mm.read_u32_be)(self.addr, value)
-end
-function MF(self, value)
-    return (value and mm.writefloat or mm.readfloat)(self.addr, value or true, true)
-end
+R1 = mm.readbyte
+R2 = mm.read_u16_be
+R3 = mm.read_u24_be
+R4 = mm.read_u32_be
+RF = function(addr) mm.readfloat(addr, true) end
 
-local Ms = {
-    [1]   = {__call = M1},
-    [2]   = {__call = M2},
-    [3]   = {__call = M3},
-    [4]   = {__call = M4},
-    ['f'] = {__call = MF},
+W1 = mm.writebyte
+W2 = mm.write_u16_be
+W3 = mm.write_u24_be
+W4 = mm.write_u32_be
+WF = function(addr, value) mm.writefloat(addr, value, true) end
+
+local readers = {
+    [1]   = R1,
+    [2]   = R2,
+    [3]   = R3,
+    [4]   = R4,
+    ['f'] = RF,
+}
+
+local writers = {
+    [1]   = W1,
+    [2]   = W2,
+    [3]   = W3,
+    [4]   = W4,
+    ['f'] = WF,
+}
+
+local mt = {
+    __call = function(self, value)
+        return value and self.write(self.addr, value) or self.read(self.addr)
+    end
 }
 
 function A(addr, atype)
-    return setmetatable({addr=addr, type=atype}, Ms[atype])
+    return setmetatable({
+        addr=addr,
+        type=atype,
+        read=readers[atype],
+        write=writers[atype]
+    }, mt)
 end
 
 --[[

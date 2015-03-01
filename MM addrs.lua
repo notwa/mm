@@ -69,7 +69,7 @@ local US_10 = {
     magic_modifier      = AL(0x3F28, 4), -- TODO: RE
     magic_max           = AL(0x3F2E, 2),
     weird_a_graphic     = AL(0x3F42, 1),
-    target_style        = AL(0x3F45, 1), -- 0 for switch, 1 for target
+    target_style        = AL(0x3F45, 1), -- 0 for switch, 1 for hold
     music_mod           = AL(0x3F46, 2),
     entrance_mod_setter = AL(0x3F4A, 2), -- sets entrance mod. -10 = 0
     insta_crash         = AL(0x3F4C, 1), -- TODO: RE
@@ -159,23 +159,38 @@ local US_10 = {
     text_open           = A(0x3FD33B, 1),
     text_status         = A(0x3FD34A, 1),
     room_number         = A(0x3FF200, 1),
+    room_ptr            = A(0x3FF20C, 4),
     actor_disable       = A(0x3FF366, 2), -- set to -10 and load
     warp_begin          = A(0x3FF395, 1), -- set to nonzero to begin warping
     screen_dim          = A(0x3FF397, 1), -- B)
     warp_destination    = A(0x3FF39A, 2),
-    link_scale_x        = A(0x3FFE08, 2), -- need to confirm this is x
-    link_scale_y        = A(0x3FFE0C, 2), -- need to confirm this is y
-    link_scale_z        = A(0x3FFE10, 2), -- need to confirm this is z
+    link_scale_x        = A(0x3FFE08, 2),
+    link_scale_y        = A(0x3FFE0C, 2),
+    link_scale_z        = A(0x3FFE10, 2),
     z_vel               = A(0x3FFE18, 'f'),
     quick_draw          = A(0x3FFEF8, 1), -- item in link's hand
+    animation_id        = A(0x3FFFFA, 2),
     linear_vel          = A(0x400880, 'f'),
     infinite_sword      = A(0x40088B, 1),
 }
 
-local hash = gameinfo.getromhash()
+local EU_DBG = {
+    room_ptr            = A(0x460DEC, 4),
+    animation_id        = A(0x461C1A, 2),
+}
+
+local JP_10 = {
+    room_ptr            = A(0x3FF3BC, 4),
+    animation_id        = A(0x4001EA, 2),
+}
+
 local versions = {
     ['D6133ACE5AFAA0882CF214CF88DABA39E266C078'] = US_10,
+    ['B38B71D2961DFFB523020A67F4807A4B704E347A'] = EU_DBG,
+    ['5FB2301AACBF85278AF30DCA3E4194AD48599E36'] = JP_10,
 }
+
+local hash = gameinfo.getromhash()
 local addrs = versions[hash]
 
 return addrs

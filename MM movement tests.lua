@@ -3,7 +3,7 @@
 --
 -- go to the fairy's fountain in clock town as human link and run this script.
 
-local length = 60 -- in frames
+local length = 70 -- in frames
 local print_each = true
 
 local tests = {
@@ -143,7 +143,7 @@ function test_inputs(name, inputs, length)
             end
         end
         if action ~= nil then
-            for i=1, 3 do
+            for _=1, 3 do
                 joypad.setanalog(action, 1)
                 joypad.set(action, 1)
                 emu.frameadvance()
