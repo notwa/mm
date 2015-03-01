@@ -210,7 +210,7 @@ def run(args):
 if __name__ == '__main__':
     ret = 0
     try:
-        ret = run(sys.argv)
+        ret = run(sys.argv[1:])
     except KeyboardInterrupt:
         sys.exit(1)
     sys.exit(ret)
