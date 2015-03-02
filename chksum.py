@@ -19,39 +19,45 @@ save_2_copy = 0x26800
 owl_1_copy  = 0x2C800
 owl_2_copy  = 0x34800
 
+chksum_offset = 0x100A
+save_size = 0x2000
+owl_size = 0x4000
+
+MAX16 = 0xFFFF
+
 def calc_sum(data):
     chksum = 0
     for b in data:
         chksum += b
-        chksum &= 0xFFFF
+        chksum &= MAX16
     return chksum
 
 def fix_sum(f, addr, owl=False):
-    sum_pos = 0x100A
     f.seek(addr)
-    data = f.read(0x2000)
-    chksum = calc_sum(data[:sum_pos])
+    data = f.read(save_size)
+    chksum = calc_sum(data[:chksum_offset])
 
-    if owl and data != b'\x00'*0x2000:
+    if owl and data != b'\x00'*save_size:
         chksum += 0x24 # don't know why
-        chksum &= 0xFFFF
+        chksum &= MAX16
 
-    f.seek(addr + sum_pos)
+    f.seek(addr + chksum_offset)
     old_chksum = R2(f.read(2))
-    f.seek(addr + sum_pos)
+    f.seek(addr + chksum_offset)
     f.write(W2(chksum))
     lament('{:04X} -> {:04X}'.format(old_chksum, chksum))
 
 def copy_save(f, addr, addr2):
-    sum_pos = 0x100A
     f.seek(addr)
-    data = f.read(0x2000)
+    # TODO: handle owl size properly
+    data = f.read(save_size)
     f.seek(addr2)
     f.write(data)
 
 def delete_save(f, addr):
     f.seek(addr)
-    f.write(b'\x00'*0x2000)
+    # TODO: handle owl size properly
+    f.write(b'\x00'*save_size)
 
 def swap_order(f, size='H'):
     f.seek(0)
