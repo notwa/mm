@@ -7,20 +7,20 @@ from util import R2, W2, swap_order
 
 lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 
-save_1 = 0x20800
-save_2 = 0x24800
-owl_1  = 0x28800
-owl_2  = 0x30800
-save_1_copy = 0x22800
-save_2_copy = 0x26800
-owl_1_copy  = 0x2C800
-owl_2_copy  = 0x34800
+MAX16 = 0xFFFF
 
 chksum_offset = 0x100A
 save_size = 0x2000
 owl_size = 0x4000
 
-MAX16 = 0xFFFF
+save_1 = (0x20800, save_size)
+save_2 = (0x24800, save_size)
+owl_1  = (0x28800, owl_size)
+owl_2  = (0x30800, owl_size)
+save_1_copy = (0x22800, save_size)
+save_2_copy = (0x26800, save_size)
+owl_1_copy  = (0x2C800, owl_size)
+owl_2_copy  = (0x34800, owl_size)
 
 def calc_sum(data):
     chksum = 0
@@ -29,32 +29,30 @@ def calc_sum(data):
         chksum &= MAX16
     return chksum
 
-def fix_sum(f, addr, owl=False):
-    f.seek(addr)
-    data = f.read(save_size)
+def fix_sum(f, save, owl=False):
+    f.seek(save[0])
+    data = f.read(save[1])
     chksum = calc_sum(data[:chksum_offset])
 
-    if owl and data != b'\x00'*save_size:
+    if owl and data != b'\x00'*len(data):
         chksum += 0x24 # don't know why
         chksum &= MAX16
 
-    f.seek(addr + chksum_offset)
+    f.seek(save[0] + chksum_offset)
     old_chksum = R2(f.read(2))
-    f.seek(addr + chksum_offset)
+    f.seek(save[0] + chksum_offset)
     f.write(W2(chksum))
     lament('{:04X} -> {:04X}'.format(old_chksum, chksum))
 
-def copy_save(f, addr, addr2):
-    f.seek(addr)
-    # TODO: handle owl size properly
-    data = f.read(save_size)
-    f.seek(addr2)
-    f.write(data)
+def copy_save(f, save_from, save_to):
+    f.seek(save_from[0])
+    data = f.read(save_from[1])
+    f.seek(save_to[0])
+    f.write(data[:save_to[1]])
 
-def delete_save(f, addr):
-    f.seek(addr)
-    # TODO: handle owl size properly
-    f.write(b'\x00'*save_size)
+def delete_save(f, save):
+    f.seek(save[0])
+    f.write(b'\x00'*save[1])
 
 def run(args):
     for fn in args:
