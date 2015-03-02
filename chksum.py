@@ -1,18 +1,14 @@
 #!/bin/python
-# fixes the checksums in a Majora's Mask US 1.0 savefile for Bizhawk
+# fixes the checksums in a Majora's Mask savefile for Bizhawk
 # note: copies are ignored and overwritten, so don't bother editing them.
 
 import sys
-import struct
+import struct, array
 
 lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
-chunkize = lambda a, n: (a[i:i+n] for i in range(0, len(a), n))
 
-# seems redundant, but it's a lot less error-prone
-pack_u8 = lambda data: struct.pack('>B', data)
-pack_u16 = lambda data: struct.pack('>H', data)
-unpack_u8 = lambda data: struct.unpack('>B', data)[0]
-unpack_u16 = lambda data: struct.unpack('>H', data)[0]
+R2 = lambda data: struct.unpack('>H', data)[0]
+W2 = lambda data: struct.pack('>H', data)
 
 save_1 = 0x20800
 save_2 = 0x24800
@@ -25,8 +21,8 @@ owl_2_copy  = 0x34800
 
 def calc_sum(data):
     chksum = 0
-    for b in chunkize(data, 1):
-        chksum += unpack_u8(b)
+    for b in data:
+        chksum += b
         chksum &= 0xFFFF
     return chksum
 
@@ -41,9 +37,9 @@ def fix_sum(f, addr, owl=False):
         chksum &= 0xFFFF
 
     f.seek(addr + sum_pos)
-    old_chksum = unpack_u16(f.read(2))
+    old_chksum = R2(f.read(2))
     f.seek(addr + sum_pos)
-    f.write(pack_u16(chksum))
+    f.write(W2(chksum))
     lament('{:04X} -> {:04X}'.format(old_chksum, chksum))
 
 def copy_save(f, addr, addr2):
@@ -57,12 +53,12 @@ def delete_save(f, addr):
     f.seek(addr)
     f.write(b'\x00'*0x2000)
 
-def swap_endian(f):
+def swap_order(f, size='H'):
     f.seek(0)
-    data = f.read()
+    a = array.array(size, f.read())
+    a.byteswap()
     f.seek(0)
-    for s in chunkize(data, 4):
-        f.write(s[::-1])
+    f.write(a.tobytes())
 
 def run(args):
     args = args[1:]
@@ -78,19 +74,19 @@ def run(args):
                 endian = 'little'
 
             if endian == 'little':
-                swap_endian(f)
+                swap_order(f, 'L')
 
-            copy_save(f, save_1, save_1_copy)
-            copy_save(f, save_2, save_2_copy)
-            copy_save(f, owl_1, owl_1_copy)
-            copy_save(f, owl_2, owl_2_copy)
             fix_sum(f, save_1)
             fix_sum(f, save_2)
             fix_sum(f, owl_1, owl=True)
             fix_sum(f, owl_2, owl=True)
+            copy_save(f, save_1, save_1_copy)
+            copy_save(f, save_2, save_2_copy)
+            copy_save(f, owl_1, owl_1_copy)
+            copy_save(f, owl_2, owl_2_copy)
 
             if endian == 'little':
-                swap_endian(f)
+                swap_order(f, 'L')
     return 0
 
 if __name__ == '__main__':
