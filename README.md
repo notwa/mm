@@ -6,23 +6,25 @@ i like to muck around in this game's memory.
 
 i put together some sheets to see if glitches could have desirable results.
 
+* [Memory Addresses][gs_addrs]
+  updates more frequently than [MM addrs.lua.][noice]
+
 * [Get Item Manipulation][gim]  
   mzxrules did the original OoT one, i just jammed in MM's data for the item table and chest contents.
   *spoilers:* no desirable results besides light arrows, if it were even possible.
+  potential crashes are not taken account for.
 
 * [Entrance Data][ed]  
   this is a huge laggy mess that brings google docs to its knees.
   enter an "exit value" in hex and it'll figure out exactly where it takes you.
   the three known wrong warps are in bold.
 
+[gs_addrs]: https://docs.google.com/spreadsheets/d/1HD8yZM1Jza3O8zO28n3k_Rjwdx58RSMA03915l51oDA/edit?usp=sharing
+[noice]: /MM%20addrs.lua
 [gim]: https://docs.google.com/spreadsheets/d/17LsLbF6aRePVRxisui8azPtDBfPmjugWIf91wPuXTsY
 [ed]: https://docs.google.com/spreadsheets/d/1e9kDyAW0gxXHFWS-GNEtVIo-rp39wQJJOtf3B0ehhqY
 
 ## memory
-
-[~crap-ton of addresses in Lua form~][noice]
-
-[noice]: /MM%20addrs.lua
 
 link's struct begins at 801EF670 (US 1.0), and is some length long.
 i just pretend it's 0x4000 in size, since that's the most you can jam in a save file.
@@ -32,7 +34,7 @@ the first (801EFAE0 US 1.0) is loaded from save files, the second (801F35D8 US 1
 basically, edit the first for save hacking, and the second for in-game hacking.
 
 [each area in the game][areas] uses 0x14 bytes of scene flags.
-this implies there's 0x78 possible areas: 0x78*0x14 = 0x960.
+this implies there's 0x78 possible areas: 0x78\*0x14 = 0x960.
 
 [areas]: https://docs.google.com/spreadsheets/d/1e9kDyAW0gxXHFWS-GNEtVIo-rp39wQJJOtf3B0ehhqY/edit#gid=2120585358
 
