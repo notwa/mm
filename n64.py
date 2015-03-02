@@ -1,5 +1,9 @@
 # Based on uCON64's N64 checksum algorithm by Andreas Sterbenz
 
+from zlib import crc32
+
+MAX32 = 0xFFFFFFFF
+
 crc_seeds = {
     6101: 0xF8CA4DDC,
     6102: 0xF8CA4DDC,
@@ -8,7 +12,13 @@ crc_seeds = {
     6106: 0x1FEA617A,
 }
 
-MAX32 = 0xFFFFFFFF
+bootcode_crcs = {
+    0x6170A4A1: 6101,
+    0x90BB6CB5: 6102,
+    0x0B050EE0: 6103,
+    0x98BC2C86: 6105,
+    0xACC8580A: 6106,
+}
 
 def ROL(i, b):
     return ((i << b) | (i >> (32 - b))) & MAX32
@@ -67,3 +77,8 @@ def crc(f, bootcode=6105):
         crc1 = t6 ^ t4 ^ t3
         crc2 = t5 ^ t2 ^ t1
     return crc1 & MAX32, crc2 & MAX32
+
+def bootcode_version(f):
+    f.seek(0x40)
+    return bootcode_crcs[crc32(f.read(0x1000 - 0x40)) & MAX32]
+

@@ -3,7 +3,8 @@
 
 import os, os.path
 import sys
-import struct
+import io
+import struct, array
 import hashlib
 
 import n64
@@ -105,14 +106,27 @@ def z_dump(f):
     while z_dump_file(f, '{:05} '.format(i)):
         i += 1
 
+def swap_order(f, size='H'):
+    f.seek(0)
+    a = array.array(size, f.read())
+    a.byteswap()
+    f.seek(0)
+    f.write(a.tobytes())
+
 def dump_rom(fn):
     with open(fn, 'rb') as f:
         data = f.read()
 
-        if data[:4] != b'\x80\x37\x12\x40':
-            # TODO: check if it's a .n64 (2 byte swap) and convert
+    with io.BytesIO(data) as f:
+        start = f.read(4)
+        if start == b'\x37\x80\x40\x12':
+            swap_order(f)
+        elif start != b'\x80\x37\x12\x40':
             lament('not a .z64:', fn)
             return
+
+        f.seek(0)
+        data = f.read()
 
         outdir = hashlib.sha1(data).hexdigest()
         del data
@@ -123,8 +137,7 @@ def dump_rom(fn):
 
 def z_read_file(path, fn=None):
     if fn == None:
-        # TODO: infer from path
-        return False
+        fn = os.path.basename(path)
     if len(fn) < 37:
         return False
 
@@ -196,8 +209,9 @@ def create_rom(d):
         assert(f.tell() <= (pe or ve))
 
         # fix makerom (n64 header)
-        # TODO: don't assume bootcode is 6105
-        crc1, crc2 = n64.crc(f)
+        bootcode = n64.bootcode_version(f)
+        lament('bootcode:', bootcode)
+        crc1, crc2 = n64.crc(f, bootcode)
         lament('crcs: {:08X} {:08X}'.format(crc1, crc2))
         f.seek(0x10)
         f.write(W4(crc1))
