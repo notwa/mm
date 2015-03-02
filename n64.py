@@ -81,4 +81,3 @@ def crc(f, bootcode=6105):
 def bootcode_version(f):
     f.seek(0x40)
     return bootcode_crcs[crc32(f.read(0x1000 - 0x40)) & MAX32]
-

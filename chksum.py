@@ -3,12 +3,9 @@
 # note: copies are ignored and overwritten, so don't bother editing them.
 
 import sys
-import struct, array
+from util import R2, W2, swap_order
 
 lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
-
-R2 = lambda data: struct.unpack('>H', data)[0]
-W2 = lambda data: struct.pack('>H', data)
 
 save_1 = 0x20800
 save_2 = 0x24800
@@ -59,18 +56,7 @@ def delete_save(f, addr):
     # TODO: handle owl size properly
     f.write(b'\x00'*save_size)
 
-def swap_order(f, size='H'):
-    f.seek(0)
-    a = array.array(size, f.read())
-    a.byteswap()
-    f.seek(0)
-    f.write(a.tobytes())
-
 def run(args):
-    args = args[1:]
-    if len(args) == 0:
-        lament("TODO: convert stdin to stdout")
-        return 0
     for fn in args:
         with open(fn, 'r+b') as f:
             # dumb way to determine byte order
@@ -96,9 +82,8 @@ def run(args):
     return 0
 
 if __name__ == '__main__':
-    ret = 0
     try:
-        ret = run(sys.argv)
+        ret = run(sys.argv[1:])
+        sys.exit(ret)
     except KeyboardInterrupt:
         sys.exit(1)
-    sys.exit(ret)

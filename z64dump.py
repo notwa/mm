@@ -1,43 +1,19 @@
 #!/bin/python
 # shoutouts to spinout182
 
-import os, os.path
 import sys
-import io
-import struct, array
-import hashlib
+import os, os.path
+from io import BytesIO
+from hashlib import sha1
 
+from util import *
 import n64
 import Yaz0
 
 lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 
-R1 = lambda data: struct.unpack('>B', data)[0]
-R2 = lambda data: struct.unpack('>H', data)[0]
-R4 = lambda data: struct.unpack('>I', data)[0]
-W1 = lambda data: struct.pack('>B', data)
-W2 = lambda data: struct.pack('>H', data)
-W4 = lambda data: struct.pack('>I', data)
-
 # assume first entry is makerom (0x1060), and second entry begins from makerom
-fs_sig = b"\x00\x00\x00\x00\x00\x00\x10\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x60"
-
-class SubDir:
-    def __init__(self, d):
-        self.d = d
-    def __enter__(self):
-        self.cwd = os.getcwd()
-        try:
-            os.mkdir(self.d)
-        except FileExistsError:
-            pass
-        os.chdir(self.d)
-    def __exit__(self, type_, value, traceback):
-        os.chdir(self.cwd)
-
-def dump_as(b, fn):
-    with open(fn, 'w+b') as f:
-        f.write(b)
+dma_sig = b"\x00\x00\x00\x00\x00\x00\x10\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x60"
 
 def z_dump_file(f, prefix=None):
     vs = R4(f.read(4)) # virtual start
@@ -78,24 +54,25 @@ def z_dump_file(f, prefix=None):
     f.seek(here)
     return True, fn, vs, ve, ps, pe
 
-def z_find_fs(f):
+def z_find_dma(f):
     while True:
         # assume row alignment
         data = f.read(16)
         if len(data) == 0: # EOF
             break
-        if data == fs_sig[:16]:
-            rest = fs_sig[16:]
+        if data == dma_sig[:16]:
+            rest = dma_sig[16:]
             if f.read(len(rest)) == rest:
                 return f.tell() - len(rest) - 16
             else:
                 f.seek(len(rest), 1)
 
 def z_dump(f):
-    f.seek(0x1060) # skip header when finding fs
-    addr = z_find_fs(f)
+    f.seek(0x1060) # skip header when finding dma
+    addr = z_find_dma(f)
     if addr == None:
-        raise Exception("couldn't find file offset table")
+        lament("couldn't find file offset table")
+        return
 
     f.seek(addr - 0x30)
     build = f.read(0x30).strip(b'\x00').replace(b'\x00', b'\n')
@@ -106,18 +83,11 @@ def z_dump(f):
     while z_dump_file(f, '{:05} '.format(i)):
         i += 1
 
-def swap_order(f, size='H'):
-    f.seek(0)
-    a = array.array(size, f.read())
-    a.byteswap()
-    f.seek(0)
-    f.write(a.tobytes())
-
 def dump_rom(fn):
     with open(fn, 'rb') as f:
         data = f.read()
 
-    with io.BytesIO(data) as f:
+    with BytesIO(data) as f:
         start = f.read(4)
         if start == b'\x37\x80\x40\x12':
             swap_order(f)
@@ -126,10 +96,7 @@ def dump_rom(fn):
             return
 
         f.seek(0)
-        data = f.read()
-
-        outdir = hashlib.sha1(data).hexdigest()
-        del data
+        outdir = sha1(f.read()).hexdigest()
 
         with SubDir(outdir):
             f.seek(0)
@@ -138,6 +105,7 @@ def dump_rom(fn):
 def z_read_file(path, fn=None):
     if fn == None:
         fn = os.path.basename(path)
+
     if len(fn) < 37:
         return False
 
@@ -159,14 +127,44 @@ def z_read_file(path, fn=None):
 
     return True, data, vs, ve, ps, pe
 
+def z_write_dma(f, dma):
+    dma.sort(key=lambda vf: vf[0]) # sort by vs
+    assert(len(dma) > 2)
+    dma_entry = dma[2] # assumption
+    vs, ve, ps, pe = dma_entry
+
+    # initialize with zeros
+    dma_size = ve - vs
+    f.seek(ps)
+    f.write(bytearray(dma_size))
+
+    f.seek(ps)
+    for vf in dma:
+        vs, ve, ps, pe = vf
+        #lament('{:08X} {:08X} {:08X} {:08X}'.format(vs, ve, ps, pe))
+        f.write(W4(vs))
+        f.write(W4(ve))
+        f.write(W4(ps))
+        f.write(W4(pe))
+    assert(f.tell() <= (pe or ve))
+
+def fix_rom(f):
+    bootcode = n64.bootcode_version(f)
+    lament('bootcode:', bootcode)
+    crc1, crc2 = n64.crc(f, bootcode)
+    lament('crcs: {:08X} {:08X}'.format(crc1, crc2))
+    f.seek(0x10)
+    f.write(W4(crc1))
+    f.write(W4(crc2))
+
 def create_rom(d):
-    walker = os.walk(d)
-    root, _, files = next(walker)
-    del walker
+    root, _, files = next(os.walk(d))
 
     rom_size = 64*1024*1024
     with open(d+'.z64', 'w+b') as f:
-        fs = []
+        dma = []
+
+        # initialize with zeros
         f.write(bytearray(rom_size))
         f.seek(0)
 
@@ -188,37 +186,14 @@ def create_rom(d):
                 f.seek(vs)
                 f.write(data)
 
-            fs.append([vs, ve, ps, pe])
+            dma.append([vs, ve, ps, pe])
 
-        # fix filesystem
-        fs.sort(key=lambda vf: vf[0]) # sort by vs
-        assert(len(fs) > 2)
-        fs_entry = fs[2] # assumption
-        vs, ve, ps, pe = fs_entry
-        fs_size = ve - vs
-        f.seek(ps)
-        f.write(bytearray(fs_size))
-        f.seek(ps)
-        for vf in fs:
-            vs, ve, ps, pe = vf
-            #lament('{:08X} {:08X} {:08X} {:08X}'.format(vs, ve, ps, pe))
-            f.write(W4(vs))
-            f.write(W4(ve))
-            f.write(W4(ps))
-            f.write(W4(pe))
-        assert(f.tell() <= (pe or ve))
-
-        # fix makerom (n64 header)
-        bootcode = n64.bootcode_version(f)
-        lament('bootcode:', bootcode)
-        crc1, crc2 = n64.crc(f, bootcode)
-        lament('crcs: {:08X} {:08X}'.format(crc1, crc2))
-        f.seek(0x10)
-        f.write(W4(crc1))
-        f.write(W4(crc2))
+        z_write_dma(f, dma)
+        fix_rom(f)
 
 def run(args):
     for path in args:
+        # directories are technically files, so check this first
         if os.path.isdir(path):
             create_rom(path)
         elif os.path.isfile(path):
@@ -227,9 +202,8 @@ def run(args):
             lament('no-op:', path)
 
 if __name__ == '__main__':
-    ret = 0
     try:
         ret = run(sys.argv[1:])
+        sys.exit(ret)
     except KeyboardInterrupt:
         sys.exit(1)
-    sys.exit(ret)
