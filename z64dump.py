@@ -15,7 +15,7 @@ lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 # assume first entry is makerom (0x1060), and second entry begins from makerom
 dma_sig = b"\x00\x00\x00\x00\x00\x00\x10\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x60"
 
-def z_dump_file(f, prefix=None):
+def z_dump_file(f, i=0, name=None):
     vs = R4(f.read(4)) # virtual start
     ve = R4(f.read(4)) # virtual end
     ps = R4(f.read(4)) # physical start
@@ -25,28 +25,30 @@ def z_dump_file(f, prefix=None):
     if vs == ve == ps == pe == 0:
         return False
 
-    fn = 'V{:08X}-{:08X},P{:08X}-{:08X}'.format(vs, ve, ps, pe)
-    if prefix is not None:
-        fn = str(prefix) + fn
+    # ve inferred from filesize, and we're making pe be 0
+    # ps can just be the end of the last file
+    fn = '{:04} V{:08X}'.format(i, vs)
+    if name is not None:
+        fn = fn + ' ' + str(name)
 
     size = ve - vs
 
     if ps == 0xFFFFFFFF or pe == 0xFFFFFFFF:
         #lament('file does not exist')
-        dump_as(b'', fn)
+        dump_as(b'', fn, size)
     elif pe == 0:
         #lament('file is uncompressed')
         pe = ps + size
         f.seek(ps)
         data = f.read(pe - ps)
-        dump_as(data, fn)
+        dump_as(data, fn, size)
     else:
         #lament('file is compressed')
         f.seek(ps)
         compressed = f.read(pe - ps)
         if compressed[:4] == b'Yaz0':
             data = Yaz0.decode(compressed)
-            dump_as(data, fn)
+            dump_as(data, fn, size)
         else:
             lament('unknown compression; skipping:', fn)
             lament(compressed[:4])
@@ -67,8 +69,8 @@ def z_find_dma(f):
             else:
                 f.seek(len(rest), 1)
 
-def z_dump(f):
-    f.seek(0x1060) # skip header when finding dma
+def z_dump(f, names=None):
+    f.seek(0x1060) # skip header when finding dmatable
     addr = z_find_dma(f)
     if addr == None:
         lament("couldn't find file offset table")
@@ -80,8 +82,17 @@ def z_dump(f):
 
     f.seek(addr)
     i = 0
-    while z_dump_file(f, '{:05} '.format(i)):
+    if names:
+        for n in names:
+            if z_dump_file(f, i, n):
+                i += 1
+            else:
+                lament("ran out of filenames")
+                break
+    while z_dump_file(f, i):
         i += 1
+    if names and i > len(names):
+        lament("extraneous filenames")
 
 def dump_rom(fn):
     with open(fn, 'rb') as f:
@@ -96,36 +107,40 @@ def dump_rom(fn):
             return
 
         f.seek(0)
-        outdir = sha1(f.read()).hexdigest()
+        romhash = sha1(f.read()).hexdigest()
 
-        with SubDir(outdir):
+        names = None
+        if romhash == '50bebedad9e0f10746a52b07239e47fa6c284d03':
+            # OoT debug rom filenames
+            f.seek(0xBE80)
+            names = f.read(0x6490).split(b'\x00')
+            names = [str(n, 'utf-8') for n in names if n != b'']
+
+        with SubDir(romhash):
             f.seek(0)
-            z_dump(f)
+            z_dump(f, names)
 
 def z_read_file(path, fn=None):
     if fn == None:
         fn = os.path.basename(path)
 
-    if len(fn) < 37:
-        return False
+    if len(fn) < 14:
+        return False, None, None
 
-    fn = str(fn[-37:])
+    fn = str(fn[:14])
 
-    if fn[0] != 'V' or fn[9] != '-' or fn[18:20] != ',P' or fn[28] != '-':
-        return False
+    if fn[4:6] != ' V':
+        return False, None, None
 
     try:
-        vs = int(fn[ 1: 9], 16)
-        ve = int(fn[10:18], 16)
-        ps = int(fn[20:28], 16)
-        pe = int(fn[29:37], 16)
+        vs = int(fn[ 6: 14], 16)
     except ValueError:
-        return False
+        return False, None, None
 
     with open(path, 'rb') as f:
         data = f.read()
 
-    return True, data, vs, ve, ps, pe
+    return True, data, vs
 
 def z_write_dma(f, dma):
     dma.sort(key=lambda vf: vf[0]) # sort by vs
@@ -159,6 +174,7 @@ def fix_rom(f):
 
 def create_rom(d):
     root, _, files = next(os.walk(d))
+    files.sort()
 
     rom_size = 64*1024*1024
     with open(d+'.z64', 'w+b') as f:
@@ -168,25 +184,42 @@ def create_rom(d):
         f.write(bytearray(rom_size))
         f.seek(0)
 
-        for fn in files:
+        start = 0
+
+        for i, fn in enumerate(files):
             path = os.path.join(root, fn)
-            success, data, vs, ve, ps, pe = z_read_file(path, fn)
+            success, data, vs = z_read_file(path, fn)
             if not success:
                 lament('skipping:', fn)
                 continue
 
-            assert(vs < rom_size)
-            assert(ve <= rom_size)
-            if ps == 0xFFFFFFFF or pe == 0xFFFFFFFF:
+            if i <= 2:
+                # makerom, boot, dmadata need to be exactly where they were
+                start = vs
+            else:
+                # align to next row
+                start = (start + 15)//16*16
+
+            size = len(data)
+            if size:
+                ps = start
+                pe = 0
+            else:
                 ps = 0xFFFFFFFF
                 pe = 0xFFFFFFFF
-            else:
-                ps = vs
-                pe = 0
-                f.seek(vs)
+            ve = vs + size
+
+            assert(start <= rom_size)
+            assert(start + size <= rom_size)
+            assert(vs < rom_size)
+            assert(ve <= rom_size)
+
+            if size:
+                f.seek(start)
                 f.write(data)
 
             dma.append([vs, ve, ps, pe])
+            start += size
 
         z_write_dma(f, dma)
         fix_rom(f)

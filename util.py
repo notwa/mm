@@ -8,8 +8,11 @@ W1 = lambda data: struct.pack('>B', data)
 W2 = lambda data: struct.pack('>H', data)
 W4 = lambda data: struct.pack('>I', data)
 
-def dump_as(b, fn):
+def dump_as(b, fn, size=None):
     with open(fn, 'w+b') as f:
+        if size:
+            f.write(bytearray(size))
+            f.seek(0)
         f.write(b)
 
 def swap_order(f, size='H'):
