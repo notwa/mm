@@ -1,18 +1,32 @@
 #!/bin/python
-# shoutouts to spinout182
 
 import sys
 import os, os.path
 from io import BytesIO
 from hashlib import sha1
 
+# check for cython
+try:
+    import pyximport
+except ImportError:
+    fast = False
+else:
+    pyximport.install()
+    fast = True
+
+if fast:
+    import Yaz0_fast as Yaz0
+    import n64_fast as n64
+else:
+    import Yaz0
+    import n64
+
 from util import *
-from heuristics import *
-import n64
-import Yaz0
+from heuristics import detect_format
 
 lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 
+# shoutouts to spinout182
 # assume first entry is makerom (0x1060), and second entry begins from makerom
 dma_sig = b"\x00\x00\x00\x00\x00\x00\x10\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x60"
 
@@ -22,7 +36,7 @@ def dump_wrap(data, fn, size):
         fn += '.' + kind
     dump_as(data, fn, size)
 
-def z_dump_file(f, i=0, name=None):
+def z_dump_file(f, i=0, name=None, uncompress=True):
     vs = R4(f.read(4)) # virtual start
     ve = R4(f.read(4)) # virtual end
     ps = R4(f.read(4)) # physical start
@@ -54,11 +68,18 @@ def z_dump_file(f, i=0, name=None):
         f.seek(ps)
         compressed = f.read(pe - ps)
         if compressed[:4] == b'Yaz0':
-            data = Yaz0.decode(compressed)
-            dump_wrap(data, fn, size)
+            if uncompress:
+                data = Yaz0.decode(compressed)
+                dump_wrap(data, fn, size)
+            else:
+                dump_wrap(compressed, fn+'.Yaz0', len(compressed))
         else:
-            lament('unknown compression; skipping:', fn)
-            lament(compressed[:4])
+            if uncompress:
+                lament('unknown compression; skipping:', fn)
+                lament(compressed[:4])
+            else:
+                lament('unknown compression:', fn)
+                dump_wrap(compressed, fn, len(compressed))
 
     f.seek(here)
     return True

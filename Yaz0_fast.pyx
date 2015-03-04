@@ -1,18 +1,22 @@
 # decoder ripped from: http://www.amnoid.de/gc/yaz0.txt
 
-def decode(comp):
-    src = 16 # skip header
-    dst = 0
-    valid = 0 # bit count
-    curr = 0 # code byte
+ctypedef unsigned long ulong
+ctypedef unsigned char uchar
 
-    assert(comp[:4] == b'Yaz0')
-    assert(comp[8:12] == b'\x00\x00\x00\x00')
-    assert(comp[12:16] == b'\x00\x00\x00\x00')
+cdef ulong get_size(uchar *comp):
+    return comp[4]*0x1000000 + comp[5]*0x10000 + comp[6]*0x100 + comp[7]
 
-    # we could use struct but eh we only need it once
-    size = comp[4]*0x1000000 + comp[5]*0x10000 + comp[6]*0x100 + comp[7]
-    uncomp = bytearray(size)
+cdef void _decode(uchar *comp, uchar *uncomp):
+    cdef:
+        ulong src = 16 # skip header
+        ulong dst = 0
+        uchar valid = 0 # bit count
+        uchar curr = 0 # code byte
+
+        ulong size = get_size(comp)
+
+        uchar byte1, byte2
+        ulong dist, copy, i, n
 
     while dst < size:
         if not valid:
@@ -31,7 +35,6 @@ def decode(comp):
 
             dist = ((byte1 & 0xF) << 8) | byte2
             copy = dst - (dist + 1)
-            assert(copy >= 0)
 
             n = byte1 >> 4
             if n:
@@ -48,4 +51,8 @@ def decode(comp):
         curr <<= 1
         valid -= 1
 
+def decode(comp):
+    size = get_size(comp)
+    uncomp = bytearray(size)
+    _decode(comp, uncomp)
     return uncomp
