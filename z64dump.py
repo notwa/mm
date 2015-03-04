@@ -7,6 +7,7 @@ from io import BytesIO
 from hashlib import sha1
 
 from util import *
+from heuristics import *
 import n64
 import Yaz0
 
@@ -14,6 +15,12 @@ lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 
 # assume first entry is makerom (0x1060), and second entry begins from makerom
 dma_sig = b"\x00\x00\x00\x00\x00\x00\x10\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x60"
+
+def dump_wrap(data, fn, size):
+    kind = detect_format(BytesIO(data), fn)
+    if kind is not None:
+        fn += '.' + kind
+    dump_as(data, fn, size)
 
 def z_dump_file(f, i=0, name=None):
     vs = R4(f.read(4)) # virtual start
@@ -41,20 +48,20 @@ def z_dump_file(f, i=0, name=None):
         pe = ps + size
         f.seek(ps)
         data = f.read(pe - ps)
-        dump_as(data, fn, size)
+        dump_wrap(data, fn, size)
     else:
         #lament('file is compressed')
         f.seek(ps)
         compressed = f.read(pe - ps)
         if compressed[:4] == b'Yaz0':
             data = Yaz0.decode(compressed)
-            dump_as(data, fn, size)
+            dump_wrap(data, fn, size)
         else:
             lament('unknown compression; skipping:', fn)
             lament(compressed[:4])
 
     f.seek(here)
-    return True, fn, vs, ve, ps, pe
+    return True
 
 def z_find_dma(f):
     while True:
