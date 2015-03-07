@@ -9,12 +9,13 @@ end
 function Actor(addr)
     local function AA(a, s) return A(addr+a, s) end
     return {
-        number          = AA(0x0, 2),
+        num             = AA(0x0, 2),
         type            = AA(0x2, 1),
         flags           = AA(0x4, 4),
         x_copy          = AA(0x8, 'f'),
         y_copy          = AA(0xC, 'f'),
         z_copy          = AA(0x10, 'f'),
+        var             = AA(0x1C, 2),
         x               = AA(0x24, 'f'),
         y               = AA(0x28, 'f'),
         z               = AA(0x2C, 'f'),
@@ -27,6 +28,8 @@ function Actor(addr)
         z_vel           = AA(0x6C, 'f'),
         lin_vel_old     = AA(0x70, 'f'),
         ground_y        = AA(0x88, 'f'),
+        damage_table    = AA(0xA0, 4),
+        hp              = AA(0xB7, 1),
         angle           = AA(0xBA, 2),
         foot_left_x     = AA(0xD4, 'f'),
         foot_left_y     = AA(0xD8, 'f'),
