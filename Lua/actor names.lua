@@ -18,6 +18,7 @@ return {
     [0x010]="Tatl",
     [0x011]="Cucco",
     [0x012]="Tektite",
+--  [0x013]
     [0x014]="Peahat",
     [0x015]="?",
     [0x016]="Bug",
@@ -29,21 +30,31 @@ return {
     [0x01C]="?sht3",
     [0x01D]="? Bubble",
     [0x01E]="Dungeon Door",
+--  [0x01F]
     [0x020]="Boomerang/fin",
     [0x021]="Emptiness Statue",
     [0x022]="Frog",
+--  [0x023]
     [0x024]="Skulltula",
+--  [0x025]
     [0x026]="Sign (Pointing)",
     [0x027]="?",
     [0x028]="Water Noises", -- also lava
+--  [0x029]
     [0x02A]="? Storefront",
+--  [0x02B]
+--  [0x02C]
     [0x02D]="Death Armos",
+--  [0x02E]
     [0x02F]="Bombflower bomb",
+--  [0x030]
+--  [0x031]
     [0x032]="Armos",
     [0x033]="Deku Baba",
     [0x034]="?",
     [0x035]="?",
     [0x036]="Blacksmith Smoke", -- also in goron village?
+--  [0x037]
     [0x038]="Boss Warp",
     [0x039]="Torch",
     [0x03A]="Heart container",
@@ -52,35 +63,64 @@ return {
     [0x03D]="?",
     [0x03E]="Blue Bubble",
     [0x03F]="Fountain water",
+--  [0x040]
     [0x041]="Bush (Prop) / Tree",
+--  [0x042]
     [0x043]="Bat monster Gomess",
     [0x044]="?",
+--  [0x045]
+--  [0x046]
     [0x047]="Beamos",
     [0x048]="? Crash",
     [0x049]="Floating Mori Sparkles",
     [0x04A]="Floormaster",
+--  [0x04B]
     [0x04C]="Redead",
     [0x04D]="Large Stone Elevator",
+--  [0x04E]
     [0x04F]="? Fish Spawner",
     [0x050]="Skullwalltula",
     [0x051]="?fvo3",
+--  [0x052]
+--  [0x053]
     [0x054]="Epona",
     [0x055]="Grotto Hole",
+--  [0x056]
+--  [0x057]
+--  [0x058]
+--  [0x059]
+--  [0x05A]
     [0x05B]="?",
     [0x05C]="Opening Chest Effect", -- confirm?
+--  [0x05D]
+--  [0x05E]
     [0x05F]="MM Balloon",
     [0x060]="?",
     [0x061]="Twisting Corridor",
     [0x062]="?",
+--  [0x063]
     [0x064]="Shell Blade",
     [0x065]="? Frog thing miniboss",
     [0x066]="Mini Baba",
     [0x067]="Orange Gorman Bro walking",
+--  [0x068]
     [0x069]="Ruto Zora",
     [0x06A]="Bombchu (active)",
     [0x06B]="?",
     [0x06C]="Like Like",
+--  [0x06D]
+--  [0x06E]
+--  [0x06F]
+--  [0x070]
+--  [0x071]
+--  [0x072]
     [0x073]="?",
+--  [0x074]
+--  [0x075]
+--  [0x076]
+--  [0x077]
+--  [0x078]
+--  [0x079]
     [0x07A]="Movable Block", -- snowhead temple
     [0x07B]="?",
     [0x07C]="?tmr", -- seen: en route to milk road, path to village towards field
@@ -90,6 +130,12 @@ return {
     [0x080]="Crash",
     [0x081]="Box",
     [0x082]="Pot",
+--  [0x083]
+--  [0x084]
+--  [0x085]
+--  [0x086]
+--  [0x087]
+--  [0x088]
     [0x089]="?",
     [0x08A]="Deku Palace Servant",
     [0x08B]="Tatl Info Spot (b)",
@@ -101,10 +147,14 @@ return {
     [0x091]="Magic Bean Leaf",
     [0x092]="Boulder",
     [0x093]="Floor Switch (b)",
+--  [0x094]
     [0x095]="Collapsing stone platform",
     [0x096]="Blue hookshot statue",
     [0x097]="?",
+--  [0x098]
     [0x099]="Boudler",
+--  [0x09A]
+--  [0x09B]
     [0x09C]="Construction Worker",
     [0x09D]="?",
     [0x09E]="Lock-on-able spot",
@@ -112,71 +162,115 @@ return {
     [0x0A0]="Movable Block Stop Effect", -- snowhead temple
     [0x0A1]="Link casts weird shadow",
     [0x0A2]="Explosion",
+--  [0x0A3]
     [0x0A4]="Gorman",
     [0x0A5]="Magic bean seller",
     [0x0A6]="Cucco Guy",
     [0x0A7]="Swamp Tour Boat",
     [0x0A8]="Sign",
+--  [0x0A9]
     [0x0AA]="Angry cucco",
+--  [0x0AB]
+--  [0x0AC]
+--  [0x0AD]
     [0x0AE]="Mad professor",
     [0x0AF]="Kaepora Gaebora",
     [0x0B0]="Rock",
     [0x0B1]="? Flower",
     [0x0B2]="Sun Emblem",
     [0x0B3]="Rock Circle",
+--  [0x0B4]
     [0x0B5]="?",
+--  [0x0B6]
+--  [0x0B7]
     [0x0B8]="Whirlpool effect",
     [0x0B9]="?",
+--  [0x0BA]
+--  [0x0BB]
     [0x0BC]="? snow?", -- seen: anywhere frozen mountain village
     [0x0BD]="Kakariko roof guy",
+--  [0x0BE]
     [0x0BF]="Majora masked child",
+--  [0x0C0]
+--  [0x0C1]
+--  [0x0C2]
+--  [0x0C3]
     [0x0C4]="Rain and lightning",
     [0x0C5]="Press Start",
     [0x0C6]="?",
     [0x0C7]="Lrg floating stone pltfm",
+--  [0x0C8]
+--  [0x0C9]
     [0x0CA]="Scarecrow",
     [0x0CB]="?",
     [0x0CC]="Sun's song effect",
+--  [0x0CD]
     [0x0CE]="Treasure chest",
+--  [0x0CF]
     [0x0D0]="?",
+--  [0x0D1]
+--  [0x0D2]
     [0x0D3]="On screen timer",
     [0x0D4]="Mask of Truth Skulltula",
+--  [0x0D5]
     [0x0D6]="Purple song effect",
     [0x0D7]="Song of storms effect",
     [0x0D8]="?",
     [0x0D9]="?",
     [0x0DA]="Fired Deku Nut",
+--  [0x0DB]
+--  [0x0DC]
+--  [0x0DD]
+--  [0x0DE]
     [0x0DF]="Epona's song effect",
     [0x0E0]="Saria's song effect",
+--  [0x0E1]
     [0x0E2]="Dog",
     [0x0E3]="Gold Skulltula spirit",
     [0x0E4]="Beehive",
     [0x0E5]="Wooden Crate",
+--  [0x0E6]
     [0x0E7]="Blue Navi lock-on spot",
     [0x0E8]="Stack of Rupees",
     [0x0E9]="Honey & Darling",
+--  [0x0EA]
+--  [0x0EB]
     [0x0EC]="Wolfos",
     [0x0ED]="Stalchild",
+--  [0x0EE]
     [0x0EF]="Gossip Stone",
     [0x0F0]="Ambient Noises",
     [0x0F1]="Guay",
+--  [0x0F2]
     [0x0F3]="Cow",
+--  [0x0F4]
+--  [0x0F5]
     [0x0F6]="Blue song effect",
+--  [0x0F7]
     [0x0F8]="Walking Zora",
     [0x0F9]="?",
     [0x0FA]="Walking Gerudo",
+--  [0x0FB]
     [0x0FC]="Invisible round thing",
     [0x0FD]="Crash",
     [0x0FE]="Postman's letter",
+--  [0x0FF]
     [0x100]="Dungeon Spiral Stairs",
+--  [0x101]
     [0x102]="?",
     [0x103]="?",
+--  [0x104]
     [0x105]="Armos statue",
     [0x106]="Green jiggly thing (Beta)",
+--  [0x107]
+--  [0x108]
     [0x109]="Dragonfly",
+--  [0x10A]
     [0x10B]="?lc", -- seen: lens cave
     [0x10C]="?tc", -- seen: termina field clock tower, lens cave
     [0x10D]="Random blue polygons",
+--  [0x10E]
+--  [0x10F]
     [0x110]="Proximity firewall",
     [0x111]="?",
     [0x112]="?",
@@ -191,6 +285,7 @@ return {
     [0x11B]="?",
     [0x11C]="?sotct", -- seen: first part of first time playing SoT cutscene
     [0x11D]="Big ugly chap",
+--  [0x11E]
     [0x11F]="Stalagtite",
     [0x120]="?",
     [0x121]="Lockable blue spot",
@@ -198,6 +293,8 @@ return {
     [0x123]="?",
     [0x124]="?",
     [0x125]="?",
+--  [0x126]
+--  [0x127]
     [0x128]="?",
     [0x129]="Odolwa",
     [0x12A]="Twinmold",
@@ -207,8 +304,15 @@ return {
     [0x12E]="?",
     [0x12F]="?",
     [0x130]="?",
+--  [0x131]
     [0x132]="Lockable blue spot",
+--  [0x133]
+--  [0x134]
+--  [0x135]
+--  [0x136]
+--  [0x137]
     [0x138]="Goron", -- freezing?
+--  [0x139]
     [0x13A]="Man eating plant",
     [0x13B]="?",
     [0x13C]="Stone platform",
@@ -231,6 +335,7 @@ return {
     [0x14D]="? Various 2D Sprites", -- Chimney, 
     [0x14E]="Inn Bell",
     [0x14F]="?",
+--  [0x150]
     [0x151]="2d wooden wall",
     [0x152]="Princess Zelda",
     [0x153]="Broken Great Fairy",
@@ -252,10 +357,12 @@ return {
     [0x163]="?",
     [0x164]="Boe",
     [0x165]="?",
+--  [0x166]
     [0x167]="?",
     [0x168]="Speaking Spot (Boat Tour)",
     [0x169]="?",
     [0x16A]="Deku King",
+--  [0x16B]
     [0x16C]="Wrought iron fence",
     [0x16D]="Boulder Blocking Races",
     [0x16E]="Enemy lockon spot",
@@ -263,6 +370,7 @@ return {
     [0x170]="Water Droplets",
     [0x171]="Bush (Keaton)",
     [0x172]="Proximity firewall",
+--  [0x173]
     [0x174]="?",
     [0x175]="Floating beam of light",
     [0x176]="Tingle",
@@ -284,6 +392,8 @@ return {
     [0x186]="?",
     [0x187]="?",
     [0x188]="Kotake",
+--  [0x189]
+--  [0x18A]
     [0x18B]="?",
     [0x18C]="? Night/Day Change", -- seen: sot cutscene
     [0x18D]="?",
@@ -302,6 +412,7 @@ return {
     [0x19A]="?",
     [0x19B]="?",
     [0x19C]="Clock",
+--  [0x19D]
     [0x19E]="?",
     [0x19F]="Stone block",
     [0x1A0]="Deku palace entrnc guard",
@@ -322,9 +433,9 @@ return {
     [0x1AF]="Poured out water",
     [0x1B0]="Stray Fairy",
     [0x1B1]="Stray Fairy in Bubble",
-    [0x1B3]="?",
+    [0x1B2]="?",
+--  [0x1B3]
     [0x1B4]="?",
-    [0x1B5]="?",
     [0x1B5]="Happy Mask Salesman",
     [0x1B6]="Watermill",
     [0x1B7]="? Witch on Broom",
@@ -333,18 +444,21 @@ return {
     [0x1BA]="Snapper",
     [0x1BB]="?",
     [0x1BC]="Circle of water",
-    [0x1BD]="? Deku Salesman/Flower",
+    [0x1BD]="Deku Merchant Flower",
     [0x1BE]="Tunnel blocking foliage",
+--  [0x1BF]
     [0x1C0]="Invisible Platform",
     [0x1C1]="Maze game girl",
     [0x1C2]="Fisherman",
     [0x1C3]="Item shop fill in guy",
     [0x1C4]="Item shop guy",
     [0x1C5]="Tingle's father",
+--  [0x1C6]
     [0x1C7]="Town Guard",
     [0x1C8]="Field stalagtite",
     [0x1C9]="Deku game deku",
     [0x1CA]="Dampe",
+--  [0x1CB]
     [0x1CC]="?",
     [0x1CD]="Deku game platform",
     [0x1CE]="Song of soaring effect",
@@ -370,6 +484,7 @@ return {
     [0x1E2]="? Stone Tower Object",
     [0x1E3]="Gravestone",
     [0x1E4]="Stone Column", -- snowhead temple
+--  [0x1E5]
     [0x1E6]="Eeno",
     [0x1E7]="?",
     [0x1E8]="Purple poe",
@@ -399,6 +514,7 @@ return {
     [0x200]="?",
     [0x201]="Goron baby",
     [0x202]="Anju",
+--  [0x203]
     [0x204]="Giant bee",
     [0x205]="?",
     [0x206]="Deep Python",
@@ -406,7 +522,7 @@ return {
     [0x208]="Big Poe",
     [0x209]="Cloth with japanese",
     [0x20A]="Tiny Cow Model",
-    [0x20B]="? Apprentice / Secret spot",
+    [0x20B]="Apprentice", -- spinout has this as "Secret Spot" for some reason, OoT?
     [0x20C]="?",
     [0x20D]="?",
     [0x20E]="Cracked house wall",
@@ -552,6 +668,7 @@ return {
     [0x29A]="?",
     [0x29B]="Stone platform",
     [0x29C]="?",
+--  [0x29D]
     [0x29E]="Tatl blue spot",
     [0x29F]="Fat inn woman",
     [0x2A0]="Grandmother",
