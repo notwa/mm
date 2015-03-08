@@ -1,0 +1,4 @@
+*.lua text eol=lf
+*.py text eol=lf
+*.pyx text eol=lf
+*.pyxbld text eol=lf
