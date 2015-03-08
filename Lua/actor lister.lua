@@ -25,6 +25,7 @@ end
 local seen = {}
 local seen_strs = {}
 local seen_strs_sorted = {}
+local last_any = 0
 
 while true do
     local any = 0
@@ -36,9 +37,15 @@ while true do
     T(0, 1, ("sum:%3i"):format(any), nil, "bottomright")
 
     if any == 0 then
+        if #seen_strs_sorted > 0 then -- lazy way of doing this once
+            for i = 1, 5 do
+                print()
+            end
+        end
         seen = {}
         seen_strs = {}
-        console.clear()
+        seen_strs_sorted = {}
+        --console.clear()
     end
 
     local seen_new = false
@@ -47,7 +54,7 @@ while true do
     local actor_index = 0
     local once = false
     local i = 0
-    while any > 0 do
+    while any > 0 and last_any ~= any do
         if once and actor_type == 2 and actor_index == 0 then break end
         actor_index = actor_index + 1
 
@@ -85,7 +92,7 @@ while true do
                 seen_new = true
                 local str
                 if name:sub(1,1) == "?" then
-                    str = ("%s (%04X)"):format(name, num)
+                    str = ("%s (%03X)"):format(name, num)
                 else
                     str = ("%s"):format(name)
                 end
@@ -95,16 +102,16 @@ while true do
 
             if name == nil and num < 0x300 then
                 actor_names[num] = "NEW"
-                print(('\t[0x%03X]="NEW",'):format(num))
+                print(("\t[0x%03X]=\"NEW\","):format(num))
 
                 local dmg = bit.band(addr + actor_t.damage_table.addr, 0x7FFFFFFF)
                 if dmg == 0 then
                     print("(no damage table)")
                 else
                     local hp = R1(addr + actor_t.hp.addr)
-                    s = ('%04X\t%02X\t%02X'):format(num, actor_type, hp)
+                    s = ("%04X\t%02X\t%02X"):format(num, actor_type, hp)
                     for i = 0, 31 do
-                        s = s..('\t%02X'):format(R1(dmg + i))
+                        s = s..("\t%02X"):format(R1(dmg + i))
                     end
                     print(s)
                 end
@@ -114,6 +121,8 @@ while true do
         i = i + 1
         once = true
     end
+
+    last_any = any
 
     function sort_by_key(t)
         local sorted = {}
@@ -140,7 +149,7 @@ while true do
     local z = target or cursor
     if z then
         local num = R2(z)
-        T(0, 0, seen_strs[num], nil, 'topright')
+        T(0, 0, seen_strs[num], nil, "topright")
     end
 
     emu.yield()

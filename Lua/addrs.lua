@@ -1,4 +1,4 @@
-local versions = {
+versions = {
     ['D6133ACE5AFAA0882CF214CF88DABA39E266C078'] = "US10",
     ['2F0744F2422B0421697A74B305CB1EF27041AB11'] = "USDE",
     ['9743AA026E9269B339EB0E3044CD5830A440C1FD'] = "USGC",
@@ -11,7 +11,6 @@ local versions = {
     ['1438FD501E3E5B25461770AF88C02AB1E41D3A7E'] = "JPGC",
 }
 
-local hash, version, addrs
 --while version == nil do
 --    emu.yield() -- wait until a known ROM is loaded (doesn't work)
     hash = gameinfo.getromhash()
