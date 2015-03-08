@@ -53,7 +53,7 @@ end
 
 return {
     link                = A(link, 0x4000),
-    area_mod            = AL(0x02, 2), -- TODO: rename to exit_value?
+    exit_value          = AL(0x02, 2),
     intro_completed     = AL(0x05, 1),
     cutscene_status     = AL(0x0A, 2),
     time                = AL(0x0C, 2),
@@ -63,7 +63,7 @@ return {
     day                 = AL(0x18, 4),
     day_again           = AL(0x1C, 4),
     transformation      = AL(0x20, 1),
-    zeroth_day          = AL(0x23, 1), -- TODO: rename to owl_save
+    owl_save            = AL(0x23, 1), -- "zeroth day" effect
     ZELDA3              = AL(0x24, 6),
     sot_count           = AL(0x2A, 2),
     name                = AL(0x2C, 8),
@@ -90,6 +90,7 @@ return {
     keys_sht            = AL(0xCB, 1),
     keys_gbt            = AL(0xCC, 1),
     keys_stt            = AL(0xCD, 1),
+    doubled_hearts      = AL(0xD3, 1), -- set to 20 by the game
     fairies_wft         = AL(0xD4, 1),
     fairies_sht         = AL(0xD5, 1),
     fairies_gbt         = AL(0xD6, 1),
@@ -97,6 +98,8 @@ return {
     strange_string      = AL(0xDE, 6),
     scene_flags_save    = AL(0x470, 0x960),
   --clock_town_map      = AL(0xEB2, 1),
+    slulltula_count_wf  = AL(0xEC0, 2),
+    slulltula_count_gb  = AL(0xEC2, 2),
     banked_rupees       = AL(0xEDE, 2),
     archery             = AL(0xF00, 1),
     chateau_romani      = AL(0xF06, 1), -- 8
@@ -188,7 +191,7 @@ return {
         giants          = AL(0x9E, 1),
         fierce_deity    = AL(0x9F, 1),
     },
-    counts = {
+    quantities = {
         arrows          = AL(0xA1, 1),
         bombs           = AL(0xA6, 1),
         bombchu         = AL(0xA7, 1),

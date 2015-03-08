@@ -2,6 +2,9 @@ require "boilerplate"
 local addrs = require "addrs"
 local actor_names = require "actor names"
 
+-- bizhawk lua has some nasty memory leaks at the moment,
+-- so instead of creating an object every time,
+-- using a template to offset from will do for now.
 local actor_t = Actor(0)
 
 function get_actor_count(i)
@@ -37,15 +40,14 @@ while true do
     T(0, 1, ("sum:%3i"):format(any), nil, "bottomright")
 
     if any == 0 then
-        if #seen_strs_sorted > 0 then -- lazy way of doing this once
-            for i = 1, 5 do
-                print()
-            end
-        end
         seen = {}
         seen_strs = {}
         seen_strs_sorted = {}
-        --console.clear()
+        if last_any ~= any then
+            print()
+            print("# actors wiped #")
+            print()
+        end
     end
 
     local seen_new = false

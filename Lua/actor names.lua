@@ -68,10 +68,10 @@ return {
     [0x03E]="Blue Bubble",
     [0x03F]="Fountain Water",
     [0x040]=unset,
-    [0x041]="Trees & Bushes",
+    [0x041]="Foliage",
     [0x042]=unset,
     [0x043]="Gomess",
-    [0x044]="Gomess Bats", -- TODO: verify
+    [0x044]="Gomess Bats",
     [0x045]=unset,
     [0x046]=unset,
     [0x047]="Beamos",
@@ -270,8 +270,8 @@ return {
     [0x108]=unset,
     [0x109]="Dragonfly",
     [0x10A]=unset,
-    [0x10B]="? Obj_Grass", -- seen: lens cave
-    [0x10C]="? Obj_Grass_Carry", -- seen: lens cave, termina field clock tower
+    [0x10B]="? Obj_Grass", -- probably just some helper code
+    [0x10C]="? Obj_Grass_Carry", -- two per area with grass, one follows link when carrying grass
     [0x10D]="Grass Cluster", -- used for loading
     [0x10E]=unset,
     [0x10F]=unset,

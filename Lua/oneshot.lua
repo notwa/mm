@@ -3,11 +3,11 @@ local addrs = require "addrs"
 require "item values"
 local inv = addrs.inventory
 local masks = addrs.masks
-local counts = addrs.counts
+local quantities = addrs.quantities
 _=addrs.target_style and addrs.target_style(1)
 --addrs.buttons_enabled   (0)
 --addrs.infinite_sword(1)
-addrs.zeroth_day    (1)
+addrs.owl_save      (1)
 addrs.sot_count     (0)
 _=addrs.bubble_timer and addrs.bubble_timer(0)
 --
@@ -15,6 +15,7 @@ addrs.sword_shield  (0x23)
 addrs.quiver_bag    (0x1B)
 addrs.hearts        (16*20)
 addrs.max_hearts    (16*20)
+addrs.doubled_hearts(20)
 addrs.owls_hit      (0xFFFF)
 addrs.map_visible   (0xFFFF)
 addrs.map_visited   (0xFFFF)
@@ -54,6 +55,9 @@ addrs.fairies_wft(69)
 addrs.fairies_sht(69)
 addrs.fairies_gbt(69)
 addrs.fairies_stt(69)
+
+--addrs.slulltula_count_wf(69)
+--addrs.slulltula_count_gb(69)
 
 --inv.b_button        (0x4F) -- don't really need this
 inv.ocarina         (0x00)
@@ -111,10 +115,10 @@ masks.captains      (mv.captains     )
 masks.giants        (mv.giants       )
 masks.fierce_deity  (mv.fierce_deity )
 
-counts.arrows       (69)
-counts.bombs        (69)
-counts.bombchu      (69)
-counts.sticks       (69)
-counts.nuts         (69)
-counts.beans        (69)
-counts.kegs         (69)
+quantities.arrows       (69)
+quantities.bombs        (69)
+quantities.bombchu      (69)
+quantities.sticks       (69)
+quantities.nuts         (69)
+quantities.beans        (69)
+quantities.kegs         (69)
