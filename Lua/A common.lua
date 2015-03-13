@@ -232,6 +232,11 @@ return {
     bomb_counter        = AG(0x1CD4, 1),
     z_cursor_actor      = AG(0x1DF8, 4),
     z_target_actor      = AG(0x1DFC, 4),
+    current_scene_flags_2 = AG(0x1E58, 4), -- note: I use SRAM ordering here
+    current_scene_flags_3 = AG(0x1E5C, 4),
+    current_scene_flags_1 = AG(0x1E68, 4),
+    current_scene_flags_4 = AG(0x1E6C, 4),
+    current_scene_flags_5 = AG(0x1E74, 4),
 
     link_actor = merge(Actor(AA(0,0).addr), {
         item_in_hand    = AA(0x148, 1),
