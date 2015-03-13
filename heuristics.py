@@ -11,27 +11,11 @@ def try_dmadata(f):
     return False
 
 def try_actor(f):
-    if True:
-        # this is dumb.
-        # actors are just object files really,
-        # so anything we can detect with would just detect code
-        # or inconsistent data.
-        # maybe there's some common-looking function between them.
-        return False
-    f.seek(-4*4, 2)
-    end = f.tell()
-    for i in range(end, end - 0x200, -4):
-        if i <= 0:
-            return False
-        f.seek(i)
-        #row = f.read(0x10)
-        row = f.read(0xC)
-        if len(row) == 0:
-            return False
-        #if row == b'\x82\x00\x00\x10\x82\x00\x00\x14\x82\x00\x00\x18\x82\x00\x00\x1c':
-        #    return True
-        if row == b'\x82\x00\x00\x10\x82\x00\x00\x14\x82\x00\x00\x18':
-            return True
+    # actors are just object files really,
+    # so anything we can detect with
+    # would just detect code or inconsistent data.
+    # maybe there's some common-looking function between them.
+    return False
 
 def try_scene_or_room(f, bank=2):
     # note: doesn't detect syotes_room_0 because it's missing a header
