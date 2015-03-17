@@ -2,24 +2,23 @@
 
 local hash = gameinfo.getromhash()
 local versions = {
-    ['D6133ACE5AFAA0882CF214CF88DABA39E266C078'] = 'US10',
+    ['D6133ACE5AFAA0882CF214CF88DABA39E266C078'] = "US10",
+    ['5FB2301AACBF85278AF30DCA3E4194AD48599E36'] = "JP10",
 }
 local version = versions[hash]
 
-local JP = version ~= 'US10'
-
-local index = 84
+local index = 0
+local fn = 'lua chest test'
 
 local start, ours, text
-if not JP then
-    -- US 1.0
+if version == 'US10' then
     start = 0x779884 -- the get item table
     ours  = 0x779896 -- the chest we're standing in front of
     text  = 0x3FCE10 -- ascii text buffer
-else
+elseif version == 'JP10' then
     start = 0x7797E4 -- the get item table
     ours  = 0x7797F6 -- the chest we're standing in front of
-    text  = 0x3FD660 -- ascii text buffer (not quite but close enough)
+    text  = 0x3FD660 -- no such thing in JP but we need something
 end
 
 function draw_index()
@@ -61,7 +60,6 @@ function read_ascii(addr, len)
     return str
 end
 
-local fn = 'lua chest test'
 client.unpause()
 savestate.save(fn)
 for off=index*6, 185*6, 6 do
@@ -73,14 +71,15 @@ for off=index*6, 185*6, 6 do
     joypad.set({A=true}, 1)
     advance()
     joypad.set({A=false}, 1)
+
     local good = false
     for i=1, 9*20 do
-        if JP and (
-            (index >= 85 and index <= 88)
-        ) then break end -- crashes
+        if version == 'JP10' and (index >= 85 and index <= 88) then
+            break -- crashes
+        end
         advance()
         if mainmemory.readbyte(text + 0xA) == 0xFF then
-            if not JP then
+            if version == 'US10' then
                 local begin = text + 0xC
                 print(off/6 + 1, read_ascii(begin))
                 good = true

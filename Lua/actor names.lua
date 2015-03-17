@@ -5,7 +5,7 @@ local unset="unset"
 return {
     [0x000]="Link",
     [0x001]="Wall Punch / Ground Pound Effect",
-    [0x002]="Store Item", -- TODO: double check
+    [0x002]="Store Item",
     [0x003]="?",
     [0x004]="Flame Prop", -- also ice?
     [0x005]="Wooden Door",
@@ -45,7 +45,7 @@ return {
     [0x027]="? STT Flip",
     [0x028]="Environmental Noise",
     [0x029]=unset,
-    [0x02A]="Trading Post Owner", -- Storefront?
+    [0x02A]="Trading Post Owner", -- Storefront? also bomb shop owner
     [0x02B]=unset,
     [0x02C]=unset,
     [0x02D]="Death Armos",
@@ -383,7 +383,7 @@ return {
     [0x179]="Drifting Ice Platform",
     [0x17A]="Deku Palace Guard",
     [0x17B]="3 Bugs",
-    [0x17C]="? En_Fall", -- considering the filename and number of places it's in, could this affect voiding out? or what if it means the moon can fall in this area?
+    [0x17C]="Moon / Moon Stuff",
     [0x17D]="Postman (Home)",
     [0x17E]="Deku Shrine Closing Door",
     [0x17F]="Deku Butler",
@@ -548,7 +548,7 @@ return {
     [0x21E]="Pirate Guard", -- or is Gerudo Guard better?
     [0x21F]="Romani",
     [0x220]="Cremia",
-    [0x221]="Lower Carnival Platform", -- "String of Flags"
+    [0x221]="Carnival Platform", -- "String of Flags"
     [0x222]="Elevator (GBT)",
     [0x223]="Owl Statue",
     [0x224]="Mikau",

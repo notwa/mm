@@ -176,5 +176,5 @@ while true do
     end
 
     old_ctrl = ctrl
-    emu.yield()
+    emu.frameadvance()
 end
