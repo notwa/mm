@@ -1,18 +1,27 @@
 require "boilerplate"
 local addrs = require "addrs"
-local actor_names = require "actor names"
 
 -- bizhawk lua has some nasty memory leaks at the moment,
 -- so instead of creating an object every time,
 -- using a template to offset from will do for now.
 local actor_t = Actor(0)
 
+local oot = version:sub(1, 2) == "O "
+local al_next = addrs.actor_count_1.addr - addrs.actor_count_0.addr
+
+local actor_names
+if oot then
+    actor_names = require "actor names oot"
+else
+    actor_names = require "actor names"
+end
+
 function get_actor_count(i)
-    return R4(addrs.actor_count_0.addr + i*0xC)
+    return R4(addrs.actor_count_0.addr + i*al_next)
 end
 
 function get_first_actor(i)
-    return bit.band(R4(addrs.actor_first_0.addr + i*0xC), 0x7FFFFFFF)
+    return bit.band(R4(addrs.actor_first_0.addr + i*al_next), 0x7FFFFFFF)
 end
 
 function get_next_actor(addr)
@@ -30,6 +39,8 @@ local seen_strs = {}
 local seen_strs_sorted = {}
 local last_any = 0
 
+local stupid = addrs.actor_count_0.addr - 0x8
+
 while true do
     local any = 0
     for i = 0, 11 do
@@ -38,6 +49,14 @@ while true do
         any = any + count
     end
     T(0, 1, ("sum:%3i"):format(any), nil, "bottomright")
+    if addrs.actor_count then
+        T(10, 1, ("sum:%3i"):format(R1(addrs.actor_count.addr)), 'cyan', "bottomright")
+    end
+
+    if R4(stupid) ~= 0 then
+        T(0, 14, "stupid", "red", "bottomright")
+        any = 0
+    end
 
     if any == 0 then
         seen = {}
@@ -55,9 +74,11 @@ while true do
     local actor_type = 2
     local actor_index = 0
     local once = false
-    local i = 0
+    local j = 0
     while any > 0 and last_any ~= any do
-        if once and actor_type == 2 and actor_index == 0 then break end
+        if once and actor_type == 2 and actor_index == 0 then
+            break
+        end
         actor_index = actor_index + 1
 
         local actor_count = get_actor_count(actor_type)
@@ -85,6 +106,25 @@ while true do
             local num = R2(addr)
             local name = actor_names[num]
 
+            if name == nil and num < 0x300 then
+                name = "NEW"
+                actor_names[num] = name
+                print(("\t[0x%03X]=\"NEW\","):format(num))
+
+                if actor_t.damage_table and actor_t.hp then
+                    local dmg = bit.band(addr + actor_t.damage_table.addr, 0x7FFFFFFF)
+                    if dmg == 0 then
+                        print("(no damage table)")
+                    else
+                        local hp = R1(addr + actor_t.hp.addr)
+                        s = ("%04X\t%02X\t%02X"):format(num, actor_type, hp)
+                        for i = 0, 31 do
+                            s = s..("\t%02X"):format(R1(dmg + i))
+                        end
+                        print(s)
+                    end
+                end
+            end
 
             if num > 0x300 then
                 print(("BAD %06X %04X (%2i:%2i)"):format(addr, num, actor_type, actor_index))
@@ -101,27 +141,14 @@ while true do
                 seen_strs[num] = str
                 print(str)
             end
-
-            if name == nil and num < 0x300 then
-                actor_names[num] = "NEW"
-                print(("\t[0x%03X]=\"NEW\","):format(num))
-
-                local dmg = bit.band(addr + actor_t.damage_table.addr, 0x7FFFFFFF)
-                if dmg == 0 then
-                    print("(no damage table)")
-                else
-                    local hp = R1(addr + actor_t.hp.addr)
-                    s = ("%04X\t%02X\t%02X"):format(num, actor_type, hp)
-                    for i = 0, 31 do
-                        s = s..("\t%02X"):format(R1(dmg + i))
-                    end
-                    print(s)
-                end
-            end
         end
 
-        i = i + 1
+        j = j + 1
         once = true
+        if j > 255 then
+            print("something went terribly wrong")
+            do return end
+        end
     end
 
     last_any = any
@@ -146,13 +173,15 @@ while true do
 
     T(0, 0, ("unique:%3i"):format(#seen_strs_sorted), nil, "bottomright")
 
-    local cursor = bit.band(addrs.z_cursor_actor(), 0x7FFFFFFF)
-    local target = bit.band(addrs.z_target_actor(), 0x7FFFFFFF)
-    local z = target or cursor
-    if z then
-        local num = R2(z)
-        T(0, 0, seen_strs[num], nil, "topright")
+    if once then
+        local cursor = bit.band(addrs.z_cursor_actor(), 0x7FFFFFFF)
+        local target = bit.band(addrs.z_target_actor(), 0x7FFFFFFF)
+        local z = target or cursor
+        if z then
+            local num = R2(z)
+            T(0, 0, seen_strs[num], nil, "topright")
+        end
     end
 
-    emu.yield()
+    emu.frameadvance()
 end
