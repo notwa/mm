@@ -1,5 +1,5 @@
 require "boilerplate"
-local addrs = require "addrs"
+require "addrs"
 
 -- bizhawk lua has some nasty memory leaks at the moment,
 -- so instead of creating an object every time,
@@ -9,11 +9,13 @@ local actor_t = Actor(0)
 local oot = version:sub(1, 2) == "O "
 local al_next = addrs.actor_count_1.addr - addrs.actor_count_0.addr
 
-local actor_names
+local actor_names, damage_names
 if oot then
     actor_names = require "actor names oot"
+    damage_names = require "damage names oot"
 else
     actor_names = require "actor names"
+    damage_names = require "damage names"
 end
 
 function T(x, y, s, color, pos)
@@ -56,6 +58,7 @@ function iter_actors(counts)
     local once = false
     local addr
     return function()
+        if not counts then return nil end
         if once then ai = ai + 1 end
         once = true
 
@@ -79,10 +82,34 @@ function iter_actors(counts)
     end
 end
 
+local ctrl
+local pressed = {}
+local old_ctrl = {}
+function update_input()
+    local j = joypad.getimmediate()
+
+    ctrl = {
+        enter = j["P1 L"],
+        up    = j["P1 DPad U"],
+        down  = j["P1 DPad D"],
+        left  = j["P1 DPad L"],
+        right = j["P1 DPad R"],
+    }
+
+    for k, v in pairs(ctrl) do
+        pressed[k] = ctrl[k] and not old_ctrl[k]
+    end
+
+    old_ctrl = ctrl
+end
+
 local seen = {}
 local seen_strs = {}
 local seen_strs_sorted = {}
 local last_any = 0
+
+local focus_at = 2
+local focus_ai = 0
 
 -- hack to avoid N64 logo spitting errors
 local stupid = addrs.actor_count_0.addr - 0x8
@@ -91,6 +118,20 @@ while true do
     local any = 0
     local game_count = 0
     local counts = nil
+
+    update_input()
+
+    if pressed.left then
+        focus_ai = focus_ai - 1
+    end
+    if pressed.right then
+        focus_ai = focus_ai + 1
+    end
+    if pressed.down then
+        -- follow Link again
+        focus_at = 2
+        focus_ai = 0
+    end
 
     if R4(stupid) ~= 0 then
         T_BR(0, 14, "stupid", "red")
@@ -120,43 +161,31 @@ while true do
             print("# actors wiped #")
             print()
         end
+    else
+        while focus_ai < 0 do
+            focus_at = (focus_at - 1) % 12
+            focus_ai = counts[focus_at] - 1
+        end
+        while focus_ai >= counts[focus_at] do
+            focus_at = (focus_at + 1) % 12
+            focus_ai = 0
+        end
     end
 
+    local focus_link = focus_at == 2 and focus_ai == 0
+
     local needs_update = false
-    local at = 2
-    local ai = 0
-    local j = 0
     for at, ai, addr in iter_actors(counts) do
-        --T(0, 0, ("%02i:%02i"):format(at, ai))
-        --print(("%02i:%02i"):format(at, ai))
-        --local num = R2(addr + actor_t.num.addr)
-        local num = R2(addr)
+        local num = R2(addr + actor_t.num.addr)
         local name = actor_names[num]
 
-        if name == nil and num < 0x300 then
+        if not name then
             name = "NEW"
             actor_names[num] = name
             print(("\t[0x%03X]=\"NEW\","):format(num))
-
-            if actor_t.damage_table and actor_t.hp then
-                local dmg = pmask(addr + actor_t.damage_table.addr)
-                if dmg == 0 then
-                    print("(no damage table)")
-                else
-                    local hp = R1(addr + actor_t.hp.addr)
-                    s = ("%04X\t%02X\t%02X"):format(num, at, hp)
-                    for i = 0, 31 do
-                        s = s..("\t%02X"):format(R1(dmg + i))
-                    end
-                    print(s)
-                end
-            end
         end
 
-        if num > 0x300 then
-            print(("BAD %06X %04X (%2i:%2i)"):format(addr, num, at, ai))
-            actor_names[num] = "BAD"
-        elseif not seen[num] then
+        if not seen[num] then
             seen[num] = true
             needs_update = true
             local str
@@ -169,10 +198,49 @@ while true do
             print(str)
         end
 
-        j = j + 1
-        if j > 255 then
-            print("something went terribly wrong")
-            do return end
+        local focus_this = at == focus_at and ai == focus_ai
+
+        if focus_this and not focus_link then
+            T_BL(0, 2, ('type:  %02X'):format(at))
+            T_BL(0, 1, ('index: %02X'):format(ai))
+            T_BL(0, 0, ('count: %02X'):format(counts[at]))
+
+            local var = R2(addr + actor_t.var.addr)
+            local hp  = R1(addr + actor_t.hp.addr)
+            T_BL(0, 3, ('80%06X'):format(addr))
+            T_BL(0, 5, ('No.:  %03X'):format(num), 'cyan')
+            T_BL(0, 4, ('Var: %04X'):format(var))
+            T_BL(0, 6, ('HP:  %02X'):format(hp))
+
+            local color = name:sub(1,1) == "?" and "red" or "orange"
+            T_BL(0, 7, name, color)
+
+            local dmg = pmask(R4(addr + actor_t.damage_table.addr))
+            if dmg > 0 then
+                for i = 0, 31 do
+                    local name = damage_names[i]
+                    local str = ('%9s: %02X'):format(name, R1(dmg + i))
+                    local pos = 'topleft'
+                    if i >= 16 then i = i - 16; pos = 'topright' end
+                    T(0, i, str, nil, pos)
+                end
+            end
+
+            if pressed.up then
+                console.clear()
+                s = ("%04X\t%02X\t%02X"):format(num, at, hp)
+                if dmg > 0 then
+                    for i = 0, 31 do
+                        s = s..("\t%02X"):format(R1(dmg + i))
+                    end
+                end
+                print(s)
+            end
+        end
+
+        if focus_this then
+            W1(addrs.camera_target.addr, 0x80)
+            W3(addrs.camera_target.addr + 1, addr)
         end
     end
 
@@ -192,8 +260,11 @@ while true do
     if needs_update then
         seen_strs_sorted = sort_by_key(seen_strs)
     end
-    for i, t in ipairs(seen_strs_sorted) do
-        T_TL(0, i - 1, t.v)
+
+    if focus_link then
+        for i, t in ipairs(seen_strs_sorted) do
+            T_TL(0, i - 1, t.v)
+        end
     end
 
     T_BR(0, 0, ("unique:%3i"):format(#seen_strs_sorted))
