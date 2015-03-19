@@ -17,10 +17,19 @@ else
     damage_names = require "damage names"
 end
 
+function sort_by_key(t)
+    local sorted = {}
+    local i = 1
+    for k, v in pairs(t) do
+        sorted[i] = {k=k, v=v}
+        i = i + 1
+    end
+    table.sort(sorted, function(a, b) return a.k < b.k end)
+    return sorted
+end
+
 function T(x, y, s, color, pos)
-    color = color or "white"
-    pos = pos or "bottomright"
-    gui.text(10*x + 2, 16*y + 4, s, nil, color, pos)
+    gui.text(10*x + 2, 16*y + 4, s, nil, color or "white", pos or "bottomright")
 end
 
 function T_BR(x, y, s, color) T(x, y, s, color, "bottomright") end
@@ -102,10 +111,9 @@ function update_input()
     old_ctrl = ctrl
 end
 
-local seen = {}
+local seen_once = {}
 local seen_strs = {}
 local seen_strs_sorted = {}
-local last_any = 0
 
 local focus_at = 2
 local focus_ai = 0
@@ -115,17 +123,13 @@ local stupid = addrs.actor_counts[0].addr - 0x8
 
 while true do
     local any = 0
-    local game_count = 0
     local counts = nil
+    local seen = {}
 
     update_input()
 
-    if pressed.left then
-        focus_ai = focus_ai - 1
-    end
-    if pressed.right then
-        focus_ai = focus_ai + 1
-    end
+    if pressed.left  then focus_ai = focus_ai - 1 end
+    if pressed.right then focus_ai = focus_ai + 1 end
     if pressed.down then
         -- follow Link again
         focus_at = 2
@@ -144,7 +148,7 @@ while true do
         T_BR(0, 1, ("sum:%3i"):format(any))
 
         if addrs.actor_count then
-            game_count = R1(addrs.actor_count.addr)
+            local game_count = R1(addrs.actor_count.addr)
             if game_count ~= any then
                 T_BR(8, 1, "mismatch!", "red")
             end
@@ -152,14 +156,14 @@ while true do
     end
 
     if any == 0 then
-        seen = {}
-        seen_strs = {}
-        seen_strs_sorted = {}
-        if last_any ~= any then
+        if #seen_strs_sorted > 0 then
             print()
             print("# actors wiped #")
             print()
         end
+        seen_once = {}
+        seen_strs = {}
+        seen_strs_sorted = {}
     else
         while focus_ai < 0 do
             focus_at = (focus_at - 1) % 12
@@ -172,11 +176,14 @@ while true do
     end
 
     local focus_link = focus_at == 2 and focus_ai == 0
-
     local needs_update = false
+
     for at, ai, addr in iter_actors(counts) do
         local num = R2(addr + actor_t.num.addr)
         local name = actor_names[num]
+        local focus_this = at == focus_at and ai == focus_ai
+
+        seen[num] = true
 
         if not name then
             name = "NEW"
@@ -184,8 +191,8 @@ while true do
             print(("\t[0x%03X]=\"NEW\","):format(num))
         end
 
-        if not seen[num] then
-            seen[num] = true
+        if not seen_once[num] then
+            seen_once[num] = true
             needs_update = true
             local str
             if name:sub(1,1) == "?" then
@@ -196,8 +203,6 @@ while true do
             seen_strs[num] = str
             print(str)
         end
-
-        local focus_this = at == focus_at and ai == focus_ai
 
         if focus_this and not focus_link then
             T_BL(0, 2, ('type:  %02X'):format(at))
@@ -243,26 +248,14 @@ while true do
         end
     end
 
-    last_any = any
-
-    function sort_by_key(t)
-        local sorted = {}
-        local i = 1
-        for k, v in pairs(seen_strs) do
-            sorted[i] = {k=k, v=v}
-            i = i + 1
-        end
-        table.sort(sorted, function(a, b) return a.k < b.k end)
-        return sorted
-    end
-
     if needs_update then
         seen_strs_sorted = sort_by_key(seen_strs)
     end
 
     if focus_link then
         for i, t in ipairs(seen_strs_sorted) do
-            T_TL(0, i - 1, t.v)
+            local color = seen[t.k] and 'white' or 'orange'
+            T_TL(0, i - 1, t.v, color)
         end
     end
 
