@@ -7,7 +7,6 @@ require "addrs"
 local actor_t = Actor(0)
 
 local oot = version:sub(1, 2) == "O "
-local al_next = addrs.actor_count_1.addr - addrs.actor_count_0.addr
 
 local actor_names, damage_names
 if oot then
@@ -34,11 +33,11 @@ function pmask(p)
 end
 
 function get_actor_count(i)
-    return R4(addrs.actor_count_0.addr + i*al_next)
+    return R4(addrs.actor_counts[i].addr)
 end
 
 function get_first_actor(i)
-    return pmask(R4(addrs.actor_first_0.addr + i*al_next))
+    return pmask(R4(addrs.actor_firsts[i].addr))
 end
 
 function get_next_actor(addr)
@@ -112,7 +111,7 @@ local focus_at = 2
 local focus_ai = 0
 
 -- hack to avoid N64 logo spitting errors
-local stupid = addrs.actor_count_0.addr - 0x8
+local stupid = addrs.actor_counts[0].addr - 0x8
 
 while true do
     local any = 0
