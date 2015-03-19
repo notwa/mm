@@ -71,7 +71,7 @@ end
 local common = {
     exit_value          = AL(0x02, 2),
     age_modifier        = AL(0x04, 4),
-    --cutscene_status     = AL(0x0A, 2),
+    cutscene_status     = AL(0x0A, 2), -- "cutscene number" 0xFFFx
     time                = AL(0x0C, 2),
     day_night           = AL(0x10, 4),
     --time_speed          = AL(0x14, 4),
@@ -80,27 +80,24 @@ local common = {
     name                = AL(0x24, 8),
     max_hearts          = AL(0x2E, 2),
     hearts              = AL(0x30, 2),
-    --has_magic           = AL(0x38, 1), -- ?
+    has_magic           = AL(0x32, 1), -- ?
     magic               = AL(0x33, 1),
     rupees              = AL(0x34, 2),
-    --has_normal_magic    = AL(0x40, 1),
-    --has_double_magic    = AL(0x41, 1),
+    navi_timer          = AL(0x38, 2),
     equip_tunic_boots   = AL(0x70, 1),
     equip_sword_shield  = AL(0x71, 1),
     inventory_items     = AL(0x74, 24),
-    inventory_counts    = AL(0x8C, 24),
+    inventory_quantities= AL(0x8C, 24),
     --magic_beans_avail   = AL(0x9B, 1),
-    --tunic_boots         = AL(0x9C, 1), -- FIXME
-    --sword_shield        = AL(0x9C, 1), -- FIXME
-    deku_upgrades       = AL(0xA1, 1),
-    wallet_size         = AL(0xA2, 1), -- also bullet bag & dive meter in OoT
-    quiver_bag          = AL(0xA3, 1), -- also strength in OoT
-    --quest_items         = AL(0xBC, 4),
+    tunic_boots         = AL(0x9C, 1),
+    sword_shield        = AL(0x9D, 1),
+    upgrades            = AL(0xA1, 3),
+    quest_items         = AL(0xA4, 4),
     --items_wft           = AL(0xC0, 1),
     --keys_wft            = AL(0xCA, 1),
-    --doubled_hearts      = AL(0xD3, 1), -- set to 20 by the game
+    doubled_hearts      = AL(0xCF, 1), -- set to 20 by the game
     --strange_string      = AL(0xDE, 6),
-    --scene_flags_save    = AL(0x470, 0x960),
+    scene_flags_save    = AL(0xD4, 0xB0C), -- 0x1C each
     --slulltula_count_wf  = AL(0xEC0, 2),
     --archery             = AL(0xF00, 1),
     --disable_c_buttons   = AL(0xF4A, 1), -- 8
@@ -109,7 +106,7 @@ local common = {
     --map_visible         = AL(0xF62, 2),
 
     inventory = {
-        b_button        = AL(0x68, 1),
+        b_button_item   = AL(0x68, 1),
         c_left_item     = AL(0x69, 1),
         c_down_item     = AL(0x6A, 1),
         c_right_item    = AL(0x6B, 1),
@@ -136,25 +133,26 @@ local common = {
         hammer          = AL(0x83, 1),
         light_arrows    = AL(0x84, 1),
         nayrus_love     = AL(0x85, 1),
-        bottle_1        = AL(0x85, 1),
-        bottle_2        = AL(0x86, 1),
-        bottle_3        = AL(0x87, 1),
-        bottle_4        = AL(0x88, 1),
-        trade_1         = AL(0x89, 1),
-        trade_2         = AL(0x8A, 1),
+        bottle_1        = AL(0x86, 1),
+        bottle_2        = AL(0x87, 1),
+        bottle_3        = AL(0x88, 1),
+        bottle_4        = AL(0x89, 1),
+        trade_1         = AL(0x8A, 1),
+        trade_2         = AL(0x8B, 1),
     },
     quantities = {
-        arrows          = AL(0xA1, 1), -- FIXME
-        bombs           = AL(0xA6, 1),
-        bombchu         = AL(0xA7, 1),
-        sticks          = AL(0xA8, 1),
-        nuts            = AL(0xA9, 1),
-        beans           = AL(0xAA, 1),
-        kegs            = AL(0xAC, 1),
+        sticks          = AL(0x8C, 1),
+        nuts            = AL(0x8D, 1),
+        bombs           = AL(0x8E, 1),
+        arrows          = AL(0x8F, 1),
+        seeds           = AL(0x92, 1),
+        bombchu         = AL(0x94, 1),
+        beans           = AL(0x9A, 1),
     },
 
     camera_target       = AG(0x270, 4),
     actor_count         = AG(0x1C2C, 1),
+    -- TODO: use array here instead of individual keys
     actor_count_0       = AG(0x1C30, 4),
     actor_first_0       = AG(0x1C34, 4),
     actor_count_1       = AG(0x1C38, 4),
@@ -184,5 +182,5 @@ local common = {
 }
 
 return merge(common, {
-    
+    target_style        = AL(0x140C, 1),
 })

@@ -33,10 +33,10 @@ function Actor(addr)
         damage_table    = AA(0xA0, 4),
         hp              = AA(0xB7, 1),
         angle           = AA(0xBA, 2),
-        foot_left_x     = AA(0xD4, 'f'),
+        foot_left_x     = AA(0xD4, 'f'), -- tested on Link, may be other things
         foot_left_y     = AA(0xD8, 'f'),
         foot_left_z     = AA(0xDC, 'f'),
-        foot_right_x    = AA(0xE0, 'f'),
+        foot_right_x    = AA(0xE0, 'f'), -- tested on Link, may be other things
         foot_right_y    = AA(0xE4, 'f'),
         foot_right_z    = AA(0xE8, 'f'),
         camera_rel_x    = AA(0xEC, 'f'),
@@ -78,7 +78,7 @@ return {
     sword_shield        = AL(0x6D, 1),
     inventory_items     = AL(0x70, 24),
     inventory_masks     = AL(0x88, 24),
-    inventory_counts    = AL(0xA0, 24),
+    inventory_quantities= AL(0xA0, 24),
     wallet_size         = AL(0xBA, 1), -- 0, 16, 32, unused 48
     quiver_bag          = AL(0xBB, 1),
     quest_items         = AL(0xBC, 4),
@@ -128,7 +128,7 @@ return {
     bombers_code_5      = AL(0xFFF, 1),
 
     inventory = {
-        b_button        = AL(0x4C, 1),
+        b_button_item   = AL(0x4C, 1),
         c_left_item     = AL(0x4D, 1),
         c_down_item     = AL(0x4E, 1),
         c_right_item    = AL(0x4F, 1),
