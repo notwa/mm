@@ -111,17 +111,41 @@ function update_input()
     old_ctrl = ctrl
 end
 
-local seen_once = {}
-local seen_strs = {}
-local seen_strs_sorted = {}
-
 local focus_at = 2
 local focus_ai = 0
 
 -- hack to avoid N64 logo spitting errors
 local stupid = addrs.actor_counts[0].addr - 0x8
 
-while true do
+local seen_once = {}
+local seen_strs = {}
+local seen_strs_sorted = {}
+
+local before = 0
+local wait = 0
+
+function wipe()
+    if #seen_strs_sorted > 0 then
+        print()
+        print("# actors wiped #")
+        print()
+    end
+    seen_once = {}
+    seen_strs = {}
+    seen_strs_sorted = {}
+end
+
+local function run()
+    local now = emu.framecount()
+    if now < before then wait = 2 end
+    before = now
+    if wait > 0 then
+        -- prevent script from lagging reversing
+        wait = wait - 1
+        if wait == 0 then wipe() end
+        return
+    end
+
     local any = 0
     local counts = nil
     local seen = {}
@@ -156,14 +180,7 @@ while true do
     end
 
     if any == 0 then
-        if #seen_strs_sorted > 0 then
-            print()
-            print("# actors wiped #")
-            print()
-        end
-        seen_once = {}
-        seen_strs = {}
-        seen_strs_sorted = {}
+        wipe()
     else
         while focus_ai < 0 do
             focus_at = (focus_at - 1) % 12
@@ -192,7 +209,7 @@ while true do
         end
 
         if not seen_once[num] then
-            seen_once[num] = true
+            seen_once[num] = now
             needs_update = true
             local str
             if name:sub(1,1) == "?" then
@@ -254,7 +271,13 @@ while true do
 
     if focus_link then
         for i, t in ipairs(seen_strs_sorted) do
-            local color = seen[t.k] and 'white' or 'orange'
+            local color = 'white'
+            if seen_once[t.k] and now - 60 <= seen_once[t.k] then
+                color = 'lime'
+            end
+            if not seen[t.k] then
+                color = 'orange'
+            end
             T_TL(0, i - 1, t.v, color)
         end
     end
@@ -270,6 +293,10 @@ while true do
             T_TR(0, 0, seen_strs[num])
         end
     end
+end
 
+event.onloadstate(wipe, 'actor wipe')
+while true do
+    run()
     emu.frameadvance()
 end
