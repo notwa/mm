@@ -1,124 +1,122 @@
 -- gimme gimme gimme
-local addrs = require "addrs"
+local a = require "addrs"
 require "item values"
-local inv = addrs.inventory
-local masks = addrs.masks
-local quantities = addrs.quantities
-_=addrs.target_style and addrs.target_style(1)
---addrs.buttons_enabled   (0)
---addrs.infinite_sword(1)
-addrs.owl_save      (1)
-addrs.sot_count     (0)
-_=addrs.bubble_timer and addrs.bubble_timer(0)
---
-addrs.sword_shield  (0x23)
-addrs.quiver_bag    (0x1B)
-addrs.hearts        (16*20)
-addrs.max_hearts    (16*20)
-addrs.doubled_hearts(20)
-addrs.owls_hit      (0xFFFF)
-addrs.map_visible   (0xFFFF)
-addrs.map_visited   (0xFFFF)
-addrs.wallet_size   (32)
-addrs.rupees        (999)
-addrs.banked_rupees (9999)
-addrs.magic         (0x60)
---addrs.has_magic     (1)
-addrs.has_normal_magic(1)
-addrs.has_double_magic(1)
-addrs.chateau_romani(8)
-addrs.quest_items   (0x00FFFFFF)
 
-addrs.lottery_code_1(1*10000 + 2*0x100 + 3)
-addrs.lottery_code_2(4*10000 + 5*0x100 + 6)
-addrs.lottery_code_3(7*10000 + 8*0x100 + 9)
-addrs.spider_mask_color_1(0)
-addrs.spider_mask_color_2(0)
-addrs.spider_mask_color_3(0)
-addrs.spider_mask_color_4(0)
-addrs.spider_mask_color_5(0)
-addrs.bombers_code_1(1)
-addrs.bombers_code_2(2)
-addrs.bombers_code_3(3)
-addrs.bombers_code_4(4)
-addrs.bombers_code_5(5)
+local oot = version:sub(1, 2) == "O "
 
-addrs.items_wft(7)
-addrs.items_sht(7)
-addrs.items_gbt(7)
-addrs.items_stt(7)
-addrs.keys_wft(69)
-addrs.keys_sht(69)
-addrs.keys_gbt(69)
-addrs.keys_stt(69)
-addrs.fairies_wft(69)
-addrs.fairies_sht(69)
-addrs.fairies_gbt(69)
-addrs.fairies_stt(69)
-
---addrs.slulltula_count_wf(69)
---addrs.slulltula_count_gb(69)
-
---inv.b_button        (0x4F) -- don't really need this
-inv.ocarina         (0x00)
-inv.bow             (0x01)
-inv.fire_arrows     (0x02)
-inv.ice_arrows      (0x03)
-inv.light_arrows    (0x04)
-inv.bombs           (0x06)
-inv.bombchu         (0x07)
-inv.deku_stick      (0x08)
-inv.deku_nut        (0x09)
-inv.magic_beans     (0x0A)
-inv.powder_keg      (0x0C)
-inv.pictograph      (0x0D)
-inv.lens_of_truth   (0x0E)
-inv.hookshot        (0x0F)
-inv.fairy_sword     (0x10)
-inv.bottle_1        (0x12)
-inv.bottle_2        (0x1B)
-inv.bottle_3        (0x1A)
-inv.bottle_4        (0x18)
-inv.bottle_5        (0x16)
-inv.bottle_6        (0x25)
---addrs.event_1       (0x05)
---addrs.event_2       (0x0B)
---addrs.event_3       (0x11)
-
-local mv = mask_values
+local iv
 if version == "JP10" or version == "JP11" then
-    mv = mask_values_early
+    iv = require "item values early"
+elseif oot then
+    iv = require "item values oot"
+else
+    iv = require "item values"
 end
 
-masks.postman       (mv.postman      )
-masks.all_night     (mv.all_night    )
-masks.blast         (mv.blast        )
-masks.stone         (mv.stone        )
-masks.great_fairy   (mv.great_fairy  )
-masks.deku          (mv.deku         )
-masks.keaton        (mv.keaton       )
-masks.bremen        (mv.bremen       )
-masks.bunny         (mv.bunny        )
-masks.don_gero      (mv.don_gero     )
-masks.scents        (mv.scents       )
-masks.goron         (mv.goron        )
-masks.romani        (mv.romani       )
-masks.troupe_leader (mv.troupe_leader)
-masks.kafei         (mv.kafei        )
-masks.couples       (mv.couples      )
-masks.truth         (mv.truth        )
-masks.zora          (mv.zora         )
-masks.kamaro        (mv.kamaro       )
-masks.gibdo         (mv.gibdo        )
-masks.garos         (mv.garos        )
-masks.captains      (mv.captains     )
-masks.giants        (mv.giants       )
-masks.fierce_deity  (mv.fierce_deity )
+local inv = a.inventory
+local masks = a.masks
+local quantities = a.quantities
 
-quantities.arrows       (69)
-quantities.bombs        (69)
-quantities.bombchu      (69)
-quantities.sticks       (69)
-quantities.nuts         (69)
-quantities.beans        (69)
-quantities.kegs         (69)
+local function set(f, v)
+    -- wrapper for addresses that *might* be undefined
+    if f then f(v) end
+end
+
+set(a.target_style, 1)
+
+--set(buttons_enabled, 0)
+--set(infinite_sword, 1)
+set(a.owl_save, 1)
+set(a.sot_count, 0)
+
+set(a.target_style, 1)
+set(a.bubble_timer, 0)
+set(a.chateau_romani, 8)
+
+a.hearts        (16*20)
+a.max_hearts    (16*20)
+a.doubled_hearts(20)
+a.magic         (0x60)
+a.rupees        (500)
+
+if oot then
+    a.tunic_boots  (0xFF) -- normally 0x77
+    a.sword_shield (0xF7) -- normally 0x77?
+    a.upgrades     (0x36E458) -- normally ?
+    a.quest_items  (0x00FFFFFF)
+
+else
+    a.sword_shield  (0x23)
+    a.quiver_bag    (0x1B)
+    a.owls_hit      (0xFFFF)
+    a.map_visible   (0xFFFF)
+    a.map_visited   (0xFFFF)
+    a.wallet_size   (32)
+    a.banked_rupees (9999)
+
+    a.lottery_code_1(1*10000 + 2*0x100 + 3)
+    a.lottery_code_2(4*10000 + 5*0x100 + 6)
+    a.lottery_code_3(7*10000 + 8*0x100 + 9)
+    a.spider_mask_color_1(0)
+    a.spider_mask_color_2(0)
+    a.spider_mask_color_3(0)
+    a.spider_mask_color_4(0)
+    a.spider_mask_color_5(0)
+    a.bombers_code_1(1)
+    a.bombers_code_2(2)
+    a.bombers_code_3(3)
+    a.bombers_code_4(4)
+    a.bombers_code_5(5)
+
+    a.items_wft(7)
+    a.items_sht(7)
+    a.items_gbt(7)
+    a.items_stt(7)
+    a.keys_wft(69)
+    a.keys_sht(69)
+    a.keys_gbt(69)
+    a.keys_stt(69)
+    a.fairies_wft(69)
+    a.fairies_sht(69)
+    a.fairies_gbt(69)
+    a.fairies_stt(69)
+end
+
+set(a.has_magic, 1)
+set(a.has_normal_magic, 1)
+set(a.has_double_magic, 1)
+a.quest_items   (0x00FFFFFF)
+
+--a.slulltula_count_wf(69)
+--a.slulltula_count_gb(69)
+
+--inv.b_button        (0x4F) -- don't really need this
+
+for k, f in pairs(inv) do
+    if iv[k] then f(iv[k]) end
+end
+
+if iv.longshot then
+    inv.hookshot(iv.longshot)
+end
+
+inv.bottle_1        (iv.bottle        )
+inv.bottle_2        (iv.fairy         )
+inv.bottle_3        (iv.bugs          )
+inv.bottle_4        (iv.fish          )
+set(inv.bottle_5,    iv.milk          )
+set(inv.bottle_6,    iv.chateau_romani)
+
+--set(a.event_1, 0x05)
+--set(a.event_2, 0x0B)
+--set(a.event_3, 0x11)
+
+if masks then
+    for k, f in pairs(masks) do
+        f(iv[k])
+    end
+end
+
+for k, f in pairs(quantities) do
+    f(69)
+end
