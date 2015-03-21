@@ -75,7 +75,7 @@ return {
     [0x045]=unset,
     [0x046]=unset,
     [0x047]="Beamos",
-    [0x048]="Demo_Effect", -- Sun Block disappearing effect?
+    [0x048]="Demo_Effect", -- Sun Block disappearing effect? also great fairy disappearing
     [0x049]="Environment Sparkles", -- Various Environment Effects
     [0x04A]="Floormaster",
     [0x04B]=unset,
@@ -131,7 +131,7 @@ return {
     [0x07D]="Fire Arrow",
     [0x07E]="Ice Arrow",
     [0x07F]="Light Arrow",
-    [0x080]="Items Misc.",
+    [0x080]="Item (Misc.)",
     [0x081]="Small Wooden Crate",
     [0x082]="Pot",
     [0x083]=unset,
@@ -165,7 +165,7 @@ return {
     [0x09F]="Gerudo Lieutenant",
     [0x0A0]="Pushable Block Stop Effect", -- snowhead temple
     [0x0A1]="Dynamic Shadow",
-    [0x0A2]="Explosion Smoke",
+    [0x0A2]="Explosion Smoke", -- or just Explosion Effect
     [0x0A3]=unset,
     [0x0A4]="Gorman",
     [0x0A5]="Bean Seller",
@@ -219,7 +219,7 @@ return {
     [0x0D5]=unset,
     [0x0D6]="Song of Time Effect", -- Zelda's Lullaby as well
     [0x0D7]="Song of Storms Effect (b)",
-    [0x0D8]="? Obj_Demo",
+    [0x0D8]="Cutscene Trigger", -- Obj_Demo
     [0x0D9]="Mad Jelly - Jelly Droplets", -- TODO: verify
     [0x0DA]="Deku Nut Projectile",
     [0x0DB]=unset,
@@ -236,7 +236,7 @@ return {
     [0x0E6]=unset,
     [0x0E7]="Blue Tatl Target", -- Related to En_Hs Grog?
     [0x0E8]="Rupee Cluster",
-    [0x0E9]="Honey & Darling (b)",
+    [0x0E9]="Honey & Darling (b)", -- Cutscene-only?
     [0x0EA]=unset,
     [0x0EB]=unset,
     [0x0EC]="Wolfos",
@@ -280,7 +280,7 @@ return {
     [0x112]="Circle of Light", -- TODO: verify
     [0x113]="Garo Master",
     [0x114]="Collapsing Stone Bridge",
-    [0x115]="Windows & Skeletons", -- Igos du Ikana. TODO: verify
+    [0x115]="Ikana Skeletons", -- Igos du Ikana and Henchmen
     [0x116]="Warp to Start", -- moon challenges?
     [0x117]="Dog Lady (Mamamu Yan)",
     [0x118]="Blue Target Spot (a)",
@@ -305,8 +305,8 @@ return {
     [0x12B]="Gyorg",
     [0x12C]="Wart",
     [0x12D]="Bio Deku Baba",
-    [0x12E]="? Igos du Ikana", -- TODO: verify
-    [0x12F]="Majora",
+    [0x12E]="Burnable Curtains",
+    [0x12F]="Majora / Remains",
     [0x130]="Great Fairy",
     [0x131]=unset,
     [0x132]="Blue Target Spot (e)",
@@ -632,10 +632,10 @@ return {
     [0x272]="Moon Crashing Into Clock Town Effect", --  TODO: verify
     [0x273]="Ikana Castle Pillar Segments",
     [0x274]="Business Scrub",
-    [0x275]="?sotct3", -- skull kid glowing eyes perhaps?
+    [0x275]="?sotct3", -- it's way above the area, maybe the mask outline effect?
     [0x276]="Link-goro",
     [0x277]="Racetrack Goron",
-    [0x278]="Igos du Ikana's Henchman", -- TODO: verify
+    [0x278]="Ghost Skeleton Heads", -- Ikana Castle
     [0x279]="? Skulltula House 2", -- loaded in termina field
     [0x27A]="Kamaro",
     [0x27B]="Rosa Sister",
