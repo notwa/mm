@@ -1,4 +1,4 @@
-local addrs = require "addrs"
+local addrs = require "addrs.init"
 local anim_addr = addrs.link_actor.animation_id.addr
 
 local anims_seen = {

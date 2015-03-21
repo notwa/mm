@@ -1,5 +1,5 @@
 local A = require "boilerplate"
-local addrs = require "addrs"
+local addrs = require "addrs.init"
 
 function printf(fmt, ...)
     print(fmt:format(...))

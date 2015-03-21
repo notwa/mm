@@ -1,5 +1,5 @@
 require "boilerplate"
-local addrs = require "addrs"
+local addrs = require "addrs.init"
 
 local close = {text="close", type="close"}
 

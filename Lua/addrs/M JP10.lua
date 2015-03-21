@@ -1,14 +1,4 @@
-local link = 0x1EF460
-local global = 0x3E6CF0
-local actor = 0x3FFFA0
-
-function AL(a, s) return A(link+a, s) end
-function AG(a, s) return A(global+a, s) end
-function AA(a, s) return A(actor+a, s) end
-
-local common = dofile("A common.lua")
-
-return merge(common, {
+return {
     checksum            = AL(0x138E, 2),
     --disable_pause       = AL(, 1),
     --hookshot_ba         = AL(, 1),
@@ -61,4 +51,4 @@ return merge(common, {
     --warp_begin          = A(, 1),
     --screen_dim          = A(, 1),
     --warp_destination    = A(, 2),
-})
+}

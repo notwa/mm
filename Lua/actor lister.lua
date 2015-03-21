@@ -1,12 +1,10 @@
 require "boilerplate"
-require "addrs"
+require "addrs.init"
 
 -- bizhawk lua has some nasty memory leaks at the moment,
 -- so instead of creating an object every time,
 -- using a template to offset from will do for now.
 local actor_t = Actor(0)
-
-local oot = version:sub(1, 2) == "O "
 
 local actor_names, damage_names
 if oot then

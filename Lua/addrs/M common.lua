@@ -1,13 +1,4 @@
 -- version-agnostic addresses
-A = require "boilerplate"
-
-function merge(t1, t2)
-    for k, v in pairs(t1) do
-        t2[k] = v
-    end
-    return t2
-end
-
 function Actor(addr)
     local function AA(a, s) return A(addr+a, s) end
     return {
@@ -245,6 +236,7 @@ return {
     current_scene_flags_4 = AG(0x1E6C, 4),
     current_scene_flags_5 = AG(0x1E74, 4),
 
+    --[[ FIXME
     link_actor = merge(Actor(AA(0,0).addr), {
         item_in_hand    = AA(0x148, 1),
         animation_id    = AA(0x24A, 2),
@@ -253,4 +245,5 @@ return {
         movement_angle  = AA(0xAD4, 2),
         active_sword    = AA(0xADB, 1),
     }),
+    --]]
 }

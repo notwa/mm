@@ -1,11 +1,9 @@
 -- gimme gimme gimme
-local a = require "addrs"
+local a = require "addrs.init"
 require "item values"
 
-local oot = version:sub(1, 2) == "O "
-
 local iv
-if version == "JP10" or version == "JP11" then
+if version == "M JP10" or version == "M JP11" then
     iv = require "item values early"
 elseif oot then
     iv = require "item values oot"

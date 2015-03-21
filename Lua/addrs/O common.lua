@@ -1,20 +1,4 @@
-A = require "boilerplate"
-
-local link = 0x11A5D0
-local global = 0x1C84A0
-local actor = 0x1DAA30
-
-function AL(a, s) return A(link+a, s) end
-function AG(a, s) return A(global+a, s) end
-function AA(a, s) return A(actor+a, s) end
-
-function merge(t1, t2)
-    for k, v in pairs(t1) do
-        t2[k] = v
-    end
-    return t2
-end
-
+-- version-agnostic addresses
 function Actor(addr)
     local function AA(a, s) return A(addr+a, s) end
     return {
@@ -68,7 +52,7 @@ function Actor(addr)
     }
 end
 
-local common = {
+return {
     exit_value          = AL(0x02, 2),
     age_modifier        = AL(0x04, 4),
     cutscene_status     = AL(0x0A, 2), -- "cutscene number" 0xFFFx
@@ -185,7 +169,3 @@ local common = {
     z_cursor_actor      = AG(0x1CC8, 4),
     z_target_actor      = AG(0x1CCC, 4),
 }
-
-return merge(common, {
-    target_style        = AL(0x140C, 1),
-})

@@ -1,14 +1,4 @@
-local link = 0x23F790
-local global = 0x448700
-local actor = 0x4619D0
-
-function AL(a, s) return A(link+a, s) end
-function AG(a, s) return A(global+a, s) end
-function AA(a, s) return A(actor+a, s) end
-
-local common = dofile("A common.lua")
-
-return merge(common, {
+return {
     checksum            = AL(0x100A, 2),
     disable_pause       = AL(0x100D, 1),
     hookshot_ba         = AL(0x100E, 1),
@@ -45,4 +35,20 @@ return merge(common, {
     screen_scale_enable = AL(0x3F60, 1),
     screen_scale        = AL(0x3F64, 'f'),
     scene_flags_ingame  = AL(0x3F68, 0x960),
-})
+
+    random              = A(0x097530, 4),
+    visibility          = A(0x166118, 2),
+    stored_epona        = A(0x1BDA9F, 1),
+    stored_song         = A(0x1C6A7D, 1),
+    buttons_3           = A(0x1FB870, 2),
+    buttons_4           = A(0x1FB876, 2),
+
+    text_open           = A(0x3FD33B, 1),
+    text_status         = A(0x3FD34A, 1),
+    room_number         = A(0x3FF200, 1),
+    room_ptr            = A(0x3FF20C, 4),
+    actor_disable       = A(0x3FF366, 2),
+    warp_begin          = A(0x3FF395, 1),
+    screen_dim          = A(0x3FF397, 1),
+    warp_destination    = A(0x3FF39A, 2),
+}
