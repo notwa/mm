@@ -70,8 +70,7 @@ return {
     inventory_items     = AL(0x70, 24),
     inventory_masks     = AL(0x88, 24),
     inventory_quantities= AL(0xA0, 24),
-    wallet_size         = AL(0xBA, 1), -- 0, 16, 32, unused 48
-    quiver_bag          = AL(0xBB, 1),
+    upgrades            = AL(0xB8, 4),
     quest_items         = AL(0xBC, 4),
     items_wft           = AL(0xC0, 1),
     items_sht           = AL(0xC1, 1),

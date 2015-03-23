@@ -37,20 +37,21 @@ a.doubled_hearts(20)
 a.magic         (0x60)
 a.rupees        (500)
 
+-- nuts, sticks, bombs, wallet, Scale, gauntlets, Bullets, quiver
+--                   ?????????nnnsssbbbwwSSSgggBBBqqq
+a.upgrades(tonumber('00000000010101101110010011011011', 2))
+
 if oot then
     a.tunic_boots  (0xFF) -- normally 0x77
     a.sword_shield (0xF7) -- normally 0x77?
-    a.upgrades     (0x36E458) -- normally ?
     a.quest_items  (0x00FFFFFF)
 
 else
     a.sword_shield  (0x23)
-    a.quiver_bag    (0x1B)
     a.owls_hit      (0xFFFF)
     a.map_visible   (0xFFFF)
     a.map_visited   (0xFFFF)
-    a.wallet_size   (32)
-    a.banked_rupees (9999)
+    a.banked_rupees (5000)
 
     a.lottery_code_1(1*10000 + 2*0x100 + 3)
     a.lottery_code_2(4*10000 + 5*0x100 + 6)
