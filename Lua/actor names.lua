@@ -315,7 +315,7 @@ return {
     [0x135]="Bomb Shop Owner", -- TODO: verify
     [0x136]=unset,
     [0x137]=unset,
-    [0x138]="Goron",
+    [0x138]="Goron (a)",
     [0x139]=unset,
     [0x13A]="Carnivorous Lilypad",
     [0x13B]="Smoke (STT)", -- Early Stone Tower Temple
@@ -581,7 +581,7 @@ return {
     [0x23F]="Gyorg's Fish", -- TODO: verify
     [0x240]="Goron Chandelier",
     [0x241]="Evan (Pianist)",
-    [0x242]="Goron",
+    [0x242]="Goron (b)",
     [0x243]="Anju's Grandmother",
     [0x244]="Juggler",
     [0x245]="Monkey-Faced Elegy Block",
