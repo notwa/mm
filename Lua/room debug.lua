@@ -33,9 +33,11 @@ function dump_room(start, addr)
         if cmd == 0x14 then
             local unk = R4(addr+4)
             if unk > 0 then
-                printf("# end unknown: %08X", unk)
+                -- odds are someone meant to type 0x16 instead of 0x14
+                -- the game lets this slide and keeps reading
+            else
+                break
             end
-            break
         end
 
         local dumpy = function()
@@ -90,6 +92,9 @@ function dump_room(start, addr)
         elseif cmd == 0x13 then
             printf("exits:")
             dumpy()
+        elseif cmd == 0x14 then
+            printf("faulty end command:")
+            dump_half_row(addr)
         elseif cmd == 0x16 then
             printf("echo:       %2i", R1(addr+7))
         elseif cmd == 0x17 then
@@ -170,7 +175,7 @@ while true do
     local addr = deref(addrs.room_ptr())
     if addr and addr ~= last_addr then
         console.clear()
-        print('# setup: 00 #')
+        print('# setup: 00')
         dump_room(addr)
         print('')
     end
@@ -178,5 +183,5 @@ while true do
 
     gui.clearGraphics()
 
-    emu.yield()
+    emu.frameadvance()
 end
