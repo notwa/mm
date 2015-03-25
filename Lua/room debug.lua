@@ -21,7 +21,7 @@ end
 
 function dump_room(start, addr)
     local addr = addr or start
-    printf("# start: %08X", start)
+    printf("start:  %06X", start)
 
     local object_n, objects
     local actor_n, actors
@@ -48,7 +48,7 @@ function dump_room(start, addr)
                 return
             else
                 local new_addr = start + offset
-                printf(" at %08X (+%06X)", new_addr, offset)
+                printf(" at %06X (+%06X)", new_addr, offset)
                 return new_addr
             end
         end

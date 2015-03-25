@@ -130,7 +130,7 @@ return {
     [0x07D]="Child Epona",
     [0x07E]=unset,
     [0x07F]=unset,
-    [0x080]="Golden Torch Stand",
+    [0x080]="Torch",
     [0x081]=unset,
     [0x082]=unset,
     [0x083]=unset,

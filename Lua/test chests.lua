@@ -36,7 +36,7 @@ end
 
 function read_ascii(addr, len)
     local begin = addr
-    local bytes = mainmemory.readbyterange(begin, 0x100)
+    local bytes = mainmemory.readbyterange(begin, len)
     local str = ""
 
     -- pairs() won't give us the bytes in order
@@ -81,7 +81,7 @@ for off=index*6, 185*6, 6 do
         if mainmemory.readbyte(text + 0xA) == 0xFF then
             if version == 'US10' then
                 local begin = text + 0xC
-                print(off/6 + 1, read_ascii(begin))
+                print(off/6 + 1, read_ascii(begin, 0x100))
                 good = true
             else
                 for _=1, 40 do

@@ -335,7 +335,7 @@ return {
     [0x149]="? Crash",
     [0x14A]="Chuchu",
     [0x14B]="Desbreko",
-    [0x14C]="Clocktower Spotlight", -- other things as well, or..?
+    [0x14C]="Clock Tower Spotlight", -- other things as well, or..?
     [0x14D]="2D Chimney Backdrop",
     [0x14E]="Inn Bell",
     [0x14F]="Shooting Gallery Octorok",
