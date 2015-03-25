@@ -1,10 +1,6 @@
 local A = require "boilerplate"
 local addrs = require "addrs.init"
 
-function printf(fmt, ...)
-    print(fmt:format(...))
-end
-
 function gs2(addr, value)
     printf("81%06X %04X", addr, value)
     W2(addr, value)
@@ -23,16 +19,24 @@ function dump_half_row(addr)
     printf("%04X %04X  %04X %04X", R2(addr), R2(addr+2), R2(addr+4), R2(addr+6))
 end
 
-function dump_room(start)
-    local addr = start
-    printf("start: %08X", start)
+function dump_room(start, addr)
+    local addr = addr or start
+    printf("# start: %08X", start)
 
     local object_n, objects
     local actor_n, actors
 
-    for _ = 1,128 do -- give up after a while
+    local alt_header_list
+
+    for _ = 1,127 do -- give up after a while
         local cmd = R1(addr)
-        if cmd == 0x14 then break end
+        if cmd == 0x14 then
+            local unk = R4(addr+4)
+            if unk > 0 then
+                printf("# end unknown: %08X", unk)
+            end
+            break
+        end
 
         local dumpy = function()
             local bank = R1(addr+4)
@@ -49,7 +53,7 @@ function dump_room(start)
 
         if cmd == 0x18 then
             printf("alt:")
-            dumpy()
+            alt_header_list = dumpy()
         elseif cmd == 0x01 then
             actor_n = R1(addr+1)
             printf("actors:     %2i", actor_n)
@@ -68,7 +72,7 @@ function dump_room(start)
             dumpy()
         elseif cmd == 0x08 then
             print("[room behaviour]")
-            dump_half_row(addr)
+            --dump_half_row(addr)
         elseif cmd == 0x0A then
             printf("mesh:")
             dumpy()
@@ -111,7 +115,6 @@ function dump_room(start)
         for i = 0, object_n - 1 do
             --printf('O: %04X', R2(objects + 2*i))
             --gs2(objects+2*i, 0x00FC)
-            
         end
         for i = 0, actor_n - 1 do
             --print('A:')
@@ -121,13 +124,53 @@ function dump_room(start)
             --gs2(actors+16*i+0xE, 0x0010)
         end
     end
+
+    print()
+
+    if actors then
+        print("# actors")
+        local actor_names = require "actor names"
+        local buf = ""
+        for i = 0, actor_n - 1 do
+            local id = R2(actors + 16*i)
+            id = bit.band(id, 0x0FFF)
+            local name = actor_names[id]
+            buf = buf..("%04X: %s\n"):format(id, name or "unset")
+        end
+        print(buf)
+    end
+
+    if objects then
+        print("# objects")
+        local object_names = require "object names"
+        local buf = ""
+        for i = 0, object_n - 1 do
+            local id = R2(objects + 2*i)
+            local rid = bit.band(id, 0x0FFF)
+            local name = object_names[rid]
+            buf = buf..("%04X: %s\n"):format(id, name or "unset")
+        end
+        print(buf)
+    end
+
+    if alt_header_list then
+        local addr = alt_header_list
+        local i = 1
+        while R1(addr) == 0x03 do
+            printf("# setup: %02X", i)
+            dump_room(start, start + R3(addr+1))
+            addr = addr + 4
+            i = i + 1
+        end
+    end
 end
 
 local last_addr
 while true do
     local addr = deref(addrs.room_ptr())
     if addr and addr ~= last_addr then
-        print('# new room loaded #')
+        console.clear()
+        print('# setup: 00 #')
         dump_room(addr)
         print('')
     end
