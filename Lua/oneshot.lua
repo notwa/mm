@@ -45,7 +45,6 @@ a.upgrades(tonumber('00000000010101101110010011011011', 2))
 if oot then
     a.tunic_boots  (0xFF) -- normally 0x77
     a.sword_shield (0xF7) -- normally 0x77?
-    a.quest_items  (0x00FFFFFF)
 
 else
     a.sword_shield  (0x23)
