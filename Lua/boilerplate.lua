@@ -58,6 +58,14 @@ function printf(fmt, ...)
     print(fmt:format(...))
 end
 
+function is_ptr(ptr)
+    return bit.band(0xFF800000, ptr) == 0x80000000
+end
+
+function deref(ptr)
+    return is_ptr(ptr) and ptr - 0x80000000
+end
+
 function asciize(bytes)
     local str = ""
     local seq = false

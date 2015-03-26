@@ -35,20 +35,16 @@ function T_BL(x, y, s, color) T(x, y, s, color, "bottomleft") end
 function T_TL(x, y, s, color) T(x, y, s, color, "topleft") end
 function T_TR(x, y, s, color) T(x, y, s, color, "topright") end
 
-function pmask(p)
-    return bit.band(p, 0x7FFFFFFF)
-end
-
 function get_actor_count(i)
     return R4(addrs.actor_counts[i].addr)
 end
 
 function get_first_actor(i)
-    return pmask(R4(addrs.actor_firsts[i].addr))
+    return deref(R4(addrs.actor_firsts[i].addr))
 end
 
 function get_next_actor(addr)
-    return pmask(R4(addr + actor_t.next.addr))
+    return deref(R4(addr + actor_t.next.addr))
 end
 
 function count_actors()
@@ -78,10 +74,10 @@ function iter_actors(counts)
             addr = get_first_actor(at)
         else
             addr = get_next_actor(addr)
-            if addr == 0 then
-                T_TR(0, 0, "no actor found", "yellow")
-                return nil
-            end
+        end
+        if not addr then
+            T_TR(0, 0, "no actor found", "yellow")
+            return nil
         end
 
         return at, ai, addr
@@ -234,12 +230,13 @@ local function run()
             local color = name:sub(1,1) == "?" and "red" or "orange"
             T_BL(0, 7, name, color)
 
-            local dmg = pmask(R4(addr + actor_t.damage_table.addr))
-            if dmg > 0 then
+            local dmg = deref(R4(addr + actor_t.damage_table.addr))
+            if dmg then
                 for i = 0, 31 do
                     local name = damage_names[i]
                     local str = ('%9s: %02X'):format(name, R1(dmg + i))
                     local pos = 'topleft'
+
                     if i >= 16 then i = i - 16; pos = 'topright' end
                     T(0, i, str, nil, pos)
                 end
@@ -283,8 +280,8 @@ local function run()
     T_BR(0, 0, ("unique:%3i"):format(#seen_strs_sorted))
 
     if any > 0 then
-        local cursor = pmask(addrs.z_cursor_actor())
-        local target = pmask(addrs.z_target_actor())
+        local cursor = deref(addrs.z_cursor_actor())
+        local target = deref(addrs.z_target_actor())
         local z = target or cursor
         if z then
             local num = R2(z)

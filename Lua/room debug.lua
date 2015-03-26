@@ -6,15 +6,6 @@ function gs2(addr, value)
     W2(addr, value)
 end
 
-function is_ptr(ptr)
-    local head = bit.band(0xFF000000, ptr)
-    return head == 0x80000000
-end
-
-function deref(ptr)
-    return is_ptr(ptr) and ptr - 0x80000000
-end
-
 function dump_half_row(addr)
     printf("%04X %04X  %04X %04X", R2(addr), R2(addr+2), R2(addr+4), R2(addr+6))
 end
@@ -172,7 +163,7 @@ end
 
 local last_addr
 while true do
-    local addr = deref(addrs.room_ptr())
+    local addr = deref(addrs.room_pointer())
     if addr and addr ~= last_addr then
         console.clear()
         print('# setup: 00')
