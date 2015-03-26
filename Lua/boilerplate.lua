@@ -2,6 +2,8 @@
 -- TODO: respect little endian consoles too
 
 local mm = mainmemory
+local m = memory
+m.usememorydomain("ROM")
 
 R1 = mm.readbyte
 R2 = mm.read_u16_be
@@ -14,6 +16,12 @@ W2 = mm.write_u16_be
 W3 = mm.write_u24_be
 W4 = mm.write_u32_be
 WF = function(addr, value) mm.writefloat(addr, value, true) end
+
+X1 = m.readbyte
+X2 = m.read_u16_be
+X3 = m.read_u24_be
+X4 = m.read_u32_be
+XF = function(addr) return m.readfloat(addr, true) end
 
 local readers = {
     [1]   = R1,
@@ -44,6 +52,26 @@ function A(addr, atype)
         read=readers[atype],
         write=writers[atype]
     }, mt)
+end
+
+function printf(fmt, ...)
+    print(fmt:format(...))
+end
+
+function asciize(bytes)
+    local str = ""
+    local seq = false
+    for i, v in ipairs(bytes) do
+        local c = type(v) == 'number' and v or tonumber(v, 16)
+        if c == 9 or c == 10 or c == 13 or (c >= 32 and c < 127) then
+            str = str..string.char(c)
+            seq = false
+        elseif seq == false then
+            str = str..' '
+            seq = true
+        end
+    end
+    return str
 end
 
 --[[
