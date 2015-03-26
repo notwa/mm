@@ -192,7 +192,14 @@ local rv = same[version] or version
 
 local b = basics[rv]
 function AL(a, s) return A(b.link   + a, s) end
-function AG(a, s) return A(b.global + a, s) end
+function AG(a, s)
+    if rv == 'M JP10' or rv == 'M JP11' then
+        if a >= 0x17000 then -- approximate
+            a = a - 0x20
+        end
+    end
+    return A(b.global + a, s)
+end
 function AA(a, s) return A(b.actor  + a, s) end
 
 addrs = require(here..rv)

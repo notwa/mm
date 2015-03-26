@@ -35,6 +35,7 @@ a.hearts        (16*20)
 a.max_hearts    (16*20)
 a.doubled_hearts(20)
 a.magic         (0x60)
+set(a.magic_max, 0x60)
 a.rupees        (500)
 
 -- nuts, sticks, bombs, wallet, Scale, gauntlets, Bullets, quiver
