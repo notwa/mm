@@ -87,7 +87,9 @@ sometime i'll bother checking what the bombers/lottery codes are for these.
 * [Bizhawk US 1.0 tampered](https://dl.dropboxusercontent.com/u/9602837/temp/bizhawk%20saves.zip )  
   one slot with a bunch of 00s, another with a bunch of FFs.
 
-## scene flags
+## bitfields
+
+### scene flags
 
 two regions of 0x960 bytes are allocated for all the scene flags in the game.
 the first (801EFAE0) is loaded from save files, the second (801F35D8) is used for in-game changes.
@@ -106,9 +108,7 @@ they appear in a different order than in save files, however.
 803E898C corresponds to offset 0xC.  
 803E8994 corresponds to offset 0x10.  
 
-## bitfields
-
-## scenes visited
+### scenes visited
 
 scenes with one-time intro cutscenes store their flags at 801F0568.
 many flags are documented, courtesy of fkualol:
