@@ -143,6 +143,7 @@ local function run()
     local any = 0
     local counts = nil
     local seen = {}
+    local cursor, target
 
     update_input()
 
@@ -184,6 +185,8 @@ local function run()
             focus_at = (focus_at + 1) % 12
             focus_ai = 0
         end
+        cursor = deref(addrs.z_cursor_actor())
+        target = deref(addrs.z_target_actor())
     end
 
     local focus_link = focus_at == 2 and focus_ai == 0
@@ -215,7 +218,7 @@ local function run()
             print(str)
         end
 
-        if focus_this and not focus_link then
+        if (focus_this and not focus_link) or addr == target then
             T_BL(0, 2, ('type:  %02X'):format(at))
             T_BL(0, 1, ('index: %02X'):format(ai))
             T_BL(0, 0, ('count: %02X'):format(counts[at]))
@@ -264,7 +267,7 @@ local function run()
         seen_strs_sorted = sort_by_key(seen_strs)
     end
 
-    if focus_link then
+    if focus_link and not target then
         for i, t in ipairs(seen_strs_sorted) do
             local color = 'white'
             if seen_once[t.k] and now - 60 <= seen_once[t.k] then
@@ -280,8 +283,6 @@ local function run()
     T_BR(0, 0, ("unique:%3i"):format(#seen_strs_sorted))
 
     if any > 0 then
-        local cursor = deref(addrs.z_cursor_actor())
-        local target = deref(addrs.z_target_actor())
         local z = target or cursor
         if z then
             local num = R2(z)
