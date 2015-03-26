@@ -1,4 +1,25 @@
 return {
+    lottery_numbers = {
+        AL(0x1370, 3),
+        AL(0x1373, 3),
+        AL(0x1376, 3),
+    },
+    spider_mask_order = {
+        AL(0x1379, 1),
+        AL(0x137A, 1),
+        AL(0x137B, 1),
+        AL(0x137C, 1),
+        AL(0x137D, 1),
+        AL(0x137E, 1),
+    },
+    bombers_code = {
+        AL(0x137F, 1),
+        AL(0x1380, 1),
+        AL(0x1381, 1),
+        AL(0x1382, 1),
+        AL(0x1383, 1),
+    },
+
     checksum            = AL(0x138E, 2),
     disable_pause       = nil,
     hookshot_ba         = nil,
@@ -9,12 +30,6 @@ return {
     bubble_timer        = AL(0x3F58, 2),
     rupee_accumulator   = AL(0x4078, 2),
     spring_water_timers = AL(0x41D8, 0xC0),
-    spring_water_time_1 = AL(0x41F8, 0x20),
-    spring_water_time_2 = AL(0x4218, 0x20),
-    spring_water_time_3 = AL(0x4238, 0x20),
-    spring_water_time_4 = AL(0x4258, 0x20),
-    spring_water_time_5 = AL(0x4278, 0x20),
-    spring_water_time_6 = AL(0x4298, 0x20),
     pictograph_picture  = AL(0x1390, 0x2BC0),
     title_screen_mod    = AL(0x3F5C, 4),
     entrance_mod        = AL(0x3F60, 4),
