@@ -62,6 +62,7 @@ else
     a.spider_mask_order[3](0)
     a.spider_mask_order[4](0)
     a.spider_mask_order[5](0)
+    a.spider_mask_order[6](0)
     a.bombers_code[1](1)
     a.bombers_code[2](2)
     a.bombers_code[3](3)
