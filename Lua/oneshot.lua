@@ -54,9 +54,9 @@ else
     a.map_visited   (0xFFFF)
     a.banked_rupees (5000)
 
-    a.lottery_numbers[1](1*10000 + 2*0x100 + 3)
-    a.lottery_numbers[2](4*10000 + 5*0x100 + 6)
-    a.lottery_numbers[3](7*10000 + 8*0x100 + 9)
+    a.lottery_numbers[1](1*0x10000 + 2*0x100 + 3)
+    a.lottery_numbers[2](4*0x10000 + 5*0x100 + 6)
+    a.lottery_numbers[3](7*0x10000 + 8*0x100 + 9)
     a.spider_mask_order[1](0)
     a.spider_mask_order[2](0)
     a.spider_mask_order[3](0)
