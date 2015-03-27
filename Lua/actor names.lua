@@ -16,7 +16,7 @@ return {
     [0x00A]="Wallmaster",
     [0x00B]="Dodongo",
     [0x00C]="Keese",
-    [0x00D]="Epona (Cutscene)",
+    [0x00D]="Child Epona",
     [0x00E]="Collectables",
     [0x00F]="Arrow Details", -- arrows, steam, flames... deku bubble?
     [0x010]="Tatl",
@@ -87,7 +87,7 @@ return {
     [0x051]="?fvo3", -- seen: frozen mountain village, field skullkid cutscene
     [0x052]=unset,
     [0x053]=unset,
-    [0x054]="Child Epona",
+    [0x054]="? Child Epona",
     [0x055]="Grotto Hole",
     [0x056]=unset,
     [0x057]=unset,
@@ -629,7 +629,7 @@ return {
     [0x26F]="Mayor Dotour",
     [0x270]="Laundry Pool Sign & Bell",
     [0x271]="Cremia & Romani's Dinner", -- 6 PM
-    [0x272]="Moon Crashing Into Clock Town Effect", --  TODO: verify
+    [0x272]="Moon Crashing Effect", --  TODO: verify
     [0x273]="Ikana Castle Pillar Segments",
     [0x274]="Business Scrub",
     [0x275]="?sotct3", -- it's way above the area, maybe the mask outline effect?
