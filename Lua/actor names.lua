@@ -368,7 +368,7 @@ return {
     [0x16A]="Deku King",
     [0x16B]=unset,
     [0x16C]="Tall Spiked Iron Fence",
-    [0x16D]="Boulder Blocking Racetrack", -- also ranch?
+    [0x16D]="Giant Boulder", -- blocks racetrack, ranch
     [0x16E]="Yellow Target Spot",
     [0x16F]="Real Bombchu",
     [0x170]="Water Droplets", -- or falling lava blocks in STT
@@ -598,7 +598,7 @@ return {
     [0x250]="Pamela's Father (Normal)",
     [0x251]="Pamela's Father (Gibdo)",
     [0x252]="Lulu (Vocalist)",
-    [0x253]="Madame Dotour",
+    [0x253]="Anju's Mother",
     [0x254]="Music Box House Cupboard Door",
     [0x255]="Bombable Floor / Wall (STT)",
     [0x256]="Light Ray (STT)", -- TODO: verify?
