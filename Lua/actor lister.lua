@@ -1,22 +1,17 @@
 require "boilerplate"
 require "addrs.init"
 
+-- check for errors in the actor linked lists
+local validate = true
+
 -- bizhawk lua has some nasty memory leaks at the moment,
 -- so instead of creating an object every time,
 -- using a template to offset from will do for now.
 local actor_t = Actor(0)
 
--- check for errors in the actor linked lists
-local validate = true
-
-local actor_names, damage_names
-if oot then
-    actor_names = require "actor names oot"
-    damage_names = require "damage names oot"
-else
-    actor_names = require "actor names"
-    damage_names = require "damage names"
-end
+local suffix = oot and " oot" or ""
+local actor_names  = require( "actor names"..suffix)
+local damage_names = require("damage names"..suffix)
 
 function sort_by_key(t)
     local sorted = {}
@@ -159,19 +154,8 @@ function wipe()
     seen_strs_sorted = {}
 end
 
-local function run()
-    local now = emu.framecount()
-    if now < before then wait = 2 end
-    before = now
-    if wait > 0 then
-        -- prevent script from lagging reversing
-        wait = wait - 1
-        if wait == 0 then wipe() end
-        return
-    end
-
-    local any = 0
-    local counts = nil
+local function run(now)
+    local game_counts = nil
     local seen = {}
     local cursor, target
 
@@ -186,29 +170,23 @@ local function run()
     end
 
     if R4(stupid) ~= 0 then
-        T_BR(0, 14, "stupid", "red")
-        any = 0
-    else
-        counts = count_actors()
-        for i = 0, 11 do
-            any = any + counts[i]
-            T_BR(0, 13 - i, ("#%2i: %2i"):format(i, counts[i]))
-        end
-        T_BR(0, 1, ("sum:%3i"):format(any))
-
-        if addrs.actor_count then
-            local game_count = R1(addrs.actor_count.addr)
-            if game_count ~= any then
-                T_BR(8, 1, "mismatch!", "red")
-            end
-        end
+        T_BR(0, 0, "stupid", "red")
+        return
     end
+
+    game_counts = count_actors()
+    local any = 0
+    for i = 0, 11 do
+        any = any + game_counts[i]
+        T_BR(0, 13 - i, ("#%2i: %2i"):format(i, game_counts[i]))
+    end
+    T_BR(0, 1, ("sum:%3i"):format(any))
 
     local actors_by_type = {[0]={},{},{},{},{},{},{},{},{},{},{},{}} -- 12
     local new_counts = {[0]=0,0,0,0,0,0,0,0,0,0,0,0} -- 12
     if any > 0 then
         any = 0
-        for at, ai, addr in iter_actors(counts) do
+        for at, ai, addr in iter_actors(game_counts) do
             actors_by_type[at][ai] = addr
             new_counts[at] = new_counts[at] + 1
             any = any + 1
@@ -334,8 +312,21 @@ local function run()
     end
 end
 
+local function runwrap(now)
+    if now < before then wait = 2 end
+    before = now
+    if wait > 0 then
+        -- prevent script from lagging reversing
+        wait = wait - 1
+        if wait == 0 then wipe() end
+    else
+        run(now)
+    end
+end
+
 event.onloadstate(wipe, 'actor wipe')
 while true do
-    run()
+    local now = emu.framecount()
+    runwrap(now)
     emu.frameadvance()
 end
