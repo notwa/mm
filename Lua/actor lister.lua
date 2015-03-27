@@ -24,14 +24,14 @@ function sort_by_key(t)
     return sorted
 end
 
-function T(x, y, s, color, pos)
-    gui.text(10*x + 2, 16*y + 4, s, nil, color or "white", pos or "bottomright")
+function T(x, y, color, pos, fmt, ...)
+    gui.text(10*x + 2, 16*y + 4, fmt:format(...), nil, color or "white", pos or "bottomright")
 end
 
-function T_BR(x, y, s, color) T(x, y, s, color, "bottomright") end
-function T_BL(x, y, s, color) T(x, y, s, color, "bottomleft") end
-function T_TL(x, y, s, color) T(x, y, s, color, "topleft") end
-function T_TR(x, y, s, color) T(x, y, s, color, "topright") end
+function T_BR(x, y, color, ...) T(x, y, color, "bottomright", ...) end
+function T_BL(x, y, color, ...) T(x, y, color, "bottomleft",  ...) end
+function T_TL(x, y, color, ...) T(x, y, color, "topleft",     ...) end
+function T_TR(x, y, color, ...) T(x, y, color, "topright",    ...) end
 
 function get_actor_count(i)
     return R4(addrs.actor_counts[i].addr)
@@ -64,7 +64,7 @@ function iter_actors(counts)
     local y = 1
     local complain = function(s)
         s = s..(" (%2i:%3i)"):format(at, ai)
-        T_TR(0, y, s, "yellow")
+        T_TR(0, y, "yellow", s)
         y = y + 1
     end
 
@@ -170,7 +170,7 @@ local function run(now)
     end
 
     if R4(stupid) ~= 0 then
-        T_BR(0, 0, "stupid", "red")
+        T_BR(0, 0, "red", "stupid")
         return
     end
 
@@ -178,9 +178,9 @@ local function run(now)
     local any = 0
     for i = 0, 11 do
         any = any + game_counts[i]
-        T_BR(0, 13 - i, ("#%2i: %2i"):format(i, game_counts[i]))
+        T_BR(0, 13 - i, nil, "#%2i: %2i", i, game_counts[i])
     end
-    T_BR(0, 1, ("sum:%3i"):format(any))
+    T_BR(0, 1, nil, "sum:%3i", any)
 
     local actors_by_type = {[0]={},{},{},{},{},{},{},{},{},{},{},{}} -- 12
     local new_counts = {[0]=0,0,0,0,0,0,0,0,0,0,0,0} -- 12
@@ -239,29 +239,31 @@ local function run(now)
         end
 
         if (focus_this and not focus_link) or addr == target then
-            T_BL(0, 2, ('type:  %3i'):format(at))
-            T_BL(0, 1, ('index: %3i'):format(ai))
-            T_BL(0, 0, ('count: %3i'):format(new_counts[at]))
+            T_BL(0, 2, nil, 'type:  %3i', at)
+            T_BL(0, 1, nil, 'index: %3i', ai)
+            T_BL(0, 0, nil, 'count: %3i', new_counts[at])
 
             local var = R2(addr + actor_t.var.addr)
             local hp  = R1(addr + actor_t.hp.addr)
-            T_BL(0, 3, ('80%06X'):format(addr))
-            T_BL(0, 5, ('No.:  %03X'):format(num), 'cyan')
-            T_BL(0, 4, ('Var: %04X'):format(var))
-            T_BL(0, 6, ('HP:  %02X'):format(hp))
+            T_BL(0, 3, nil,    '80%06X', addr)
+            T_BL(0, 5, 'cyan', 'No.:  %03X', num)
+            T_BL(0, 4, nil,    'Var: %04X', var)
+            T_BL(0, 6, nil,    'HP:  %02X', hp)
 
             local color = name:sub(1,1) == "?" and "red" or "orange"
-            T_BL(0, 7, name, color)
+            T_BL(0, 7, color, name)
 
             local dmg = deref(R4(addr + actor_t.damage_table.addr))
             if dmg then
                 for i = 0, 31 do
                     local name = damage_names[i]
                     local str = ('%9s: %02X'):format(name, R1(dmg + i))
-                    local pos = 'topleft'
 
-                    if i >= 16 then i = i - 16; pos = 'topright' end
-                    T(0, i, str, nil, pos)
+                    if i >= 16 then
+                        T_TR(0, i - 16, nil, str)
+                    else
+                        T_TL(0, i, nil, str)
+                    end
                 end
             end
 
@@ -297,17 +299,17 @@ local function run(now)
             if not seen[t.k] then
                 color = 'orange'
             end
-            T_TL(0, i - 1, t.v, color)
+            T_TL(0, i - 1, color, t.v)
         end
     end
 
-    T_BR(0, 0, ("unique:%3i"):format(#seen_strs_sorted))
+    T_BR(0, 0, nil, "unique:%3i", #seen_strs_sorted)
 
     if any > 0 then
         local z = target or cursor
         if z then
             local num = R2(z)
-            T_TR(0, 0, seen_strs[num])
+            T_TR(0, 0, nil, seen_strs[num])
         end
     end
 end
