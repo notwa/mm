@@ -6,6 +6,9 @@ require "addrs.init"
 -- using a template to offset from will do for now.
 local actor_t = Actor(0)
 
+-- check for errors in the actor linked lists
+local validate = true
+
 local actor_names, damage_names
 if oot then
     actor_names = require "actor names oot"
@@ -47,6 +50,10 @@ function get_next_actor(addr)
     return deref(R4(addr + actor_t.next.addr))
 end
 
+function get_prev_actor(addr)
+    return deref(R4(addr + actor_t.prev.addr))
+end
+
 function count_actors()
     local counts = {}
     for i = 0, 11 do
@@ -57,31 +64,54 @@ end
 
 function iter_actors(counts)
     local at, ai = 0, 0
-    local once = false
     local addr
-    return function()
-        if not counts then return nil end
-        if once then ai = ai + 1 end
-        once = true
 
-        while ai >= counts[at] do
-            ai = 0
-            at = at + 1
-            if at >= 12 then return nil end
-        end
+    local y = 1
+    local complain = function(s)
+        s = s..(" (%2i:%3i)"):format(at, ai)
+        T_TR(0, y, s, "yellow")
+        y = y + 1
+    end
 
+    local iterate
+    iterate = function()
         if ai == 0 then
             addr = get_first_actor(at)
+            if validate and addr and get_prev_actor(addr) then
+                complain("item before first")
+            end
         else
+            local prev = addr
             addr = get_next_actor(addr)
-        end
-        if not addr then
-            T_TR(0, 0, "no actor found", "yellow")
-            return nil
+            if validate then
+                if addr and prev ~= get_prev_actor(addr) then
+                    complain("previous mismatch")
+                end
+            end
         end
 
-        return at, ai, addr
+        if not addr then
+            if validate then
+                if ai < counts[at] then
+                    -- known case: romani ranch on first/third night
+                    complain("list ended early")
+                elseif ai > counts[at] then
+                    complain("list ended late")
+                end
+            end
+
+            ai = 0
+            at = at + 1
+            if at == 12 then return nil end
+            return iterate()
+        else
+            local temp = ai
+            ai = ai + 1
+            return at, temp, addr
+        end
     end
+
+    return iterate
 end
 
 local ctrl
@@ -174,14 +204,25 @@ local function run()
         end
     end
 
+    local actors_by_type = {[0]={},{},{},{},{},{},{},{},{},{},{},{}} -- 12
+    local new_counts = {[0]=0,0,0,0,0,0,0,0,0,0,0,0} -- 12
+    if any > 0 then
+        any = 0
+        for at, ai, addr in iter_actors(counts) do
+            actors_by_type[at][ai] = addr
+            new_counts[at] = new_counts[at] + 1
+            any = any + 1
+        end
+    end
+
     if any == 0 then
         wipe()
     else
         while focus_ai < 0 do
             focus_at = (focus_at - 1) % 12
-            focus_ai = counts[focus_at] - 1
+            focus_ai = new_counts[focus_at] - 1
         end
-        while focus_ai >= counts[focus_at] do
+        while focus_ai >= new_counts[focus_at] do
             focus_at = (focus_at + 1) % 12
             focus_ai = 0
         end
@@ -192,7 +233,8 @@ local function run()
     local focus_link = focus_at == 2 and focus_ai == 0
     local needs_update = false
 
-    for at, ai, addr in iter_actors(counts) do
+    for at, actors in pairs(actors_by_type) do
+      for ai, addr in pairs(actors) do -- FIXME: sorry for this pseudo-indent
         local num = R2(addr + actor_t.num.addr)
         local name = actor_names[num]
         local focus_this = at == focus_at and ai == focus_ai
@@ -219,9 +261,9 @@ local function run()
         end
 
         if (focus_this and not focus_link) or addr == target then
-            T_BL(0, 2, ('type:  %02X'):format(at))
-            T_BL(0, 1, ('index: %02X'):format(ai))
-            T_BL(0, 0, ('count: %02X'):format(counts[at]))
+            T_BL(0, 2, ('type:  %3i'):format(at))
+            T_BL(0, 1, ('index: %3i'):format(ai))
+            T_BL(0, 0, ('count: %3i'):format(new_counts[at]))
 
             local var = R2(addr + actor_t.var.addr)
             local hp  = R1(addr + actor_t.hp.addr)
@@ -248,7 +290,7 @@ local function run()
             if pressed.up then
                 console.clear()
                 s = ("%04X\t%02X\t%02X"):format(num, at, hp)
-                if dmg > 0 then
+                if dmg then
                     for i = 0, 31 do
                         s = s..("\t%02X"):format(R1(dmg + i))
                     end
@@ -261,6 +303,7 @@ local function run()
             W1(addrs.camera_target.addr, 0x80)
             W3(addrs.camera_target.addr + 1, addr)
         end
+      end
     end
 
     if needs_update then
