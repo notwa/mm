@@ -149,16 +149,17 @@ function dump_room(start, addr)
         print(buf)
     end
 
+    local setups = 1
     if alt_header_list then
         local addr = alt_header_list
-        local i = 1
         while R1(addr) == 0x03 do
-            printf("# setup: %02X", i)
+            printf("# setup: %02X", setups)
             dump_room(start, start + R3(addr+1))
             addr = addr + 4
-            i = i + 1
+            setups = setups + 1
         end
     end
+    return setups
 end
 
 local last_addr
@@ -167,8 +168,8 @@ while true do
     if addr and addr ~= last_addr then
         console.clear()
         print('# setup: 00')
-        dump_room(addr)
-        print('')
+        local setups = dump_room(addr)
+        printf("# total %2i setups", setups)
     end
     last_addr = addr
 
