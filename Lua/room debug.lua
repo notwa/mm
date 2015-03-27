@@ -24,8 +24,10 @@ function dump_room(start, addr)
         if cmd == 0x14 then
             local unk = R4(addr+4)
             if unk > 0 then
-                -- odds are someone meant to type 0x16 instead of 0x14
-                -- the game lets this slide and keeps reading
+                -- US10 801304B8
+                -- this code overwrites the next command with 0x14
+                -- if we're on a different scene setup.
+                cmd = 0x16 -- odds are it was originally this
             else
                 break
             end
