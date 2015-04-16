@@ -16,7 +16,7 @@ return {
     [0x00D]="Graveyard Poe",
     [0x00E]="Octorok",
     [0x00F]="Spiderweb",
-    [0x010]="Bomb Placed by Link",
+    [0x010]="Bomb",
     [0x011]="Wallmaster",
     [0x012]="Dodongo",
     [0x013]="Keese",
@@ -140,7 +140,7 @@ return {
     [0x089]="Collapsing Checkerboard Ceiling",
     [0x08A]="Beamos",
     [0x08B]="? Spiritual Stone Objects", -- "Swallowable by Jabu-Jabu?"
-    [0x08C]="? Triforce?",
+    [0x08C]="? Sparkles?", -- eg. warp songs
     [0x08D]="???",
     [0x08E]="Floormaster",
     [0x08F]="Hylian Soldier (Maze)",
@@ -218,7 +218,7 @@ return {
     [0x0D7]="Moat Water (Bottom of the Well)",
     [0x0D8]=unset,
     [0x0D9]="Adult Malon (Stable)", -- & Lon Lon Ranch - Ingo Ousted)",
-    [0x0DA]="Bombchu Placed by Link",
+    [0x0DA]="Bombchu",
     [0x0DB]="???",
     [0x0DC]="Twinrova",
     [0x0DD]="Like Like",

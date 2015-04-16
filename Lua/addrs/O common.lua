@@ -134,6 +134,7 @@ return {
         beans           = AL(0x9A, 1),
     },
 
+    scene_number        = AG(0xA4, 2),
     camera_target       = AG(0x270, 4),
 
     actor_count         = AG(0x1C2C, 1),
