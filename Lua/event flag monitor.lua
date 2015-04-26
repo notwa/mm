@@ -5,8 +5,12 @@ function Butts(name, begin, len)
 end
 
 local ignore = {
-    ['92,7=0 (weg)'] = true, -- every time a scene (un)loads
+    -- every time a scene (un)loads
+    ['92,7=0 (weg)'] = true,
     ['92,7=1 (weg)'] = true,
+    -- night transition available
+    ['05,2=0 (inf)'] = true,
+    ['05,2=1 (inf)'] = true,
     -- daily postman crap
     ['27,6=0 (weg)'] = true,
     ['27,7=0 (weg)'] = true,
