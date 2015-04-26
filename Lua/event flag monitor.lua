@@ -1,4 +1,5 @@
 require "boilerplate"
+require "addrs.init"
 
 local ignore = {
     -- every time a scene (un)loads
@@ -37,10 +38,10 @@ end
 
 FlagMonitor = Class()
 
-function FlagMonitor:init(name, begin, len)
+function FlagMonitor:init(name, a)
     self.name = name
-    self.begin = begin
-    self.len = len
+    self.begin = a.addr
+    self.len = a.type
     self.once = false
     self.old_bytes = {}
 end
@@ -62,13 +63,12 @@ function FlagMonitor:diff()
     self.once = true
 end
 
--- US 1.0 addresses for the time being
-local weg = FlagMonitor('weg', 0x1F0568, 100) -- week_event_reg
-local inf = FlagMonitor('inf', 0x1F067C, 8)   -- event_inf
-local mmb = FlagMonitor('mmb', 0x1F3F3A, 8)   -- mask_mask_bit (bad address?)
+local weg = FlagMonitor('weg', addrs.week_event_reg)
+local inf = FlagMonitor('inf', addrs.event_inf)
+--local mmb = FlagMonitor('mmb', addrs.mask_mask_bit)
 while true do
     weg:diff()
     inf:diff()
-    mmb:diff()
+    --mmb:diff()
     emu.frameadvance()
 end
