@@ -1,9 +1,5 @@
 require "boilerplate"
 
-function Butts(name, begin, len)
-    return {name=name, begin=begin, len=len, once = false, old_bytes = {}}
-end
-
 local ignore = {
     -- every time a scene (un)loads
     ['92,7=0 (weg)'] = true,
@@ -39,8 +35,17 @@ function poop(x, x1, i, name)
     end
 end
 
--- obvious todo: use actual classes/objects
-function diff(self)
+FlagMonitor = Class()
+
+function FlagMonitor:init(name, begin, len)
+    self.name = name
+    self.begin = begin
+    self.len = len
+    self.once = false
+    self.old_bytes = {}
+end
+
+function FlagMonitor:diff()
     local bytes = mainmemory.readbyterange(self.begin, self.len)
     local old_bytes = self.old_bytes
     if self.once then
@@ -58,12 +63,12 @@ function diff(self)
 end
 
 -- US 1.0 addresses for the time being
-local region1 = Butts('weg', 0x1F0568, 100) -- week_event_reg
-local region2 = Butts('inf', 0x1F067C, 8) -- event_inf
-local region3 = Butts('mmb', 0x1F3F3A, 8) -- mask_mask_bit (bad address?)
+local weg = FlagMonitor('weg', 0x1F0568, 100) -- week_event_reg
+local inf = FlagMonitor('inf', 0x1F067C, 8)   -- event_inf
+local mmb = FlagMonitor('mmb', 0x1F3F3A, 8)   -- mask_mask_bit (bad address?)
 while true do
-    diff(region1)
-    diff(region2)
-    diff(region3)
+    weg:diff()
+    inf:diff()
+    mmb:diff()
     emu.frameadvance()
 end
