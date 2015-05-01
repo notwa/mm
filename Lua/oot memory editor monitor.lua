@@ -3,6 +3,7 @@ require "addrs.init"
 require "classes"
 require "serialize"
 
+local fn = 'data/_ootmemod.lua'
 local blocknames = {
     'R ', 'RS', 'RO', 'RP',
     'RQ', 'RM', 'RY', 'RD',
@@ -63,12 +64,12 @@ end
 -- = 5568 bytes (0x15C0)
 me = ShortMonitor('me', A(0x210A24, 0x15C0))
 
-me.modified = deserialize('_ootmemod.lua') or {}
+me.modified = deserialize(fn) or {}
 
 while version == "O EUDB MQ" do
     me:diff()
     if me.dirty then
-        serialize(me.modified, ('_ootmemod.lua'))
+        serialize(me.modified, (fn))
         me.dirty = false
     end
     emu.frameadvance()

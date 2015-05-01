@@ -1,6 +1,8 @@
 -- boilerplate convenience functions
 -- TODO: respect little endian consoles too
 
+require "extra"
+
 local mm = mainmemory
 local m = memory
 m.usememorydomain("ROM")

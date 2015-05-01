@@ -1,7 +1,7 @@
 -- it's simple, dumb, unsafe, incomplete, and it gets the damn job done
 
 local type = type
-local pairs = pairs
+local pairs = opairs or pairs
 local tostring = tostring
 local open = io.open
 local strfmt = string.format
