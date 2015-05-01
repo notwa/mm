@@ -169,4 +169,13 @@ return {
 
     z_cursor_actor      = AG(0x1CC8, 4),
     z_target_actor      = AG(0x1CCC, 4),
+
+    link_actor = setmetatable({
+        --item_in_hand    = AA(0x148, 1),
+        animation_id    = AA(0x1BE, 2),
+        --link_flags      = AA(0xA6C, 0xC),
+        --lin_vel         = AA(0xAD0, 'f'),
+        --movement_angle  = AA(0xAD4, 2),
+        --active_sword    = AA(0xADB, 1),
+    }, {__index = Actor(AA(0,0).addr)}),
 }

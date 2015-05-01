@@ -307,5 +307,5 @@ return {
         lin_vel         = AA(0xAD0, 'f'),
         movement_angle  = AA(0xAD4, 2),
         active_sword    = AA(0xADB, 1),
-    }, {__index = Actor(AA(0,0).addr)})
+    }, {__index = Actor(AA(0,0).addr)}),
 }
