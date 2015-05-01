@@ -5,7 +5,7 @@ local anim_addr = addrs.link_actor.animation_id.addr
 local fn = 'data/_anims_seen.lua'
 local anims_seen = deserialize(fn) or {}
 
-while true do
+while mm do
     local anim_id = mainmemory.read_u16_be(anim_addr)
     local actor_loaded = mainmemory.read_u8(anim_addr - 2) == 4
     local hexid = ('%04X'):format(anim_id)

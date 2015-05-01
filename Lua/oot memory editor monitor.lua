@@ -25,12 +25,7 @@ end
 
 ShortMonitor = Class(Monitor)
 function ShortMonitor:init(name, a)
-    self.name = name
-    self.begin = a.addr
-    self.len = a.type
-    self.once = false
-    self.old_bytes = {}
-
+    Monitor.init(self, name, a)
     self.modified = {}
     self.dirty = false
 end
@@ -51,7 +46,7 @@ function ShortMonitor:dump()
         local ih = i
         local block, page, row = distribute_index(ih)
         local mod = self.modified[ih]
-        local value = R2(self.begin + ih)
+        local value = R2(self.begin + ih*2)
         local vs = mod and 'n/a' or ('%04X'):format(value)
         local name = ('%s%02i'):format(blocknames[block+1], page*16 + row)
         local s = ('%s\t%i\t%i\t%s\n'):format(name, page+1, row+1, vs)

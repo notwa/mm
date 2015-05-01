@@ -327,7 +327,7 @@ local function runwrap(now)
 end
 
 event.onloadstate(wipe, 'actor wipe')
-while true do
+while oot or mm do
     local now = emu.framecount()
     runwrap(now)
     emu.frameadvance()
