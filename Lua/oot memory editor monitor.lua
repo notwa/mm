@@ -1,5 +1,6 @@
 ﻿require "boilerplate"
 require "addrs.init"
+require "serialize"
 
 local blocknames = {
     'R ', 'RS', 'RO', 'RP',
@@ -28,11 +29,8 @@ function ShortMonitor:init(name, a)
     self.once = false
     self.old_bytes = {}
 
-    local modified = {}
-    for i=0, self.len/2 do
-        modified[i] = false
-    end
-    self.modified = modified
+    self.modified = {}
+    self.dirty = false
 end
 
 function ShortMonitor:diff()
@@ -54,8 +52,9 @@ end
 
 function ShortMonitor:mark(i, x, x1)
     local ih = math.floor(i/2)
-    if self.modified[ih] == false then
+    if not self.modified[ih] then
         self.modified[ih] = true
+        self.dirty = true
         local block, page, row = butts(ih)
         printf('%2s Page %1i Row %3i', blocknames[block+1], page+1, row+1)
     end
@@ -69,7 +68,7 @@ function ShortMonitor:dump()
         local mod = self.modified[ih]
         local value = R2(self.begin + ih)
         local vs = mod and '[variable]' or ('%04X'):format(value)
-        local s = ('%2X\t%2i\t%i\t%s\n'):format(block, page+1, row+1, vs)
+        local s = ('%02X\t%i\t%i\t%s\n'):format(block, page+1, row+1, vs)
         buff = buff..s
     end
     print(buff)
@@ -79,7 +78,13 @@ end
 -- = 5568 bytes (0x15C0)
 me = ShortMonitor('me', A(0x210A24, 0x15C0))
 
+me.modified = deserialize('_ootmemod.lua') or {}
+
 while true do
     me:diff()
+    if me.dirty then
+        serialize(me.modified, ('_ootmemod.lua'))
+        me.dirty = false
+    end
     emu.frameadvance()
 end
