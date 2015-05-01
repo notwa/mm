@@ -8,7 +8,8 @@ function Monitor:init(name, a)
 end
 
 function Monitor:diff()
-    local bytes = mainmemory.readbyterange(self.begin, self.len)
+    -- bizhawk has an off-by-one bug where this returns length + 1 bytes
+    local bytes = mainmemory.readbyterange(self.begin, self.len-1)
     local old_bytes = self.old_bytes
     if self.once then
         for k, v in pairs(bytes) do

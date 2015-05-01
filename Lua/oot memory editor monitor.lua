@@ -52,7 +52,8 @@ function ShortMonitor:dump()
         local mod = self.modified[ih]
         local value = R2(self.begin + ih)
         local vs = mod and 'n/a' or ('%04X'):format(value)
-        local s = ('%02X\t%i\t%i\t%s\n'):format(block, page+1, row+1, vs)
+        local name = ('%s%02i'):format(blocknames[block+1], page*16 + row)
+        local s = ('%s\t%i\t%i\t%s\n'):format(name, page+1, row+1, vs)
         buff = buff..s
     end
     print(buff)
@@ -64,7 +65,7 @@ me = ShortMonitor('me', A(0x210A24, 0x15C0))
 
 me.modified = deserialize('_ootmemod.lua') or {}
 
-while true do
+while version == "O EUDB MQ" do
     me:diff()
     if me.dirty then
         serialize(me.modified, ('_ootmemod.lua'))

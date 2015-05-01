@@ -23,13 +23,6 @@ local ignore = {
 }
 
 FlagMonitor = Class(Monitor)
-function FlagMonitor:init(name, a)
-    self.name = name
-    self.begin = a.addr
-    self.len = a.type
-    self.once = false
-    self.old_bytes = {}
-end
 
 function FlagMonitor:mark(i, x, x1)
     local now = emu.framecount()
@@ -49,8 +42,8 @@ end
 local weg = FlagMonitor('weg', addrs.week_event_reg)
 local inf = FlagMonitor('inf', addrs.event_inf)
 --local mmb = FlagMonitor('mmb', A(0x24405A, 3))
-local mmb = FlagMonitor('mmb', A(0x1F3F3A, 3))
-while true do
+local mmb = FlagMonitor('mmb', addrs.mask_mask_bit)
+while mm do
     weg:diff()
     inf:diff()
     mmb:diff()
