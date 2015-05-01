@@ -54,12 +54,15 @@ function A(addr, atype)
     }, mt)
 end
 
-Class = function()
-    return setmetatable({}, {__call = function(self, ...)
-        local obj = setmetatable({}, {__index = self})
-        obj:init(...)
-        return obj
-    end})
+Class = function(inherit)
+    return setmetatable({}, {
+        __call = function(self, ...)
+            local obj = setmetatable({}, {__index = self})
+            obj:init(...)
+            return obj
+        end,
+        __index = inherit,
+    })
 end
 
 function printf(fmt, ...)

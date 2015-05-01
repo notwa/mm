@@ -1,5 +1,6 @@
 ﻿require "boilerplate"
 require "addrs.init"
+require "classes"
 require "serialize"
 
 local blocknames = {
@@ -21,7 +22,7 @@ function butts(ih)
     return block, page, row
 end
 
-ShortMonitor = Class()
+ShortMonitor = Class(Monitor)
 function ShortMonitor:init(name, a)
     self.name = name
     self.begin = a.addr
@@ -31,23 +32,6 @@ function ShortMonitor:init(name, a)
 
     self.modified = {}
     self.dirty = false
-end
-
-function ShortMonitor:diff()
-    local bytes = mainmemory.readbyterange(self.begin, self.len)
-    local old_bytes = self.old_bytes
-    if self.once then
-        for k, v in pairs(bytes) do
-            local i = tonumber(k) - self.begin
-            local x = tonumber(v)
-            local x1 = tonumber(old_bytes[k])
-            if x ~= x1 then
-                self:mark(i, x, x1)
-            end
-        end
-    end
-    self.old_bytes = bytes
-    self.once = true
 end
 
 function ShortMonitor:mark(i, x, x1)
@@ -67,7 +51,7 @@ function ShortMonitor:dump()
         local block, page, row = butts(ih)
         local mod = self.modified[ih]
         local value = R2(self.begin + ih)
-        local vs = mod and '[variable]' or ('%04X'):format(value)
+        local vs = mod and 'n/a' or ('%04X'):format(value)
         local s = ('%02X\t%i\t%i\t%s\n'):format(block, page+1, row+1, vs)
         buff = buff..s
     end
