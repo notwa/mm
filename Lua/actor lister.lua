@@ -10,8 +10,8 @@ local validate = true
 local actor_t = Actor(0)
 
 local suffix = oot and " oot" or ""
-local actor_names  = require( "actor names"..suffix)
-local damage_names = require("damage names"..suffix)
+local actor_names  = require("data.actor names"..suffix)
+local damage_names = require("data.damage names"..suffix)
 
 function sort_by_key(t)
     local sorted = {}

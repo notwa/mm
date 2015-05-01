@@ -1,14 +1,13 @@
 -- gimme gimme gimme
 local a = require "addrs.init"
-require "item values"
 
 local iv
 if version == "M JP10" or version == "M JP11" then
-    iv = require "item values early"
+    iv = require "data.item values early"
 elseif oot then
-    iv = require "item values oot"
+    iv = require "data.item values oot"
 else
-    iv = require "item values"
+    iv = require "data.item values"
 end
 
 local inv = a.inventory

@@ -127,7 +127,7 @@ function dump_room(start, addr)
 
     if actors then
         print("# actors")
-        local actor_names = require "actor names"
+        local actor_names = require "data.actor names"
         local buf = ""
         for i = 0, actor_n - 1 do
             local id = R2(actors + 16*i)
@@ -140,7 +140,7 @@ function dump_room(start, addr)
 
     if objects then
         print("# objects")
-        local object_names = require "object names"
+        local object_names = require "data.object names"
         local buf = ""
         for i = 0, object_n - 1 do
             local id = R2(objects + 2*i)
