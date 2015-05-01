@@ -130,7 +130,7 @@ return {
 
     -- note: these addresses are invalid for JP10, JP11.
     checksum            = AL(0x100A, 2),
-    event_inf           = AL(0x100C, 9),
+    event_inf           = AL(0x100C, 8),
     disable_pause       = AL(0x100D, 1),
     hookshot_ba         = AL(0x100E, 1),
     disable_c_buttons_2 = AL(0x100F, 1),
