@@ -1,7 +1,7 @@
 -- movement speed testing in Majora's Mask
--- by notwa, for Bizhawk 1.9.1, ROM version US 1.0
---
 -- go to the fairy's fountain in clock town as human link and run this script.
+
+require "addrs.init"
 
 local length = 70 -- in frames
 local print_each = true
@@ -56,13 +56,10 @@ local tests = {
     },
 }
 
-local x_ptr = 0x3FFDD4 -- my x and y pointers
-local y_ptr = 0x3FFDDC -- might be backwards
-local z_ptr = 0x3FFDD8
-local a_ptr = 0x3FFE6E
+local link = addrs.link_actor
 
-local pos = {2400, 375, 20}
-local angle = 180/360*65536
+local pos = {2400, 20, 375}
+local angle = 180
 
 local fn = 'lua movement test'
 
@@ -75,8 +72,8 @@ function reset_stick()
 end
 
 function find_displacement()
-    local x = mainmemory.readfloat(x_ptr, true)
-    local y = mainmemory.readfloat(y_ptr, true)
+    local x = link.x()
+    local y = link.z() -- FIXME
     return pythag(pos[1] - x, pos[2] - y)
 end
 
@@ -84,10 +81,15 @@ function setup()
     client.unpause()
     for _=1, 2 do
         reset_stick()
-        mainmemory.write_s16_be(a_ptr, angle)
-        mainmemory.writefloat(x_ptr, pos[1], true)
-        mainmemory.writefloat(y_ptr, pos[2], true)
-        mainmemory.writefloat(z_ptr, pos[3], true)
+        local angle = (angle/360*65536) % 65536
+        --link.angle_old(angle_old)
+        link.angle(angle)
+        link.x(pos[1])
+        link.y(pos[2])
+        link.z(pos[3])
+        link.x_copy(pos[1])
+        link.y_copy(pos[2])
+        link.z_copy(pos[3])
         for i=1, 3*21 do
             emu.frameadvance()
             joypad.set({A=i % 4 > 0, Z=i > 9 and i <= 12}, 1)

@@ -23,7 +23,7 @@ function Actor(addr)
         ground_y        = AA(0x88, 'f'),
         damage_table    = AA(0xA0, 4),
         hp              = AA(0xB7, 1),
-        angle           = AA(0xBA, 2),
+        angle           = AA(0xBE, 2),
         foot_left_x     = AA(0xD4, 'f'), -- tested on Link, may be other things
         foot_left_y     = AA(0xD8, 'f'),
         foot_left_z     = AA(0xDC, 'f'),
@@ -300,14 +300,12 @@ return {
     warp_destination    = AG(0x1887A, 2),
     entrance_entered    = AG(0x18B48, 1),
 
-    --[[ FIXME
-    link_actor = merge(Actor(AA(0,0).addr), {
+    link_actor = setmetatable({
         item_in_hand    = AA(0x148, 1),
         animation_id    = AA(0x24A, 2),
         link_flags      = AA(0xA6C, 0xC),
         lin_vel         = AA(0xAD0, 'f'),
         movement_angle  = AA(0xAD4, 2),
         active_sword    = AA(0xADB, 1),
-    }),
-    --]]
+    }, {__index = Actor(AA(0,0).addr)})
 }

@@ -21,14 +21,18 @@ function hamming_of(addr, size)
     return weight
 end
 
+function hamming_of_A(a)
+    return hamming_of(a.addr, a.type)
+end
+
 print("###")
 local current = 0
 for i = 1, 5 do
     local addr = addrs['current_scene_flags_'..tostring(i)].addr
     current = current + hamming_of(addr, 4)
 end
-local ingame = hamming_of(addrs.scene_flags_ingame.addr, 0x960)
-local save   = hamming_of(addrs.scene_flags_save.addr,   0x960)
+local ingame = hamming_of_A(addrs.scene_flags_ingame)
+local save   = hamming_of_A(addrs.scene_flags_save)
 print("current", current)
 print("ingame ", ingame)
 print("save   ", save)

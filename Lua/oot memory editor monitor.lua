@@ -14,7 +14,7 @@ local blocknames = {
     'Rb',
 }
 
-function butts(ih)
+function distribute_index(ih)
     local block = math.floor(ih/16/6)
     local ir = ih - block*16*6
     local page = math.floor(ir/16)
@@ -39,7 +39,7 @@ function ShortMonitor:mark(i, x, x1)
     if not self.modified[ih] then
         self.modified[ih] = true
         self.dirty = true
-        local block, page, row = butts(ih)
+        local block, page, row = distribute_index(ih)
         printf('%2s Page %1i Row %3i', blocknames[block+1], page+1, row+1)
     end
 end
@@ -48,7 +48,7 @@ function ShortMonitor:dump()
     local buff = ''
     for i=0, self.len/2 - 1 do
         local ih = i
-        local block, page, row = butts(ih)
+        local block, page, row = distribute_index(ih)
         local mod = self.modified[ih]
         local value = R2(self.begin + ih)
         local vs = mod and 'n/a' or ('%04X'):format(value)

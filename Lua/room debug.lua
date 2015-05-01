@@ -1,5 +1,5 @@
-local A = require "boilerplate"
-local addrs = require "addrs.init"
+require "boilerplate"
+require "addrs.init"
 
 function gs2(addr, value)
     printf("81%06X %04X", addr, value)
