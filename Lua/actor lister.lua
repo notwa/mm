@@ -2,16 +2,18 @@ require "boilerplate"
 require "addrs.init"
 
 -- check for errors in the actor linked lists
-local validate = true
+local validate = false
 
--- bizhawk lua has some nasty memory leaks at the moment,
--- so instead of creating an object every time,
+-- creating an object every time is a bit slow, so
 -- using a template to offset from will do for now.
 local actor_t = Actor(0)
 
 local suffix = oot and " oot" or ""
 local actor_names  = require("data.actor names"..suffix)
 local damage_names = require("data.damage names"..suffix)
+
+-- hack to avoid N64 logo spitting errors
+local stupid = addrs.actor_counts[0].addr - 0x8
 
 function sort_by_key(t)
     local sorted = {}
@@ -109,78 +111,51 @@ function iter_actors(counts)
     return iterate
 end
 
-local ctrl
-local pressed = {}
-local old_ctrl = {}
-function update_input()
-    local j = joypad.getimmediate()
+function focus(actor, dump)
+    local color = actor.name:sub(1,1) == "?" and "red" or "orange"
+    T_BL(0, 7, color, actor.name)
+    T_BL(0, 6, nil,    'HP:  %02X', actor.hp)
+    T_BL(0, 5, 'cyan', 'No.:  %03X', actor.num)
+    T_BL(0, 4, nil,    'Var: %04X', actor.var)
+    T_BL(0, 3, nil,    '80%06X', actor.addr)
+    T_BL(0, 2, nil, 'type:  %3i', actor.at)
+    T_BL(0, 1, nil, 'index: %3i', actor.ai)
+    T_BL(0, 0, nil, 'count: %3i', actor.type_count)
 
-    ctrl = {
-        enter = j["P1 L"],
-        up    = j["P1 DPad U"],
-        down  = j["P1 DPad D"],
-        left  = j["P1 DPad L"],
-        right = j["P1 DPad R"],
-    }
+    local dmg = deref(R4(actor.addr + actor_t.damage_table.addr))
+    if dmg then
+        for i = 0, 31 do
+            local name = damage_names[i]
+            local str = ('%9s: %02X'):format(name, R1(dmg + i))
 
-    for k, v in pairs(ctrl) do
-        pressed[k] = ctrl[k] and not old_ctrl[k]
+            if i >= 16 then
+                T_TR(0, i - 16, nil, str)
+            else
+                T_TL(0, i, nil, str)
+            end
+        end
     end
 
-    old_ctrl = ctrl
+    if dump then
+        console.clear()
+        s = ("%04X\t%02X\t%02X"):format(actor.num, actor.at, actor.hp)
+        if dmg then
+            for i = 0, 31 do
+                s = s..("\t%02X"):format(R1(dmg + i))
+            end
+        end
+        print(s)
+    end
 end
 
-local focus_at = 2
-local focus_ai = 0
-
--- hack to avoid N64 logo spitting errors
-local stupid = addrs.actor_counts[0].addr - 0x8
-
-local seen_once = {}
-local seen_strs = {}
-local seen_strs_sorted = {}
-
-local before = 0
-local wait = 0
-
-function wipe()
-    if #seen_strs_sorted > 0 then
-        print()
-        print("# actors wiped #")
-        print()
-    end
-    seen_once = {}
-    seen_strs = {}
-    seen_strs_sorted = {}
-end
-
-local function run(now)
-    local game_counts = nil
-    local seen = {}
-    local cursor, target
-
-    update_input()
-
-    if pressed.left  then focus_ai = focus_ai - 1 end
-    if pressed.right then focus_ai = focus_ai + 1 end
-    if pressed.down then
-        -- follow Link again
-        focus_at = 2
-        focus_ai = 0
-    end
-
-    if R4(stupid) ~= 0 then
-        T_BR(0, 0, "red", "stupid")
-        return
-    end
-
-    game_counts = count_actors()
+function collect_actors()
+    local game_counts = count_actors()
     local any = 0
     for i = 0, 11 do
         any = any + game_counts[i]
-        T_BR(0, 13 - i, nil, "#%2i: %2i", i, game_counts[i])
+        --FIXME: T_BR(0, 13 - i, nil, "#%2i: %2i", i, game_counts[i])
     end
-    T_BR(0, 1, nil, "sum:%3i", any)
+    --FIXME: T_BR(0, 1, nil, "sum:%3i", any)
 
     local actors_by_type = {[0]={},{},{},{},{},{},{},{},{},{},{},{}} -- 12
     local new_counts = {[0]=0,0,0,0,0,0,0,0,0,0,0,0} -- 12
@@ -192,30 +167,106 @@ local function run(now)
             any = any + 1
         end
     end
+    return any > 0, actors_by_type, new_counts
+end
 
-    if any == 0 then
-        wipe()
+InputHandler = Class()
+function InputHandler:init(binds)
+    self.binds = binds
+    self.old_ctrl = {}
+end
+
+function InputHandler:update()
+    local ctrl = {}
+    local pressed = {}
+    local j = joypad.getimmediate()
+    for k, v in pairs(self.binds) do
+        ctrl[k] = j[v]
+    end
+    for k, v in pairs(ctrl) do
+        pressed[k] = ctrl[k] and not self.old_ctrl[k]
+    end
+    self.old_ctrl = ctrl
+    return ctrl, pressed
+end
+
+ActorLister = Class()
+function ActorLister:init()
+    self.before = 0
+    self.wait = 0
+    self.focus_at = 2
+    self.focus_ai = 0
+    self.seen_once = {}
+    self.seen_strs = {}
+    self.seen_strs_sorted = {}
+    self.input = InputHandler{
+        enter = "P1 L",
+        up    = "P1 DPad U",
+        down  = "P1 DPad D",
+        left  = "P1 DPad L",
+        right = "P1 DPad R",
+    }
+end
+
+function ActorLister:wipe()
+    if #self.seen_strs_sorted > 0 then
+        print()
+        print("# actors wiped #")
+        print()
+    end
+    self.seen_once = {}
+    self.seen_strs = {}
+    self.seen_strs_sorted = {}
+end
+
+function ActorLister:run(now)
+    local game_counts = nil
+    local seen = {}
+    local cursor, target
+
+    local ctrl, pressed = self.input:update()
+
+    if pressed.left  then self.focus_ai = self.focus_ai - 1 end
+    if pressed.right then self.focus_ai = self.focus_ai + 1 end
+    if pressed.down then
+        -- follow Link again
+        self.focus_at = 2
+        self.focus_ai = 0
+    end
+
+    if R4(stupid) ~= 0 then
+        T_BR(0, 0, "red", "stupid")
+        return
+    end
+
+    local any, actors_by_type, new_counts = collect_actors()
+
+    if not any then
+        self:wipe()
     else
-        while focus_ai < 0 do
-            focus_at = (focus_at - 1) % 12
-            focus_ai = new_counts[focus_at] - 1
+        while self.focus_ai < 0 do
+            self.focus_at = (self.focus_at - 1) % 12
+            self.focus_ai = new_counts[self.focus_at] - 1
         end
-        while focus_ai >= new_counts[focus_at] do
-            focus_at = (focus_at + 1) % 12
-            focus_ai = 0
+        while self.focus_ai >= new_counts[self.focus_at] do
+            self.focus_at = (self.focus_at + 1) % 12
+            self.focus_ai = 0
         end
         cursor = deref(addrs.z_cursor_actor())
         target = deref(addrs.z_target_actor())
     end
 
-    local focus_link = focus_at == 2 and focus_ai == 0
+    local focus_link = self.focus_at == 2 and self.focus_ai == 0
     local needs_update = false
 
     for at, actors in pairs(actors_by_type) do
       for ai, addr in pairs(actors) do -- FIXME: sorry for this pseudo-indent
+        local var = R2(addr + actor_t.var.addr)
+        local hp  = R1(addr + actor_t.hp.addr)
         local num = R2(addr + actor_t.num.addr)
         local name = actor_names[num]
-        local focus_this = at == focus_at and ai == focus_ai
+
+        local focus_this = at == self.focus_at and ai == self.focus_ai
 
         seen[num] = true
 
@@ -225,8 +276,8 @@ local function run(now)
             print(("\t[0x%03X]=\"NEW\","):format(num))
         end
 
-        if not seen_once[num] then
-            seen_once[num] = now
+        if not self.seen_once[num] then
+            self.seen_once[num] = now
             needs_update = true
             local str
             if name:sub(1,1) == "?" then
@@ -234,49 +285,22 @@ local function run(now)
             else
                 str = ("%s"):format(name)
             end
-            seen_strs[num] = str
+            self.seen_strs[num] = str
             print(str)
         end
 
         if (focus_this and not focus_link) or addr == target then
-            T_BL(0, 2, nil, 'type:  %3i', at)
-            T_BL(0, 1, nil, 'index: %3i', ai)
-            T_BL(0, 0, nil, 'count: %3i', new_counts[at])
-
-            local var = R2(addr + actor_t.var.addr)
-            local hp  = R1(addr + actor_t.hp.addr)
-            T_BL(0, 3, nil,    '80%06X', addr)
-            T_BL(0, 5, 'cyan', 'No.:  %03X', num)
-            T_BL(0, 4, nil,    'Var: %04X', var)
-            T_BL(0, 6, nil,    'HP:  %02X', hp)
-
-            local color = name:sub(1,1) == "?" and "red" or "orange"
-            T_BL(0, 7, color, name)
-
-            local dmg = deref(R4(addr + actor_t.damage_table.addr))
-            if dmg then
-                for i = 0, 31 do
-                    local name = damage_names[i]
-                    local str = ('%9s: %02X'):format(name, R1(dmg + i))
-
-                    if i >= 16 then
-                        T_TR(0, i - 16, nil, str)
-                    else
-                        T_TL(0, i, nil, str)
-                    end
-                end
-            end
-
-            if pressed.up then
-                console.clear()
-                s = ("%04X\t%02X\t%02X"):format(num, at, hp)
-                if dmg then
-                    for i = 0, 31 do
-                        s = s..("\t%02X"):format(R1(dmg + i))
-                    end
-                end
-                print(s)
-            end
+            local actor = {
+                addr = addr,
+                at = at,
+                ai = ai,
+                type_count = new_counts[at],
+                name = name,
+                hp = hp,
+                var = var,
+                num = num,
+            }
+            focus(actor, pressed.up)
         end
 
         if focus_this then
@@ -287,13 +311,13 @@ local function run(now)
     end
 
     if needs_update then
-        seen_strs_sorted = sort_by_key(seen_strs)
+        self.seen_strs_sorted = sort_by_key(self.seen_strs)
     end
 
     if focus_link and not target then
-        for i, t in ipairs(seen_strs_sorted) do
+        for i, t in ipairs(self.seen_strs_sorted) do
             local color = 'white'
-            if seen_once[t.k] and now - 60 <= seen_once[t.k] then
+            if self.seen_once[t.k] and now - 60 <= self.seen_once[t.k] then
                 color = 'lime'
             end
             if not seen[t.k] then
@@ -303,32 +327,34 @@ local function run(now)
         end
     end
 
-    T_BR(0, 0, nil, "unique:%3i", #seen_strs_sorted)
+    T_BR(0, 0, nil, "unique:%3i", #self.seen_strs_sorted)
 
-    if any > 0 then
+    if any then
         local z = target or cursor
         if z then
             local num = R2(z)
-            T_TR(0, 0, nil, seen_strs[num])
+            T_TR(0, 0, nil, self.seen_strs[num])
         end
     end
 end
 
-local function runwrap(now)
-    if now < before then wait = 2 end
-    before = now
-    if wait > 0 then
+-- TODO: abstract to wrapper class or something
+function ActorLister:runwrap(now)
+    if now < self.before then self.wait = 2 end
+    self.before = now
+    if self.wait > 0 then
         -- prevent script from lagging reversing
-        wait = wait - 1
-        if wait == 0 then wipe() end
+        self.wait = self.wait - 1
+        if self.wait == 0 then self:wipe() end
     else
-        run(now)
+        self:run(now)
     end
 end
 
-event.onloadstate(wipe, 'actor wipe')
+al = ActorLister()
+event.onloadstate(al.wipe, 'actor wipe')
 while oot or mm do
     local now = emu.framecount()
-    runwrap(now)
+    al:runwrap(now)
     emu.frameadvance()
 end
