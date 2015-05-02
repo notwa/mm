@@ -111,11 +111,18 @@ function iter_actors(counts)
     return iterate
 end
 
+function longbinary(x)
+    return ('%032s'):format(bizstring.binary(x))
+end
+
 function focus(actor, dump)
     local color = actor.name:sub(1,1) == "?" and "red" or "orange"
+    local flags = longbinary(actor.flags)
+    T_BL(0, 9, nil,    'Hi: %s', flags:sub(1,16))
+    T_BL(0, 8, nil,    'Lo: %s', flags:sub(17,32))
     T_BL(0, 7, color, actor.name)
     T_BL(0, 6, nil,    'HP:  %02X', actor.hp)
-    T_BL(0, 5, 'cyan', 'No.:  %03X', actor.num)
+    T_BL(0, 5, 'cyan', 'No.: %03X', actor.num)
     T_BL(0, 4, nil,    'Var: %04X', actor.var)
     T_BL(0, 3, nil,    '80%06X', actor.addr)
     T_BL(0, 2, nil, 'type:  %3i', actor.at)
@@ -265,6 +272,8 @@ function ActorLister:run(now)
         local hp  = R1(addr + actor_t.hp.addr)
         local num = R2(addr + actor_t.num.addr)
         local name = actor_names[num]
+        local fa = addr + actor_t.flags.addr
+        local flags = R4(fa)
 
         local focus_this = at == self.focus_at and ai == self.focus_ai
 
@@ -291,13 +300,15 @@ function ActorLister:run(now)
 
         if (focus_this and not focus_link) or addr == target then
             local actor = {
+                name = name,
                 addr = addr,
-                at = at,
                 ai = ai,
                 type_count = new_counts[at],
-                name = name,
-                hp = hp,
+
+                at = at,
                 var = var,
+                flags = flags,
+                hp = hp,
                 num = num,
             }
             focus(actor, pressed.up)
@@ -306,6 +317,12 @@ function ActorLister:run(now)
         if focus_this then
             W1(addrs.camera_target.addr, 0x80)
             W3(addrs.camera_target.addr + 1, addr)
+        end
+
+        -- make all actors z-targetable
+        if not (focus_this and focus_link) then
+            flags = bit.bor(flags, 0x00000001)
+            W4(fa, flags)
         end
       end
     end
