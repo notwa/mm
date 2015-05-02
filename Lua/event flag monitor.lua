@@ -41,7 +41,6 @@ end
 
 local weg = FlagMonitor('weg', addrs.week_event_reg)
 local inf = FlagMonitor('inf', addrs.event_inf)
---local mmb = FlagMonitor('mmb', A(0x24405A, 3))
 local mmb = FlagMonitor('mmb', addrs.mask_mask_bit)
 while mm do
     weg:diff()

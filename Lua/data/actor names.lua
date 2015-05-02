@@ -194,7 +194,7 @@ return {
     [0x0BC]="? En_Weather_Tag", -- seen: anywhere frozen mountain village, atop clock tower
     [0x0BD]="Part-Timer", -- Kakariko roof guy
     [0x0BE]=unset,
-    [0x0BF]="Moon child",
+    [0x0BF]="Moon Child",
     [0x0C0]=unset,
     [0x0C1]=unset,
     [0x0C2]=unset,
