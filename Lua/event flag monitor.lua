@@ -1,6 +1,7 @@
 require "boilerplate"
 require "addrs.init"
 require "classes"
+require "serialize"
 
 local ignore = {
     -- every time a scene (un)loads
@@ -23,6 +24,11 @@ local ignore = {
 }
 
 FlagMonitor = Class(Monitor)
+function FlagMonitor:init(name, a)
+    Monitor.init(self, name, a)
+    self.seen = {}
+    self.dirty = false
+end
 
 function FlagMonitor:mark(i, x, x1)
     local now = emu.framecount()
@@ -35,16 +41,38 @@ function FlagMonitor:mark(i, x, x1)
                 printf('%s  @%i', str, now)
                 gui.addmessage(str)
             end
+            local ib = i*8 + which
+            if not self.seen[ib] then
+                self.seen[ib] = true
+                self.dirty = true
+            end
         end
+    end
+end
+
+function FlagMonitor:load(fn)
+    self.seen = deserialize(fn) or {}
+    self.dirty = false
+    self.fn = fn
+end
+
+function FlagMonitor:save(fn)
+    if self.dirty then
+        serialize(fn or self.fn, self.seen)
+        self.dirty = false
     end
 end
 
 local weg = FlagMonitor('weg', addrs.week_event_reg)
 local inf = FlagMonitor('inf', addrs.event_inf)
 local mmb = FlagMonitor('mmb', addrs.mask_mask_bit)
+weg:load('data/_weg.lua')
+inf:load('data/_inf.lua')
 while mm do
     weg:diff()
     inf:diff()
     mmb:diff()
+    weg:save()
+    inf:save()
     emu.frameadvance()
 end
