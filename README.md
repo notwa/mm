@@ -5,11 +5,14 @@ i like to muck around in the memory of these games.
 # Majora's Mask
 
 for brevity, all addresses written here are given for the original US version.
-refer to the spreadsheet or Lua tables for their equivalents in other versions.
+refer to the spreadsheets or Lua tables for their equivalent in other versions.
 
 ## spreadsheets
 
-i put together some sheets to dump data in. some of them can be used to predict the result of glitches.
+some sheets have been put together to dump data in. some of them can be used to predict the result of glitches.
+
+* [Event Flags][eventflags]
+  are being documented here.
 
 * [Memory Addresses][gs_addrs]
   updates more frequently than [MM addrs.lua.][noice]
@@ -24,6 +27,7 @@ i put together some sheets to dump data in. some of them can be used to predict 
   enter an "exit value" in hex and it'll figure out exactly where it takes you.
   the three known wrong warps are in bold.
 
+[eventflags]: https://docs.google.com/spreadsheets/d/181V9dR5vBROdCVB4FkljG5oz2O4gGU5OTAkoPQX9X10/edit?usp=sharing
 [gs_addrs]: https://docs.google.com/spreadsheets/d/1HD8yZM1Jza3O8zO28n3k_Rjwdx58RSMA03915l51oDA/edit?usp=sharing
 [noice]: /MM%20addrs.lua
 [gim]: https://docs.google.com/spreadsheets/d/17LsLbF6aRePVRxisui8azPtDBfPmjugWIf91wPuXTsY
@@ -107,29 +111,6 @@ they appear in a different order than in save files, however.
 803E8988 corresponds to offset 0x0.  
 803E898C corresponds to offset 0xC.  
 803E8994 corresponds to offset 0x10.  
-
-### scenes visited
-
-scenes with one-time intro cutscenes store their flags at 801F0568.
-many flags are documented, courtesy of fkualol:
-
-```
-bit 00: Termina Field
-bit 01: Ikana Graveyard
-bit 03: Gorman Racetrack
-bit 06: Snowhead
-bit 07: Southern Swamp
-bit 09: Deku Palace
-bit 11: Pirates' Fortress
-bit 12: Zora's Domain
-bit 16: Stone Tower
-bit 17: Inverted Stone Tower
-bit 18: West Clock Town
-bit 19: East Clock Town
-bit 20: North Clock Town
-bit 21: Woodfall Temple
-bit 22: Snowhead Temple
-```
 
 ### link's status
 
