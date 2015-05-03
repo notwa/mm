@@ -1,9 +1,7 @@
 ﻿require "boilerplate"
 require "addrs.init"
 require "classes"
-require "serialize"
 
-local fn = 'data/_ootmemod.lua'
 local blocknames = {
     'R ', 'RS', 'RO', 'RP',
     'RQ', 'RM', 'RY', 'RD',
@@ -24,11 +22,6 @@ function distribute_index(ih)
 end
 
 ShortMonitor = Class(Monitor)
-function ShortMonitor:init(name, a)
-    Monitor.init(self, name, a)
-    self.modified = {}
-    self.dirty = false
-end
 
 function ShortMonitor:mark(i, x, x1)
     local ih = math.floor(i/2)
@@ -58,14 +51,9 @@ end
 -- 2 bytes each, 16 values per page, 6 pages per block, 29 blocks
 -- = 5568 bytes (0x15C0)
 me = ShortMonitor('me', A(0x210A24, 0x15C0))
-
-me.modified = deserialize(fn) or {}
-
+me:load('data/_ootmemod.lua')
 while version == "O EUDB MQ" do
     me:diff()
-    if me.dirty then
-        serialize(fn, me.modified)
-        me.dirty = false
-    end
+    me:save()
     emu.frameadvance()
 end

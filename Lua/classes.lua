@@ -1,3 +1,5 @@
+require "serialize"
+
 Monitor = Class()
 function Monitor:init(name, a)
     self.name = name
@@ -5,6 +7,8 @@ function Monitor:init(name, a)
     self.len = a.type
     self.once = false
     self.old_bytes = {}
+    self.modified = {}
+    self.dirty = false
 end
 
 function Monitor:diff()
@@ -23,5 +27,18 @@ function Monitor:diff()
     end
     self.old_bytes = bytes
     self.once = true
+end
+
+function Monitor:load(fn)
+    self.modified = deserialize(fn) or {}
+    self.dirty = false
+    self.fn = fn
+end
+
+function Monitor:save(fn)
+    if self.dirty then
+        serialize(fn or self.fn, self.modified)
+        self.dirty = false
+    end
 end
 
