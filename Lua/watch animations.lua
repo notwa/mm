@@ -15,7 +15,7 @@ while mm or oot do
         if not anims_seen[anim_id] then
             anims_seen[anim_id] = true
             print(frame, hexid)
-            serialize(anims_seen, fn)
+            serialize(fn, anims_seen)
         end
     end
     emu.frameadvance()

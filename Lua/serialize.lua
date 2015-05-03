@@ -46,7 +46,7 @@ function _deserialize(script)
     end
 end
 
-function serialize(value, path)
+function serialize(path, value)
     local file = open(path, 'w')
     if not file then return end
     file:write("return ")

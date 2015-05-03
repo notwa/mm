@@ -64,7 +64,7 @@ me.modified = deserialize(fn) or {}
 while version == "O EUDB MQ" do
     me:diff()
     if me.dirty then
-        serialize(me.modified, (fn))
+        serialize(fn, me.modified)
         me.dirty = false
     end
     emu.frameadvance()
