@@ -235,8 +235,7 @@ return {
         kegs            = AL(0xAC, 1),
     },
 
-    buttons_1           = AG(0x1A, 1),
-    buttons_2           = AG(0x1B, 1),
+    buttons             = AG(0x1A, 2),
     framerate_limiter   = AG(0xA2, 1),
     scene_number        = AG(0xA4, 2),
     screen_T            = AG(0xC0, 4),
