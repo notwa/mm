@@ -17,9 +17,9 @@ function Monitor:diff()
     local old_bytes = self.old_bytes
     if self.once then
         for k, v in pairs(bytes) do
-            local i = tonumber(k) - self.begin
-            local x = tonumber(v)
-            local x1 = tonumber(old_bytes[k])
+            local i = k - self.begin
+            local x = v
+            local x1 = old_bytes[k]
             if x ~= x1 then
                 self:mark(i, x, x1)
             end
@@ -41,4 +41,3 @@ function Monitor:save(fn)
         self.dirty = false
     end
 end
-
