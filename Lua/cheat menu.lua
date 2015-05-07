@@ -2,18 +2,7 @@ require "boilerplate"
 require "addrs.init"
 require "classes"
 require "menu classes"
-
-function T(x, y, color, pos, s, ...)
-    if #{...} > 0 then
-        s = s:format(...)
-    end
-    gui.text(10*x + 2, 16*y + 4, s, nil, color or "white", pos or "bottomright")
-end
-
-function T_BR(x, y, color, ...) T(x, y, color, "bottomright", ...) end
-function T_BL(x, y, color, ...) T(x, y, color, "bottomleft",  ...) end
-function T_TL(x, y, color, ...) T(x, y, color, "topleft",     ...) end
-function T_TR(x, y, color, ...) T(x, y, color, "topright",    ...) end
+require "messages"
 
 local passives = {}
 

@@ -1,6 +1,7 @@
 require "boilerplate"
 require "addrs.init"
 require "classes"
+require "messages"
 
 -- check for errors in the actor linked lists
 local validate = false
@@ -26,15 +27,6 @@ function sort_by_key(t)
     table.sort(sorted, function(a, b) return a.k < b.k end)
     return sorted
 end
-
-function T(x, y, color, pos, fmt, ...)
-    gui.text(10*x + 2, 16*y + 4, fmt:format(...), nil, color or "white", pos or "bottomright")
-end
-
-function T_BR(x, y, color, ...) T(x, y, color, "bottomright", ...) end
-function T_BL(x, y, color, ...) T(x, y, color, "bottomleft",  ...) end
-function T_TL(x, y, color, ...) T(x, y, color, "topleft",     ...) end
-function T_TR(x, y, color, ...) T(x, y, color, "topright",    ...) end
 
 function get_actor_count(i)
     return R4(addrs.actor_counts[i].addr)
