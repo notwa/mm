@@ -41,7 +41,7 @@ function _deserialize(script)
     if f ~= nil then
         return f()
     else
-        print('WARNING: no function deserialize with')
+        print('WARNING: no function to deserialize with')
         return nil
     end
 end
