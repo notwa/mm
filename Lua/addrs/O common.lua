@@ -134,6 +134,7 @@ return {
         beans           = AL(0x9A, 1),
     },
 
+    buttons             = AG(0x14, 2),
     scene_number        = AG(0xA4, 2),
     camera_target       = AG(0x270, 4),
 
@@ -172,10 +173,10 @@ return {
 
     link_actor = setmetatable({
         --item_in_hand    = AA(0x148, 1),
-        animation_id    = AA(0x1BE, 2),
+        animation_id    = AA(0x1AE, 2), -- 0x1BE on debug?
         --link_flags      = AA(0xA6C, 0xC),
-        --lin_vel         = AA(0xAD0, 'f'),
-        --movement_angle  = AA(0xAD4, 2),
-        --active_sword    = AA(0xADB, 1),
+        lin_vel         = AA(0x828, 'f'),
+        movement_angle  = AA(0x82C, 2),
+        active_sword    = AA(0x833, 1),
     }, {__index = Actor(AA(0,0).addr)}),
 }
