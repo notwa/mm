@@ -29,10 +29,13 @@ return function(hash)
     end
     function AA(a, s) return A(b.actor + a, s) end
 
-    local addrs = require("addrs."..rv)
+    local subdir = version:sub(1, 1)
+    local rvs = rv:sub(3)
+
+    local addrs = require("addrs."..subdir.."."..rvs)
     addrs.version = version
     addrs.oot = v == "O "
     addrs.mm  = v == "M "
-    local common = require("addrs."..v.."common")
+    local common = require("addrs."..subdir..".common")
     return setmetatable(addrs, {__index=common})
 end
