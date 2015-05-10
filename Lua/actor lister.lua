@@ -342,7 +342,7 @@ function ActorLister:runwrap(now)
 end
 
 al = ActorLister()
-event.onloadstate(al.wipe, 'actor wipe')
+event.onloadstate(function() al:wipe() end, 'actor wipe')
 while oot or mm do
     local now = emu.framecount()
     al:runwrap(now)
