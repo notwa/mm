@@ -26,6 +26,18 @@ function levitate:hold()
     addrs.link_actor.y_vel(10)
 end
 
+local supersonic = Passive()
+function supersonic:tick()
+    if self.state then
+        if bit.band(addrs.buttons(), 0x8000) > 0 then
+            self:hold()
+        end
+    end
+end
+function supersonic:hold()
+    addrs.link_actor.lin_vel(20)
+end
+
 local everything = Callbacks()
 function everything:on()
     dofile("oneshot.lua")
@@ -40,6 +52,7 @@ local main_menu = Menu{
     Screen{
         Text("hey"),
         Toggle("L to Levitate", levitate),
+        Toggle("A to Run Fast", supersonic),
         Hold("Levitate", levitate),
         Oneshot("100%", everything),
         Back(),
