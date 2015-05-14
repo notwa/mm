@@ -46,7 +46,7 @@ function FlagMonitor:mark(i, x, x1)
                 str = str..' (NEW!)'
             end
             if not ignore[str] then
-                printf('%s  @%i', str, now)
+                dprintf('%s  @%i', str, now)
                 message(str, 180)
             end
         end
@@ -124,6 +124,7 @@ elseif oot then
         igi:save()
         it_:save()
         ei_:save()
+        print_deferred()
         draw_messages()
         emu.frameadvance()
     end
