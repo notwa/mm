@@ -1,6 +1,7 @@
 return {
 	[4] = true,
 	[6] = true,
+	[7] = true,
 	[10] = true,
 	[16] = true,
 	[17] = true,
