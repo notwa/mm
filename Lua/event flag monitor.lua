@@ -53,10 +53,44 @@ function FlagMonitor:mark(i, x, x1)
     end
 end
 
+function FlagMonitor:dump(current)
+    local t = current and self:read() or self.modified
+
+    local size = mm and 8 or 16
+    local rows = math.floor(self.len/size*8)
+
+    local buff = self.name..'\n'
+
+    buff = buff..'  \t'
+    for col = size-1, 0, -1 do
+        buff = buff..('%X'):format(col)
+        if col % 4 == 0 then buff = buff..' ' end
+    end
+
+    for row = 0, rows-1 do
+        s = ('%02i\t'):format(row)
+        for col = size-1, 0, -1 do
+            local B, b = row, col
+            if size == 16 then
+                B = row*2 + (col < 8 and 1 or 0)
+                b = col % 8
+            end
+            local ib = B*8 + b
+            local v
+            if current then v = bit.band(t[B], 2^b) > 0 else v = t[ib] end
+            s = s..(v and '1' or '0')
+            if col % 4 == 0 then s = s..' ' end
+        end
+        buff = buff..'\n'..s
+    end
+
+    return buff
+end
+
 if mm then
-    local weg = FlagMonitor('weg', addrs.week_event_reg)
-    local inf = FlagMonitor('inf', addrs.event_inf)
-    local mmb = FlagMonitor('mmb', addrs.mask_mask_bit)
+    weg = FlagMonitor('weg', addrs.week_event_reg)
+    inf = FlagMonitor('inf', addrs.event_inf)
+    mmb = FlagMonitor('mmb', addrs.mask_mask_bit)
     weg:load('data/_weg.lua')
     inf:load('data/_inf.lua')
     while mm do
@@ -69,10 +103,10 @@ if mm then
         emu.frameadvance()
     end
 elseif oot then
-    local eci = FlagMonitor('eci', AL(0xED4, 0x1C))
-    local igi = FlagMonitor('igi', AL(0xEF0,  0x8))
-    local it_ = FlagMonitor('it ', AL(0xEF8, 0x3C))
-    local ei_ = FlagMonitor('ei ', AL(0x13FA, 0x8))
+    eci = FlagMonitor('eci', AL(0xED4, 0x1C))
+    igi = FlagMonitor('igi', AL(0xEF0,  0x8))
+    it_ = FlagMonitor('it ', AL(0xEF8, 0x3C))
+    ei_ = FlagMonitor('ei ', AL(0x13FA, 0x8))
     eci:load('data/_eci.lua')
     igi:load('data/_igi.lua')
     it_:load('data/_it.lua')

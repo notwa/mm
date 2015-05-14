@@ -11,15 +11,24 @@ function Monitor:init(name, a)
     self.dirty = false
 end
 
-function Monitor:diff()
+function Monitor:read()
     -- bizhawk has an off-by-one bug where this returns length + 1 bytes
-    local bytes = mainmemory.readbyterange(self.begin, self.len-1)
+    local raw = mainmemory.readbyterange(self.begin, self.len-1)
+    local bytes = {}
+    local begin = self.begin
+    for k, v in pairs(raw) do
+        bytes[k - begin] = v
+    end
+    return bytes
+end
+
+function Monitor:diff()
+    local bytes = self:read()
     local old_bytes = self.old_bytes
     if self.once then
-        for k, v in pairs(bytes) do
-            local i = k - self.begin
+        for i, v in pairs(bytes) do
             local x = v
-            local x1 = old_bytes[k]
+            local x1 = old_bytes[i]
             if x ~= x1 then
                 self:mark(i, x, x1)
             end
