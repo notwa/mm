@@ -271,7 +271,7 @@ function ActorLister:run(now)
             print(str)
         end
 
-        if (focus_this and not focus_link) or addr == target then
+        if (focus_this and not focus_link) or (focus_link and addr == target) then
             local actor = {
                 name = name,
                 addr = addr,
