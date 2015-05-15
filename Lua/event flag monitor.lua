@@ -32,7 +32,7 @@ function FlagMonitor:mark(i, x, x1)
         if bit.band(diff, 2^which) ~= 0 then
             local state = bit.band(x, 2^which) ~= 0 and 1 or 0
             local str
-            if oot then
+            if self.oot then
                 local row = math.floor(i/2)
                 local col = which + (1 - (i % 2))*8
                 str = ('%02i,%X=%i (%s)'):format(row, col, state, self.name)
@@ -56,7 +56,7 @@ end
 function FlagMonitor:dump(current)
     local t = current and self:read() or self.modified
 
-    local size = mm and 8 or 16
+    local size = self.oot and 16 or 8
     local rows = math.floor(self.len/size*8)
 
     local buff = self.name..'\n'
@@ -90,18 +90,10 @@ end
 if mm then
     weg = FlagMonitor('weg', addrs.week_event_reg)
     inf = FlagMonitor('inf', addrs.event_inf)
-    mmb = FlagMonitor('mmb', addrs.mask_mask_bit)
+    --mmb = FlagMonitor('mmb', addrs.mask_mask_bit) -- 100% known, no point
     weg:load('data/_weg.lua')
     inf:load('data/_inf.lua')
-    while mm do
-        weg:diff()
-        inf:diff()
-        mmb:diff()
-        weg:save()
-        inf:save()
-        draw_messages()
-        emu.frameadvance()
-    end
+    fms = {weg, inf}
 elseif oot then
     eci = FlagMonitor('eci', AL(0xED4, 0x1C))
     igi = FlagMonitor('igi', AL(0xEF0,  0x8))
@@ -111,21 +103,16 @@ elseif oot then
     igi:load('data/_igi.lua')
     it_:load('data/_it.lua')
     ei_:load('data/_ei.lua')
-    eci.oot = true
-    igi.oot = true
-    it_.oot = true
-    ei_.oot = true
-    while oot do
-        eci:diff()
-        igi:diff()
-        it_:diff()
-        ei_:diff()
-        eci:save()
-        igi:save()
-        it_:save()
-        ei_:save()
-        print_deferred()
-        draw_messages()
-        emu.frameadvance()
+    fms = {eci, igi, it_, ei_}
+    for i, fm in ipairs(fms) do fm.oot = true end
+end
+
+while mm or oot do
+    for i, fm in ipairs(fms) do
+        fm:diff()
+        fm:save()
     end
+    print_deferred()
+    draw_messages()
+    emu.frameadvance()
 end
