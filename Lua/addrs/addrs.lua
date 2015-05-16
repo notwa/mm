@@ -27,7 +27,14 @@ return function(hash)
         end
         return A(b.global + a, s)
     end
-    function AA(a, s) return A(b.actor + a, s) end
+    function AA(a, s)
+        if rv == 'O EUDB MQ' then
+            if a >= 0x130 then -- approximate
+                a = a + 0x10
+            end
+        end
+        return A(b.actor + a, s)
+    end
 
     local subdir = version:sub(1, 1)
     local rvs = rv:sub(3)

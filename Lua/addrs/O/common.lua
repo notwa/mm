@@ -4,7 +4,7 @@ function Actor(addr)
     return {
         num             = AA(0x0, 2),
         type            = AA(0x2, 1),
-        room_number     = AA(0x3, 1),
+        room_number     = AA(0x3, 1), -- verify
         flags           = AA(0x4, 4),
         x_copy          = AA(0x8, 'f'),
         y_copy          = AA(0xC, 'f'),
@@ -16,13 +16,11 @@ function Actor(addr)
         x               = AA(0x24, 'f'),
         y               = AA(0x28, 'f'),
         z               = AA(0x2C, 'f'),
-        --x_rot_init      = AA(0x30, 2),
-        --y_rot_init      = AA(0x32, 2),
-        --z_rot_init      = AA(0x34, 2),
-        --x_rot_init      = AA(0x44, 2),
-        --y_rot_init      = AA(0x46, 2),
-        --z_rot_init      = AA(0x48, 2),
-        angle_old       = AA(0x4A, 2), -- TODO: verify
+        x_rot_init_2    = AA(0x30, 2), -- z-target facing angle?
+        y_rot_init_2    = AA(0x32, 2), -- link's head Y rot (lerped FPS angle)
+        z_rot_init_2    = AA(0x34, 2),
+        fps_vert_angle  = AA(0x44, 2),
+        fps_horiz_angle = AA(0x46, 2),
         x_scale         = AA(0x50, 'f'),
         y_scale         = AA(0x54, 'f'),
         z_scale         = AA(0x58, 'f'),
@@ -34,19 +32,6 @@ function Actor(addr)
         damage_table    = AA(0x98, 4),
         hp              = AA(0xAF, 1),
         --angle           = AA(0xBA, 2),
-        --foot_left_x     = AA(0xD4, 'f'),
-        --foot_left_y     = AA(0xD8, 'f'),
-        --foot_left_z     = AA(0xDC, 'f'),
-        --foot_right_x    = AA(0xE0, 'f'),
-        --foot_right_y    = AA(0xE4, 'f'),
-        --foot_right_z    = AA(0xE8, 'f'),
-        --camera_rel_x    = AA(0xEC, 'f'),
-        --camera_rel_y    = AA(0xF0, 'f'),
-        --camera_rel_z    = AA(0xF4, 'f'),
-        --unknown_z       = AA(0xF8, 'f'),
-        --x_old           = AA(0x108, 'f'),
-        --y_old           = AA(0x10C, 'f'),
-        --z_old           = AA(0x108, 'f'),
         prev            = AA(0x120, 4),
         next            = AA(0x124, 4),
     }
@@ -172,8 +157,8 @@ return {
     z_target_actor      = AG(0x1CCC, 4),
 
     link_actor = setmetatable({
-        --item_in_hand    = AA(0x148, 1),
-        animation_id    = AA(0x1AE, 2), -- 0x1BE on debug?
+        item_in_hand    = AA(0x142, 1),
+        animation_id    = AA(0x1AE, 2),
         --link_flags      = AA(0xA6C, 0xC),
         lin_vel         = AA(0x828, 'f'),
         movement_angle  = AA(0x82C, 2),
