@@ -430,7 +430,7 @@ return {
     [0x1A8]="Big Octo",
     [0x1A9]="Ice Platform (Ice Arrows)",
     [0x1AA]="Elevator Triforce Texture",
-    [0x1AB]="? En_Time_Tag", -- rug in inn?
+    [0x1AB]="? En_Time_Tag", -- time-based triggers? most commonly shops kicking you out at night
     [0x1AC]="Wooden Deku Door",
     [0x1AD]="Reflectable Spotlight",
     [0x1AE]="Platform (H&D)",

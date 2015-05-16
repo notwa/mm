@@ -4,7 +4,7 @@ function Actor(addr)
     return {
         num             = AA(0x0, 2),
         type            = AA(0x2, 1),
-        unk_3           = AA(0x3, 1),
+        room_number     = AA(0x3, 1), -- -1 = always loaded
         flags           = AA(0x4, 4),
         x_copy          = AA(0x8, 'f'),
         y_copy          = AA(0xC, 'f'),
@@ -16,18 +16,21 @@ function Actor(addr)
         var             = AA(0x1C, 2),
         unk_1E          = AA(0x1E, 1), -- actor type? set to -1 to unload actor
         unk_1F          = AA(0x1F, 1), -- link: 0x03
-        unk_20          = AA(0x20, 4), -- link: 0x03FF0000
+        unk_20          = AA(0x20, 4), -- link: 0x03FF
+        unk_22          = AA(0x22, 2),
         x               = AA(0x24, 'f'),
         y               = AA(0x28, 'f'),
         z               = AA(0x2C, 'f'),
-        x_rot_init_2    = AA(0x30, 2), -- z-target facing angle?
-        y_rot_init_2    = AA(0x32, 2), -- link's head Y rot (lerped FPS angle)
-        z_rot_init_2    = AA(0x34, 2),
+        unnamed_x_rot   = AA(0x30, 2), -- LERPed model facing angle?
+        unnamed_y_rot   = AA(0x32, 2),
+        unnamed_z_rot   = AA(0x34, 2), -- unused?
         unk_36          = AA(0x36, 2), -- padding?
-        unk_38          = AA(0x38, 4),
-        x_copy_2        = AA(0x3C, 'f'), -- actually a bone coordinate?
-        y_copy_2        = AA(0x40, 'f'),
-        z_copy_2        = AA(0x44, 'f'),
+        unk_38          = AA(0x38, 1), -- enum? whether owls can be hit?
+        unk_39          = AA(0x39, 1),
+        unk_3A          = AA(0x3A, 2),
+        target_x        = AA(0x3C, 'f'), -- for z-targeting
+        target_y        = AA(0x40, 'f'),
+        target_z        = AA(0x44, 'f'),
         fps_vert_angle  = AA(0x48, 2),
         fps_horiz_angle = AA(0x4A, 2),
         fps_unk_angle   = AA(0x4C, 2),
