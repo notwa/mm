@@ -1,3 +1,4 @@
+require = require "depend"
 require "boilerplate"
 require "addrs.init"
 require "classes"
@@ -5,6 +6,9 @@ require "messages"
 
 -- check for errors in the actor linked lists
 local validate = false
+
+-- for figuring out actor variables
+local debug_mode = true
 
 -- creating an object every time is a bit slow, so
 -- using a template to offset from will do for now.
@@ -111,16 +115,64 @@ end
 function focus(actor, dump)
     local color = actor.name:sub(1,1) == "?" and "red" or "orange"
     local flags = longbinary(actor.flags)
-    T_BL(0, 9, nil,    'Hi: %s', flags:sub(1,16))
-    T_BL(0, 8, nil,    'Lo: %s', flags:sub(17,32))
-    T_BL(0, 7, color, actor.name)
-    T_BL(0, 6, nil,    'HP:  %02X', actor.hp)
-    T_BL(0, 5, 'cyan', 'No.: %03X', actor.num)
-    T_BL(0, 4, nil,    'Var: %04X', actor.var)
-    T_BL(0, 3, nil,    '80%06X', actor.addr)
-    T_BL(0, 2, nil, 'type:  %3i', actor.at)
-    T_BL(0, 1, nil, 'index: %3i', actor.ai)
-    T_BL(0, 0, nil, 'count: %3i', actor.type_count)
+    local y = debug_mode and 24 or 9
+    local write = function(color, fmt, ...)
+        T_BL(0, y, color, fmt, ...)
+        y = y - 1
+        return y + 1
+    end
+
+    write(nil,    'Hi: %s', flags:sub(1,16))
+    write(nil,    'Lo: %s', flags:sub(17,32))
+    write(color, actor.name)
+    write(nil,    'HP:  %02X', actor.hp)
+    write('cyan', 'No.: %03X', actor.num)
+    write(nil,    'Var: %04X', actor.var)
+    write(nil,    '80%06X', actor.addr)
+    write(nil, 'type:  %3i', actor.at)
+    write(nil, 'index: %3i', actor.ai)
+    write(nil, 'count: %3i', actor.type_count)
+
+    if debug_mode then
+        local a = Actor(actor.addr)
+        local watch = {
+            {'room_number', '%02X'},
+            --{'x_rot_init', '%04X'},
+            --{'y_rot_init', '%04X'},
+            --{'z_rot_init', '%04X'},
+            --{'unk_1A', '%02X'},
+            {'unk_1E', '%02X'},
+            {'unk_20', '%04X'},
+            {'unk_22', '%04X'},
+            --{'unnamed_x_rot', '%04X'},
+            --{'unnamed_y_rot', '%04X'},
+            --{'unnamed_z_rot', '%04X'},
+            {'unk_36', '%04X'},
+            {'unk_38', '%02X'},
+            {'x', '%9.3f'},
+            {'y', '%9.3f'},
+            {'z', '%9.3f'},
+            {'lin_vel_old', '%9.3f'},
+            {'unk_74', '%9.3f'},
+            {'unk_78', '%9.3f'},
+            {'foot_left_x', '%9.3f'},
+            {'foot_left_y', '%9.3f'},
+            {'foot_left_z', '%9.3f'},
+        }
+
+        for i, t in ipairs(watch) do
+            write(nil, '%12s: '..t[2], t[1], a[t[1]]())
+        end
+
+        if dump then
+            a.unk_38(math.random(0, 0xFF))
+        end
+        --a.x_old(a.x())
+        --a.y_old(a.y())
+        --a.z_old(a.z())
+
+        return -- skip damage table crap
+    end
 
     local dmg = deref(R4(actor.addr + actor_t.damage_table.addr))
     if dmg then
@@ -145,6 +197,14 @@ function focus(actor, dump)
             end
         end
         print(s)
+
+        --[[
+        for _, v in ipairs{'x', 'y', 'z', 'x_copy', 'y_copy', 'z_copy'} do
+            WF(actor.addr + actor_t[v].addr, 0)
+        end
+        --]]
+        print(R1(actor.addr + 0x1E))
+        W1(actor.addr + 0x1E, 0xFF)
     end
 end
 
@@ -237,6 +297,7 @@ function ActorLister:run(now)
     end
 
     local focus_link = self.focus_at == 2 and self.focus_ai == 0
+    if debug_mode then focus_link = false end
     local needs_update = false
 
     for at, actors in pairs(actors_by_type) do
@@ -271,7 +332,18 @@ function ActorLister:run(now)
             print(str)
         end
 
-        if (focus_this and not focus_link) or (focus_link and addr == target) then
+        local focal = false
+        if not debug_mode then
+            focal = focal or (focus_this and not focus_link)
+            focal = focal or (focus_link and addr == target)
+        else
+            if target then
+                focal = addr == target
+            else
+                focal = focus_this
+            end
+        end
+        if focal then
             local actor = {
                 name = name,
                 addr = addr,

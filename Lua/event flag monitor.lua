@@ -1,3 +1,4 @@
+require = require "depend"
 require "boilerplate"
 require "addrs.init"
 require "classes"
