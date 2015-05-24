@@ -2,6 +2,7 @@ return {
 	[3] = true,
 	[15] = true,
 	[25] = true,
+	[28] = "curious",
 	[29] = true,
 	[31] = true,
 	[32] = true,
