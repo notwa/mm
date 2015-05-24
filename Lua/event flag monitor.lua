@@ -96,16 +96,24 @@ if mm then
     inf:load('data/_inf.lua')
     fms = {weg, inf}
 elseif oot then
-    eci = FlagMonitor('eci', AL(0xED4, 0x1C))
-    igi = FlagMonitor('igi', AL(0xEF0,  0x8))
-    it_ = FlagMonitor('it ', AL(0xEF8, 0x3C))
-    ei_ = FlagMonitor('ei ', AL(0x13FA, 0x8))
+    eci = FlagMonitor('eci', addrs.event_chk_inf)
+    igi = FlagMonitor('igi', addrs.item_get_inf)
+    it_ = FlagMonitor('it ', addrs.inf_table)
+    ei_ = FlagMonitor('ei ', addrs.event_inf)
     eci:load('data/_eci.lua')
     igi:load('data/_igi.lua')
     it_:load('data/_it.lua')
     ei_:load('data/_ei.lua')
     fms = {eci, igi, it_, ei_}
     for i, fm in ipairs(fms) do fm.oot = true end
+end
+
+function ef_wipe()
+    for _, fm in ipairs(fms) do
+        for i = 0, fm.len-1 do
+            W1(fm.begin+i, 0)
+        end
+    end
 end
 
 while mm or oot do

@@ -119,6 +119,12 @@ return {
         beans           = AL(0x9A, 1),
     },
 
+
+    event_chk_inf       = AL(0xED4, 0x1C),
+    item_get_inf        = AL(0xEF0,  0x8),
+    inf_table           = AL(0xEF8, 0x3C),
+    event_inf           = AL(0x13FA, 0x8),
+
     buttons             = AG(0x14, 2),
     scene_number        = AG(0xA4, 2),
     camera_target       = AG(0x270, 4),
