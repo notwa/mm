@@ -88,6 +88,35 @@ function FlagMonitor:dump(current)
     return buff
 end
 
+function FlagMonitor:wipe()
+    for i = self.begin, self.begin+self.len-1 do
+        W1(i, 0)
+    end
+end
+
+function FlagMonitor:set_unknowns()
+    self.save = function() end -- no clutter
+    local mod = self.modified_backup
+    if not mod then
+        mod = {}
+        for i, v in pairs(self.modified) do
+            mod[i] = v
+        end
+        self.modified_backup = mod
+    end
+    for i = 0, self.len-1 do
+        local v = R1(self.begin + i)
+        for which = 0, 7 do
+            local ib = i*8 + which
+            if not mod[ib] and bit.band(v, 2^which) == 0 then
+                v = v + 2^which
+            end
+        end
+        --printf("%04X = %02X", self.begin + i, sum)
+        W1(self.begin + i, v)
+    end
+end
+
 if mm then
     weg = FlagMonitor('weg', addrs.week_event_reg)
     inf = FlagMonitor('inf', addrs.event_inf)
@@ -109,11 +138,11 @@ elseif oot then
 end
 
 function ef_wipe()
-    for _, fm in ipairs(fms) do
-        for i = 0, fm.len-1 do
-            W1(fm.begin+i, 0)
-        end
-    end
+    for _, fm in ipairs(fms) do fm:wipe() end
+end
+
+function ef_unk()
+    for _, fm in ipairs(fms) do fm:set_unknowns() end
 end
 
 while mm or oot do
