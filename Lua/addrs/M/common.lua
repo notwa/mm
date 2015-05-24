@@ -45,7 +45,7 @@ function Actor(addr)
         y_vel           = AA(0x68, 'f'),
         z_vel           = AA(0x6C, 'f'),
         lin_vel_old     = AA(0x70, 'f'),
-        unk_74          = AA(0x74, 'f'),
+        unk_74          = AA(0x74, 'f'), -- an offset perhaps?
         unk_78          = AA(0x78, 'f'),
         unk_7C          = AA(0x7C, 4),
         unk_80          = AA(0x80, 4), -- pointer to ground?

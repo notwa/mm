@@ -153,11 +153,9 @@ function focus(actor, dump)
             {'y', '%9.3f'},
             {'z', '%9.3f'},
             {'lin_vel_old', '%9.3f'},
+            {'unk_54', '%9.3f'},
             {'unk_74', '%9.3f'},
             {'unk_78', '%9.3f'},
-            {'foot_left_x', '%9.3f'},
-            {'foot_left_y', '%9.3f'},
-            {'foot_left_z', '%9.3f'},
         }
 
         for i, t in ipairs(watch) do
@@ -166,6 +164,8 @@ function focus(actor, dump)
 
         if dump then
             a.unk_38(math.random(0, 0xFF))
+            --print(R1(actor.addr + 0x1E))
+            --W1(actor.addr + 0x1E, 0xFF)
         end
         --a.x_old(a.x())
         --a.y_old(a.y())
@@ -197,14 +197,6 @@ function focus(actor, dump)
             end
         end
         print(s)
-
-        --[[
-        for _, v in ipairs{'x', 'y', 'z', 'x_copy', 'y_copy', 'z_copy'} do
-            WF(actor.addr + actor_t[v].addr, 0)
-        end
-        --]]
-        print(R1(actor.addr + 0x1E))
-        W1(actor.addr + 0x1E, 0xFF)
     end
 end
 
@@ -316,7 +308,7 @@ function ActorLister:run(now)
         if not name then
             name = "NEW"
             actor_names[num] = name
-            print(("\t[0x%03X]=\"NEW\","):format(num))
+            dprint(("\t[0x%03X]=\"NEW\","):format(num))
         end
 
         if not self.seen_once[num] then
@@ -329,7 +321,7 @@ function ActorLister:run(now)
                 str = ("%s"):format(name)
             end
             self.seen_strs[num] = str
-            print(str)
+            dprint(str)
         end
 
         local focal = false
@@ -418,5 +410,6 @@ event.onloadstate(function() al:wipe() end, 'actor wipe')
 while oot or mm do
     local now = emu.framecount()
     al:runwrap(now)
+    print_deferred()
     emu.frameadvance()
 end
