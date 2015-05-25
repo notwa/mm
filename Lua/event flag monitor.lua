@@ -41,10 +41,15 @@ function FlagMonitor:mark(i, x, x1)
                 str = ('%02i,%i=%i (%s)'):format(i, which, state, self.name)
             end
             local ib = i*8 + which
-            if not self.modified[ib] then
+            local curious = self.modified[ib] == "curious"
+            if not self.modified[ib] or curious then
                 self.modified[ib] = true
                 self.dirty = true
-                str = str..' (NEW!)'
+                if not curious then
+                    str = str..' (NEW!)'
+                else
+                    str = str..' (!!!)'
+                end
             end
             if not ignore[str] then
                 dprintf('%s  @%i', str, now)
