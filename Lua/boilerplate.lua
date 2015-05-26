@@ -25,35 +25,35 @@ X3 = m.read_u24_be
 X4 = m.read_u32_be
 XF = function(addr) return m.readfloat(addr, true) end
 
-local readers = {
-    [1]   = R1,
-    [2]   = R2,
-    [3]   = R3,
-    [4]   = R4,
-    ['f'] = RF,
-}
+local H1 = function(self, value)
+    return value and W1(self.addr, value) or R1(self.addr)
+end
+local H2 = function(self, value)
+    return value and W2(self.addr, value) or R2(self.addr)
+end
+local H3 = function(self, value)
+    return value and W3(self.addr, value) or R3(self.addr)
+end
+local H4 = function(self, value)
+    return value and W4(self.addr, value) or R4(self.addr)
+end
+local HF = function(self, value)
+    return value and WF(self.addr, value) or RF(self.addr)
+end
 
-local writers = {
-    [1]   = W1,
-    [2]   = W2,
-    [3]   = W3,
-    [4]   = W4,
-    ['f'] = WF,
-}
-
-local mt = {
-    __call = function(self, value)
-        return value and self.write(self.addr, value) or self.read(self.addr)
-    end
+local mts = {
+    [1]   = {__call = H1},
+    [2]   = {__call = H2},
+    [3]   = {__call = H3},
+    [4]   = {__call = H4},
+    ['f'] = {__call = HF},
 }
 
 function A(addr, atype)
-    -- TODO: inherit type, read, and write fields from appropriate class
+    local mt = mts[atype]
     return setmetatable({
         addr=addr,
         type=atype,
-        read=readers[atype],
-        write=writers[atype]
     }, mt)
 end
 
