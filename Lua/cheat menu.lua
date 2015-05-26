@@ -1,3 +1,4 @@
+require = require "depend"
 require "boilerplate"
 require "addrs.init"
 require "classes"
@@ -48,13 +49,69 @@ function self_destruct:on()
     addrs.hearts(0)
 end
 
+local playas_child = Callbacks()
+function playas_child:run()
+    addrs.age_modifier_global(1)
+end
+local playas_adult = Callbacks()
+function playas_adult:run()
+    addrs.age_modifier_global(0)
+end
+
+local playas_human = Callbacks()
+function playas_human:on()
+    addrs.mask_worn(0)
+    addrs.transformation(4)
+end
+local playas_deku = Callbacks()
+function playas_deku:on()
+    addrs.mask_worn(0)
+    addrs.transformation(3)
+end
+local playas_goron = Callbacks()
+function playas_goron:on()
+    addrs.mask_worn(0)
+    addrs.transformation(1)
+end
+local playas_zora = Callbacks()
+function playas_zora:on()
+    addrs.mask_worn(0)
+    addrs.transformation(2)
+end
+local playas_fd = Callbacks()
+function playas_fd:on()
+    addrs.mask_worn(0)
+    addrs.transformation(0)
+end
+
+local playas_menu = oot and Menu{
+    Screen{
+        Text("Play as..."),
+        --Radial("Default", playas_group),
+        Oneshot("Child Link", playas_child),
+        Oneshot("Adult Link", playas_adult),
+        Back(),
+    },
+} or Menu{
+    Screen{
+        Text("Play as..."),
+        Oneshot("Human Link", playas_human),
+        Oneshot("Deku Link", playas_deku),
+        Oneshot("Goron Link", playas_goron),
+        Oneshot("Zora Link", playas_zora),
+        Oneshot("Fierce Deity", playas_fd),
+        Back(),
+    },
+}
+
 local main_menu = Menu{
     Screen{
-        Text("hey"),
+        Text("Main Menu"),
         Toggle("L to Levitate", levitate),
         Toggle("A to Run Fast", supersonic),
         Hold("Levitate", levitate),
         Oneshot("100%", everything),
+        LinkTo("Play as", playas_menu),
         Back(),
     },
     Screen{

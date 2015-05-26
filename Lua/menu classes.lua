@@ -6,6 +6,7 @@ MenuItem = Class()
 Text = Class(MenuItem)
 Back = Class(Text)
 Close = Back -- FIXME
+LinkTo = Class(Text)
 
 Active = Class(Text)
 Toggle = Class(Active)
@@ -66,6 +67,14 @@ function Back:init()
 end
 function Back:run()
     return nil -- FIXME
+end
+
+function LinkTo:init(text, submenu)
+    Text.init(self, text)
+    self.submenu = submenu
+end
+function LinkTo:run()
+    return self.submenu
 end
 
 function Active:init(text, callbacks)

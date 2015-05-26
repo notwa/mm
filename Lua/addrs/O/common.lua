@@ -55,6 +55,7 @@ return {
     navi_timer          = AL(0x38, 2),
     has_normal_magic    = AL(0x3A, 1),
     has_double_magic    = AL(0x3C, 1),
+    --AL(0x67, 1), something to do with saving?
     equip_tunic_boots   = AL(0x70, 1),
     equip_sword_shield  = AL(0x71, 1),
     inventory_items     = AL(0x74, 24),
@@ -168,6 +169,7 @@ return {
 
     room_number         = AG(0x11CBC, 1),
     room_pointer        = AG(0x11CC8, 4),
+    age_modifier_global = AG(0x11DE8, 1),
 
     link_actor = setmetatable({
         item_in_hand    = AA(0x142, 1),
