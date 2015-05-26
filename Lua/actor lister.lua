@@ -10,6 +10,29 @@ local validate = false
 -- for figuring out actor variables
 local debug_mode = true
 
+local debug_watch = mm and {
+    {'room_number', '%02X'},
+    --{'x_rot_init', '%04X'},
+    --{'y_rot_init', '%04X'},
+    --{'z_rot_init', '%04X'},
+    --{'unk_1A', '%02X'},
+    {'unk_1E', '%02X'},
+    {'unk_20', '%08X'},
+    {'unk_22', '%04X'},
+    --{'unnamed_x_rot', '%04X'},
+    --{'unnamed_y_rot', '%04X'},
+    --{'unnamed_z_rot', '%04X'},
+    {'unk_36', '%04X'},
+    {'unk_38', '%02X'},
+    {'x', '%9.3f'},
+    {'y', '%9.3f'},
+    {'z', '%9.3f'},
+    {'lin_vel_old', '%9.3f'},
+    {'unk_54', '%9.3f'},
+    {'unk_74', '%9.3f'},
+    {'unk_78', '%9.3f'},
+} or {}
+
 -- creating an object every time is a bit slow, so
 -- using a template to offset from will do for now.
 local actor_t = Actor(0)
@@ -115,7 +138,7 @@ end
 function focus(actor, dump)
     local color = actor.name:sub(1,1) == "?" and "red" or "orange"
     local flags = longbinary(actor.flags)
-    local y = debug_mode and 24 or 9
+    local y = debug_mode and #debug_watch + 9 or 9
     local write = function(color, fmt, ...)
         T_BL(0, y, color, fmt, ...)
         y = y - 1
@@ -135,37 +158,15 @@ function focus(actor, dump)
 
     if debug_mode then
         local a = Actor(actor.addr)
-        local watch = {
-            {'room_number', '%02X'},
-            --{'x_rot_init', '%04X'},
-            --{'y_rot_init', '%04X'},
-            --{'z_rot_init', '%04X'},
-            --{'unk_1A', '%02X'},
-            {'unk_1E', '%02X'},
-            {'unk_20', '%04X'},
-            {'unk_22', '%04X'},
-            --{'unnamed_x_rot', '%04X'},
-            --{'unnamed_y_rot', '%04X'},
-            --{'unnamed_z_rot', '%04X'},
-            {'unk_36', '%04X'},
-            {'unk_38', '%02X'},
-            {'x', '%9.3f'},
-            {'y', '%9.3f'},
-            {'z', '%9.3f'},
-            {'lin_vel_old', '%9.3f'},
-            {'unk_54', '%9.3f'},
-            {'unk_74', '%9.3f'},
-            {'unk_78', '%9.3f'},
-        }
 
-        for i, t in ipairs(watch) do
+        for i, t in ipairs(debug_watch) do
             write(nil, '%12s: '..t[2], t[1], a[t[1]]())
         end
 
         if dump then
             a.unk_38(math.random(0, 0xFF))
             --print(R1(actor.addr + 0x1E))
-            --W1(actor.addr + 0x1E, 0xFF)
+            --W1(actor.addr + actor_t.unk_1E.addr, 0xFF)
         end
         --a.x_old(a.x())
         --a.y_old(a.y())
