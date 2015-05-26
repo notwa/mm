@@ -1,5 +1,9 @@
 require "boilerplate"
 require "addrs.init"
+require "messages"
+
+local print = dprint
+local printf = dprintf
 
 function gs2(addr, value)
     printf("81%06X %04X", addr, value)
@@ -109,19 +113,22 @@ function dump_room(start, addr)
         gs2(actors + 16*act_i+0xE, 0x0010)
     end
     --]]
+
+    --[[
     if objects and actors then
         for i = 0, object_n - 1 do
-            --printf('O: %04X', R2(objects + 2*i))
-            --gs2(objects+2*i, 0x00FC)
+            printf('O: %04X', R2(objects + 2*i))
+            gs2(objects+2*i, 0x00FC)
         end
         for i = 0, actor_n - 1 do
-            --print('A:')
-            --dump_half_row(actors+16*i+0)
-            --dump_half_row(actors+16*i+8)
-            --gs2(actors+16*i+0x0, 0x00A8)
-            --gs2(actors+16*i+0xE, 0x0010)
+            print('A:')
+            dump_half_row(actors+16*i+0)
+            dump_half_row(actors+16*i+8)
+            gs2(actors+16*i+0x0, 0x00A8)
+            gs2(actors+16*i+0xE, 0x0010)
         end
     end
+    --]]
 
     print()
 
@@ -174,8 +181,6 @@ while true do
         printf("# total %2i setups", setups)
     end
     last_addr = addr
-
-    gui.clearGraphics()
-
+    print_deferred()
     emu.frameadvance()
 end
