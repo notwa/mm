@@ -24,7 +24,7 @@ set(a.target_style, 1)
 
 --set(buttons_enabled, 0)
 --set(infinite_sword, 1)
-set(a.owl_save, 1)
+set(a.owl_save, 0)
 set(a.sot_count, 0)
 
 set(a.target_style, 1)
@@ -80,9 +80,14 @@ else
     a.fairies_sht(69)
     a.fairies_gbt(69)
     a.fairies_stt(69)
+
+    -- great spin attack
+    -- this one's a bit odd; it goes off an event flag
+    local addr = a.week_event_reg.addr + 23
+    W1(addr, bit.bor(R1(addr), 0x02))
 end
 
-set(a.has_magic, 1)
+set(a.has_magic, 2) -- 2 for double
 set(a.has_normal_magic, 1)
 set(a.has_double_magic, 1)
 a.quest_items   (0x00FFFFFF)
