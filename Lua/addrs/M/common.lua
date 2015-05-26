@@ -101,6 +101,7 @@ end
 return {
     link                = A(link, 0x4000),
     exit_value          = AL(0x02, 2),
+    mask_worn           = AL(0x04, 1),
     intro_completed     = AL(0x05, 1),
     cutscene_status     = AL(0x0A, 2),
     time                = AL(0x0C, 2),
@@ -119,6 +120,7 @@ return {
     has_magic           = AL(0x38, 1), -- ?
     magic               = AL(0x39, 1),
     rupees              = AL(0x3A, 2),
+    navi_timer          = AL(0x3C, 4), -- ?
     has_normal_magic    = AL(0x40, 1),
     has_double_magic    = AL(0x41, 1),
     owls_hit            = AL(0x46, 2),
