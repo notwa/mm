@@ -100,6 +100,11 @@ function asciize(bytes)
     return str
 end
 
+function hex(i)
+    -- convenience function for use in console
+    printf("%08X", i)
+end
+
 --[[
 --  now we can just write:
 handle = A(0x123456, 1)
