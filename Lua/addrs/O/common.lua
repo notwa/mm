@@ -49,7 +49,7 @@ return {
     name                = AL(0x24, 8),
     max_hearts          = AL(0x2E, 2),
     hearts              = AL(0x30, 2),
-    has_magic           = AL(0x32, 1), -- ?
+    magic_level         = AL(0x32, 1),
     magic               = AL(0x33, 1),
     rupees              = AL(0x34, 2),
     navi_timer          = AL(0x38, 2),

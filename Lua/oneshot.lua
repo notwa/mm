@@ -87,7 +87,7 @@ else
     W1(addr, bit.bor(R1(addr), 0x02))
 end
 
-set(a.has_magic, 2) -- 2 for double
+set(a.magic_level, 2)
 set(a.has_normal_magic, 1)
 set(a.has_double_magic, 1)
 a.quest_items   (0x00FFFFFF)
