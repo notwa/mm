@@ -31,7 +31,7 @@ function Actor(addr)
         --ground_y        = AA(0x88, 'f'),
         damage_table    = AA(0x98, 4),
         hp              = AA(0xAF, 1),
-        --angle           = AA(0xBA, 2),
+        angle           = AA(0xB6, 2),
         prev            = AA(0x120, 4),
         next            = AA(0x124, 4),
     }

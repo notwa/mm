@@ -1,5 +1,8 @@
--- movement speed testing in Majora's Mask
--- go to the fairy's fountain in clock town as human link and run this script.
+-- movement speed testing
+-- for Majora's Mask:
+--   go to the fairy's fountain in clock town as human link and run this script.
+-- for Ocarina of Time:
+--   go to the Temple of Time as a child and run this script.
 
 require "addrs.init"
 
@@ -58,7 +61,7 @@ local tests = {
 
 local link = addrs.link_actor
 
-local pos = {2400, 20, 375}
+local pos = mm and {2400, 20, 375} or {-200, -40, 2330}
 local angle = 180
 
 local fn = 'lua movement test'
