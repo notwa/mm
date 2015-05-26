@@ -57,6 +57,11 @@ function A(addr, atype)
 end
 
 Class = function(inherit)
+    --[[ don't entirely like the idea but leaving it here
+    if type(inherit) == 'string' then
+        inherit = require("classes."..inherit)
+    end
+    --]]
     return setmetatable({}, {
         __call = function(self, ...)
             local obj = setmetatable({}, {__index = self})
