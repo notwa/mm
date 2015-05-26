@@ -5,6 +5,8 @@ require "classes"
 require "menu classes"
 require "messages"
 
+local dummy = Callbacks()
+
 local passives = {}
 
 Passive = Class(Callbacks)
@@ -49,13 +51,17 @@ function self_destruct:on()
     addrs.hearts(0)
 end
 
-local playas_child = Callbacks()
-function playas_child:run()
-    addrs.age_modifier_global(1)
+local playas_child = Passive()
+function playas_child:tick()
+    if self.state then
+        addrs.age_modifier_global(1)
+    end
 end
-local playas_adult = Callbacks()
-function playas_adult:run()
-    addrs.age_modifier_global(0)
+local playas_adult = Passive()
+function playas_adult:tick()
+    if self.state then
+        addrs.age_modifier_global(0)
+    end
 end
 
 local playas_human = Callbacks()
@@ -84,12 +90,14 @@ function playas_fd:on()
     addrs.transformation(0)
 end
 
+local playas_group = {}
+
 local playas_menu = oot and Menu{
     Screen{
         Text("Play as..."),
-        --Radial("Default", playas_group),
-        Oneshot("Child Link", playas_child),
-        Oneshot("Adult Link", playas_adult),
+        Radio("Default", playas_group, dummy),
+        Radio("Child Link", playas_group, playas_child),
+        Radio("Adult Link", playas_group, playas_adult),
         Back(),
     },
 } or Menu{

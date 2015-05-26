@@ -10,6 +10,7 @@ LinkTo = Class(Text)
 
 Active = Class(Text)
 Toggle = Class(Active)
+Radio = Class(Active)
 Hold = Class(Active)
 Oneshot = Class(Active)
 Flags = Class(Active)
@@ -98,6 +99,40 @@ end
 function Toggle:draw(brush, y)
     local color = self.focused and 'yellow' or 'white'
     brush(0, y, 'cyan', '[ ]')
+    if self.state then
+        brush(1, y, color, 'x')
+    end
+    brush(4, y, color, self.text)
+end
+
+function Radio:init(text, group, callbacks)
+    Active.init(self, text, callbacks)
+    self.state = #group == 0
+    table.insert(group, self)
+    self.group = group
+end
+function Radio:run()
+    if self.state then
+        -- we're already selected!
+        self.callbacks:hold()
+        return self
+    end
+
+    for _, active in pairs(self.group) do
+        -- FIXME: shouldn't really be invading their namespace
+        if active ~= self then
+            active.state = false
+            active.callbacks:off(false)
+        end
+    end
+
+    self.state = true
+    self.callbacks:on(true)
+    return self
+end
+function Radio:draw(brush, y)
+    local color = self.focused and 'yellow' or 'white'
+    brush(0, y, 'cyan', '( )')
     if self.state then
         brush(1, y, color, 'x')
     end
