@@ -59,7 +59,10 @@ function Text:init(text)
     self.text = text
 end
 function Text:draw(brush, y)
-    local color = self.focused and 'yellow' or 'white'
+    local color = 'cyan'
+    if getindex(self) ~= Text then
+        color = self.focused and 'yellow' or 'white'
+    end
     brush(0, y, color, self.text)
 end
 
@@ -79,7 +82,7 @@ function LinkTo:run()
 end
 
 function Active:init(text, callbacks)
-    self.text = text
+    Text.init(self, text)
     self.callbacks = callbacks or {}
 end
 
@@ -174,12 +177,29 @@ function Screen:navigate(ctrl, pressed)
     local i = self.item_sel
     local old = self.items[i]
 
-    if pressed.down then i = i + 1 end
-    if pressed.up then i = i - 1 end
-    i = wrap(i, #self.items)
-    self.item_sel = i
+    local direction
+    if pressed.down then direction = 'down' end
+    if pressed.up then direction = 'up' end
 
-    local item = self.items[i]
+    local item
+    for give_up = 0, 100 do
+        if give_up >= 100 then
+            error("couldn't find a suitable menu item to select", 1)
+        end
+
+        if direction == 'down' then i = i + 1 end
+        if direction == 'up' then i = i - 1 end
+        i = wrap(i, #self.items)
+        self.item_sel = i
+        item = self.items[i]
+
+        if getindex(item) ~= Text then
+            break
+        elseif direction == nil then
+            i = i + 1
+        end
+    end
+
 
     if item ~= old then
         old:unfocus()
@@ -244,4 +264,29 @@ end
 
 function Menu:draw(brush, y)
     self.screens[self.screen_sel]:draw(brush, y)
+end
+
+MenuHandler = Class()
+function MenuHandler:init(main_menu)
+    self.main_menu = main_menu
+    self.menu = nil
+end
+
+function MenuHandler:update(ctrl, pressed)
+    local delay = false
+    if not self.menu and pressed.enter then
+        delay = true
+        self.menu = self.main_menu
+        self.menu:focus()
+    end
+
+    if self.menu and not delay then
+        local old = self.menu
+        self.menu = self.menu:navigate(ctrl, pressed)
+        if self.menu ~= old then
+            old:unfocus()
+            if self.menu then self.menu:focus() end
+        end
+    end
+    if self.menu then self.menu:draw(T_TL, 0) end
 end

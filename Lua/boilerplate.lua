@@ -48,6 +48,7 @@ local mt = {
 }
 
 function A(addr, atype)
+    -- TODO: inherit type, read, and write fields from appropriate class
     return setmetatable({
         addr=addr,
         type=atype,
@@ -57,19 +58,24 @@ function A(addr, atype)
 end
 
 Class = function(inherit)
-    --[[ don't entirely like the idea but leaving it here
-    if type(inherit) == 'string' then
-        inherit = require("classes."..inherit)
-    end
-    --]]
-    return setmetatable({}, {
+    local class = {}
+    local mt_obj = {__index = class}
+    local mt_class = {
         __call = function(self, ...)
-            local obj = setmetatable({}, {__index = self})
+            local obj = setmetatable({}, mt_obj)
             obj:init(...)
             return obj
         end,
         __index = inherit,
-    })
+    }
+
+    return setmetatable(class, mt_class)
+end
+
+function getindex(obj)
+    local gm = getmetatable(obj)
+    if not gm then return end
+    return gm.__index
 end
 
 function printf(fmt, ...)

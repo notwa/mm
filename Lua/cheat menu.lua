@@ -138,27 +138,11 @@ local input = InputHandler{
     right = "P1 DPad R",
 }
 
-local menu = nil
+local handle = MenuHandler(main_menu)
 
 while mm or oot do
     local ctrl, pressed = input:update()
-
-    local delay = false
-    if not menu and pressed.enter then
-        delay = true
-        menu = main_menu
-        menu:focus()
-    end
-
-    if menu and not delay then
-        local old = menu
-        menu = menu:navigate(ctrl, pressed)
-        if menu ~= old then
-            old:unfocus()
-            if menu then menu:focus() end
-        end
-    end
-    if menu then menu:draw(T_TL, 0) end
+    handle:update(ctrl, pressed)
 
     for i, passive in ipairs(passives) do
         passive:tick()
