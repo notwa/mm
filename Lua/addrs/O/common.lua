@@ -125,6 +125,7 @@ return {
     event_chk_inf       = AL(0xED4, 0x1C),
     item_get_inf        = AL(0xEF0,  0x8),
     inf_table           = AL(0xEF8, 0x3C),
+    checksum            = AL(0x1352, 2),
     event_inf           = AL(0x13FA, 0x8),
     magic_max           = AL(0x13F4, 2),
 
