@@ -9,7 +9,6 @@ local actor_t = Actor(0)
 
 local suffix = oot and " oot" or ""
 local actor_names  = require("data.actor names"..suffix)
-local damage_names = require("data.damage names"..suffix)
 
 local ActorLister = Class()
 function ActorLister:init(input_handler, debug_mode)

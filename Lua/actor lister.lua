@@ -4,6 +4,9 @@ require "addrs.init"
 require "messages"
 require "classes"
 
+local suffix = oot and " oot" or ""
+local damage_names = require("data.damage names"..suffix)
+
 -- check for errors in the actor linked lists
 local validate = false
 

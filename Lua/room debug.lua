@@ -2,6 +2,10 @@ require "boilerplate"
 require "addrs.init"
 require "messages"
 
+local suffix = oot and " oot" or ""
+local actor_names  = require("data.actor names"..suffix)
+local object_names = require("data.object names"..suffix)
+
 local print = dprint
 local printf = dprintf
 
@@ -134,26 +138,24 @@ function dump_room(start, addr)
 
     if actors then
         print("# actors")
-        local actor_names = require "data.actor names"
         local buf = ""
         for i = 0, actor_n - 1 do
             local id = R2(actors + 16*i)
             id = bit.band(id, 0x0FFF)
             local name = actor_names[id]
-            buf = buf..("%04X: %s\n"):format(id, name or "unset")
+            buf = buf..("%04X: %s\n"):format(id, name or "undefined")
         end
         print(buf)
     end
 
     if objects then
         print("# objects")
-        local object_names = require "data.object names"
         local buf = ""
         for i = 0, object_n - 1 do
             local id = R2(objects + 2*i)
             local rid = bit.band(id, 0x0FFF)
             local name = object_names[rid]
-            buf = buf..("%04X: %s\n"):format(id, name or "unset")
+            buf = buf..("%04X: %s\n"):format(id, name or "undefined")
         end
         print(buf)
     end

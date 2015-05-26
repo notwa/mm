@@ -162,6 +162,9 @@ return {
     z_cursor_actor      = AG(0x1CC8, 4),
     z_target_actor      = AG(0x1CCC, 4),
 
+    room_number         = AG(0x11CBC, 1),
+    room_pointer        = AG(0x11CC8, 4),
+
     link_actor = setmetatable({
         item_in_hand    = AA(0x142, 1),
         animation_id    = AA(0x1AE, 2),
