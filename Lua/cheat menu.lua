@@ -15,14 +15,15 @@ function Passive:init(...)
     table.insert(passives, self)
 end
 function Passive:tick()
+    if self.state then self:tick_on() end
+end
+function Passive:tick_on()
 end
 
 local levitate = Passive()
-function levitate:tick()
-    if self.state then
-        if bit.band(addrs.buttons(), 0x20) > 0 then
-            self:hold()
-        end
+function levitate:tick_on()
+    if bit.band(addrs.buttons(), 0x20) > 0 then
+        self:hold()
     end
 end
 function levitate:hold()
@@ -30,11 +31,9 @@ function levitate:hold()
 end
 
 local supersonic = Passive()
-function supersonic:tick()
-    if self.state then
-        if bit.band(addrs.buttons(), 0x8000) > 0 then
-            self:hold()
-        end
+function supersonic:tick_on()
+    if bit.band(addrs.buttons(), 0x8000) > 0 then
+        self:hold()
     end
 end
 function supersonic:hold()
@@ -52,45 +51,43 @@ function self_destruct:on()
 end
 
 local playas_child = Passive()
-function playas_child:tick()
-    if self.state then
-        addrs.age_modifier_global(1)
-    end
+function playas_child:tick_on()
+    addrs.age_modifier_global(1)
 end
 local playas_adult = Passive()
-function playas_adult:tick()
-    if self.state then
-        addrs.age_modifier_global(0)
-    end
+function playas_adult:tick_on()
+    addrs.age_modifier_global(0)
 end
 
-local playas_human = Callbacks()
-function playas_human:on()
+local PassiveResetMask = Class(Passive)
+function PassiveResetMask:on()
+    Passive.on(self)
     addrs.mask_worn(0)
+end
+
+local playas_human = PassiveResetMask()
+function playas_human:tick_on()
     addrs.transformation(4)
 end
-local playas_deku = Callbacks()
-function playas_deku:on()
-    addrs.mask_worn(0)
+local playas_deku = PassiveResetMask()
+function playas_deku:tick_on()
     addrs.transformation(3)
 end
-local playas_goron = Callbacks()
-function playas_goron:on()
-    addrs.mask_worn(0)
+local playas_goron = PassiveResetMask()
+function playas_goron:tick_on()
     addrs.transformation(1)
 end
-local playas_zora = Callbacks()
-function playas_zora:on()
-    addrs.mask_worn(0)
+local playas_zora = PassiveResetMask()
+function playas_zora:tick_on()
     addrs.transformation(2)
 end
-local playas_fd = Callbacks()
-function playas_fd:on()
-    addrs.mask_worn(0)
+local playas_fd = PassiveResetMask()
+function playas_fd:tick_on()
     addrs.transformation(0)
 end
 
 local playas_group = {}
+local playas_mm_group = {}
 
 local playas_menu = oot and Menu{
     Screen{
@@ -103,11 +100,12 @@ local playas_menu = oot and Menu{
 } or Menu{
     Screen{
         Text("Play as..."),
-        Oneshot("Human Link", playas_human),
-        Oneshot("Deku Link", playas_deku),
-        Oneshot("Goron Link", playas_goron),
-        Oneshot("Zora Link", playas_zora),
-        Oneshot("Fierce Deity", playas_fd),
+        Radio("Default", playas_mm_group, dummy),
+        Radio("Human Link", playas_mm_group, playas_human),
+        Radio("Deku Link", playas_mm_group, playas_deku),
+        Radio("Goron Link", playas_mm_group, playas_goron),
+        Radio("Zora Link", playas_mm_group, playas_zora),
+        Radio("Fierce Deity", playas_mm_group, playas_fd),
         Back(),
     },
 }
