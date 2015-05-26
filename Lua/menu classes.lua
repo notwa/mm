@@ -5,7 +5,7 @@ end
 MenuItem = Class()
 Text = Class(MenuItem)
 Back = Class(Text)
-Close = Back -- FIXME
+Close = Class(Text)
 LinkTo = Class(Text)
 
 Active = Class(Text)
@@ -70,7 +70,14 @@ function Back:init()
     Text.init(self, 'back')
 end
 function Back:run()
-    return nil -- FIXME
+    return 'back'
+end
+
+function Close:init()
+    Text.init(self, 'close')
+end
+function Close:run()
+    return 'close'
 end
 
 function LinkTo:init(text, submenu)
@@ -269,24 +276,35 @@ end
 MenuHandler = Class()
 function MenuHandler:init(main_menu)
     self.main_menu = main_menu
+    self.backstack = {}
     self.menu = nil
 end
 
+function MenuHandler:push(menu)
+    table.insert(self.backstack, menu)
+end
+
+function MenuHandler:pop()
+    return table.remove(self.backstack)
+end
+
 function MenuHandler:update(ctrl, pressed)
-    local delay = false
     if not self.menu and pressed.enter then
-        delay = true
         self.menu = self.main_menu
         self.menu:focus()
-    end
-
-    if self.menu and not delay then
-        local old = self.menu
-        self.menu = self.menu:navigate(ctrl, pressed)
-        if self.menu ~= old then
-            old:unfocus()
-            if self.menu then self.menu:focus() end
+    elseif self.menu then
+        local new_menu = self.menu:navigate(ctrl, pressed)
+        if new_menu == 'back' then
+            new_menu = self:pop()
+        elseif new_menu == 'close' then
+            self.backstack = {}
+            new_menu = nil
+        elseif new_menu ~= self.menu then
+            self:push(self.menu)
+            self.menu:unfocus()
         end
+        if new_menu and new_menu ~= self.menu then new_menu:focus() end
+        self.menu = new_menu
     end
     if self.menu then self.menu:draw(T_TL, 0) end
 end
