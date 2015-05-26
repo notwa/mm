@@ -8,6 +8,7 @@ local classes = {
     "Monitor",
     "ByteMonitor",
     "FlagMonitor",
+    "SceneFlagMonitor",
     "ActorLister",
     "InputHandler",
 }
