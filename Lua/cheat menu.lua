@@ -114,7 +114,7 @@ local playas_menu = oot and Menu{
 
 local main_menu = Menu{
     Screen{
-        Text("Main Menu"),
+        Text("Main Menu #1/2"),
         Toggle("L to Levitate", levitate),
         Toggle("A to Run Fast", supersonic),
         Hold("Levitate", levitate),
@@ -123,6 +123,7 @@ local main_menu = Menu{
         Back(),
     },
     Screen{
+        Text("Main Menu #2/2"),
         Oneshot("Kill Link", self_destruct),
         Flags("some flags"),
         Text("k"),
@@ -138,7 +139,7 @@ local input = InputHandler{
     right = "P1 DPad R",
 }
 
-local handle = MenuHandler(main_menu)
+local handle = MenuHandler(main_menu, T_TL)
 
 while mm or oot do
     local ctrl, pressed = input:update()

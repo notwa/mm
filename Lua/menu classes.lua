@@ -274,9 +274,10 @@ function Menu:draw(brush, y)
 end
 
 MenuHandler = Class()
-function MenuHandler:init(main_menu)
+function MenuHandler:init(main_menu, brush)
     self.main_menu = main_menu
     self.backstack = {}
+    self.brush = brush
     self.menu = nil
 end
 
@@ -306,5 +307,5 @@ function MenuHandler:update(ctrl, pressed)
         if new_menu and new_menu ~= self.menu then new_menu:focus() end
         self.menu = new_menu
     end
-    if self.menu then self.menu:draw(T_TL, 0) end
+    if self.menu then self.menu:draw(self.brush, 0) end
 end
