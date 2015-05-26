@@ -40,7 +40,7 @@ function draw_messages()
         end
     end
     for i, t in ipairs(okay) do
-        T_BL(0, i - 1, nil, t.text)
+        T_BL(0, #okay - i, nil, t.text)
     end
 
     messages = okay
