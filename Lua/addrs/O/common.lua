@@ -53,6 +53,8 @@ return {
     magic               = AL(0x33, 1),
     rupees              = AL(0x34, 2),
     navi_timer          = AL(0x38, 2),
+    has_normal_magic    = AL(0x3A, 1),
+    has_double_magic    = AL(0x3C, 1),
     equip_tunic_boots   = AL(0x70, 1),
     equip_sword_shield  = AL(0x71, 1),
     inventory_items     = AL(0x74, 24),
@@ -124,6 +126,7 @@ return {
     item_get_inf        = AL(0xEF0,  0x8),
     inf_table           = AL(0xEF8, 0x3C),
     event_inf           = AL(0x13FA, 0x8),
+    magic_max           = AL(0x13F4, 2),
 
     buttons             = AG(0x14, 2),
     scene_number        = AG(0xA4, 2),
