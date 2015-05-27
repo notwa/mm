@@ -194,14 +194,20 @@ return {
     disable_c_buttons_2 = AL(0x100F, 1),
     disable_items       = AL(0x1010, 1),
     rock_sirloin        = AL(0x1014, 1),
-    sword_disabler      = AL(0x1015, 1),
+    b_button_disabler   = AL(0x1015, 1), -- ?
     bubble_timer        = AL(0x1016, 2),
     rupee_accumulator   = AL(0x1018, 2),
     spring_water_timers = AL(0x1020, 0xC0),
     pictograph_picture  = AL(0x10E0, 0x2BC0),
+    current_save        = AL(0x3CA0, 4),
     title_screen_mod    = AL(0x3CA8, 4),
     entrance_mod        = AL(0x3CAC, 4),
+    dog_spanwer         = AL(0x3DBC, 2),
     timer_crap          = AL(0x3DD0, 4),
+    postman_timer       = AL(0x3DE4, 4), -- minigame
+    majora_timer        = AL(0x3DFC, 4), -- atop clock tower?
+    minigame_timer      = AL(0x3E04, 4),
+    drown_timer         = AL(0x3E0C, 4),
     timer_x             = AL(0x3EFA, 2),
     timer_y             = AL(0x3F08, 2),
     buttons_enabled     = AL(0x3F18, 4),
@@ -301,6 +307,9 @@ return {
     screen_L            = AG(0xC8, 4),
     screen_R            = AG(0xCC, 4),
     camera_target       = AG(0x2B0, 4),
+    camera_mode         = AG(0x362, 2),
+    unk_lens            = AG(0x1CA0, 4),
+    lens_radius         = AG(0x1CA4, 1),
 
     actor_count         = AG(0x1CAE, 1),
     actor_counts = {
@@ -340,6 +349,8 @@ return {
     current_scene_flags_1 = AG(0x1E68, 4),
     current_scene_flags_4 = AG(0x1E6C, 4),
     current_scene_flags_5 = AG(0x1E74, 4),
+    cutscene_pointer    = AG(0x1F28, 4),
+    cutscene_status_2   = AG(0x1F2C, 1), -- needs a rename
     text_active         = AG(0x1681B, 1),
     text_status         = AG(0x1682A, 1),
 
@@ -360,9 +371,13 @@ return {
     link_actor = setmetatable({
         item_in_hand    = AA(0x148, 1),
         animation_id    = AA(0x24A, 2),
+        unk_collision   = AA(0xA68, 4), -- pointer
         link_flags      = AA(0xA6C, 0xC),
+        misc_actions    = AA(0xAA5, 1),
         lin_vel         = AA(0xAD0, 'f'),
         movement_angle  = AA(0xAD4, 2),
         active_sword    = AA(0xADB, 1),
+        sword_succession= AA(0xADD, 1),
+        blast_mask_timer= AA(0xB60, 2),
     }, {__index = Actor(AA(0,0).addr)}),
 }

@@ -1,9 +1,16 @@
 return {
     random              = A(0x097530, 4),
+    massive_counter     = A(0x09E5B0, 4),
     visibility          = A(0x166118, 2),
+    timestop            = A(0x1BD8B0, 4),
     stored_epona        = A(0x1BDA9F, 1),
+    entrance_table      = A(0x1C43B0, 0),
+    scene_table         = A(0x1C5720, 0),
+    owl_table           = A(0x1C6A58, 0),
     stored_song         = A(0x1C6A7D, 1),
     mask_mask_bit       = A(0x1F3F3A, 3),
+    visual_frame        = A(0x1F9F80, 4),
     buttons_3           = A(0x1FB870, 2),
     buttons_4           = A(0x1FB876, 2),
+    music_speed         = A(0x2050D8, 1),
 }
