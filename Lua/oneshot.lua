@@ -23,7 +23,7 @@ end
 set(a.target_style, 1)
 
 --set(buttons_enabled, 0)
---set(infinite_sword, 1)
+--set(sword_active, 1)
 set(a.owl_save, 0)
 set(a.sot_count, 0)
 

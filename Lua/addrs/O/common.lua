@@ -43,7 +43,6 @@ return {
     cutscene_status     = AL(0x0A, 2), -- "cutscene number" 0xFFFx
     time                = AL(0x0C, 2),
     day_night           = AL(0x10, 4),
-    --time_speed          = AL(0x14, 4),
     ZELDA3              = AL(0x1C, 6), -- actually ZELDAZ in OoT
     death_count         = AL(0x22, 2),
     name                = AL(0x24, 8),
@@ -65,17 +64,8 @@ return {
     sword_shield        = AL(0x9D, 1),
     upgrades            = AL(0xA1, 3),
     quest_items         = AL(0xA4, 4),
-    --items_wft           = AL(0xC0, 1),
-    --keys_wft            = AL(0xCA, 1),
     doubled_hearts      = AL(0xCF, 1), -- set to 20 by the game
-    --strange_string      = AL(0xDE, 6),
     scene_flags_save    = AL(0xD4, 0xB0C), -- 0x1C each
-    --slulltula_count_wf  = AL(0xEC0, 2),
-    --archery             = AL(0xF00, 1),
-    --disable_c_buttons   = AL(0xF4A, 1), -- 8
-    --sword_disable_c     = AL(0xF52, 1), -- 32
-    --map_visited         = AL(0xF5E, 2),
-    --map_visible         = AL(0xF62, 2),
 
     inventory = {
         b_button_item   = AL(0x68, 1),
@@ -166,6 +156,12 @@ return {
 
     z_cursor_actor      = AG(0x1CC8, 4),
     z_target_actor      = AG(0x1CCC, 4),
+    current_scene_flags_2 = AG(0x1D28, 4), -- switch flags
+    current_scene_flags_5 = AG(0x1D2C, 4), -- temp switch flags (not saved)
+    current_scene_flags_1 = AG(0x1D38, 4), -- chest flags
+    current_scene_flags_3 = AG(0x1D3C, 4), -- room clear flags
+    current_scene_flags_4 = AG(0x1D44, 4), -- collectible flags
+    -- somewhere around here should be visited room flags?
 
     room_number         = AG(0x11CBC, 1),
     room_pointer        = AG(0x11CC8, 4),
@@ -177,6 +173,6 @@ return {
         --link_flags      = AA(0xA6C, 0xC),
         lin_vel         = AA(0x828, 'f'),
         movement_angle  = AA(0x82C, 2),
-        active_sword    = AA(0x833, 1),
+        sword_active    = AA(0x833, 1),
     }, {__index = Actor(AA(0,0).addr)}),
 }

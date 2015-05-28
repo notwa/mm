@@ -376,7 +376,7 @@ return {
         misc_actions    = AA(0xAA5, 1),
         lin_vel         = AA(0xAD0, 'f'),
         movement_angle  = AA(0xAD4, 2),
-        active_sword    = AA(0xADB, 1),
+        sword_active    = AA(0xADB, 1),
         sword_succession= AA(0xADD, 1),
         blast_mask_timer= AA(0xB60, 2),
     }, {__index = Actor(AA(0,0).addr)}),
