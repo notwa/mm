@@ -34,7 +34,11 @@ function calc_dump(a)
         return
     end
     print(scene_names[scene_id])
-    print(t[entrance])
+    if t[entrance] then
+        print(t[entrance])
+    else
+        print("[unknown entrance]")
+    end
 end
 
 function calc(exit)
