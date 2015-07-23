@@ -108,6 +108,9 @@ end
 
 function hex(i)
     -- convenience function for use in console
+    if i > 0xFFFFFFFF then
+        print('warning: truncated')
+    end
     printf("%08X", i)
 end
 
