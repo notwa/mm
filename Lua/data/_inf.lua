@@ -10,6 +10,7 @@ return {
 	[38] = true,
 	[42] = true,
 	[44] = true,
+	[47] = true,
 	[49] = true,
 	[56] = true,
 	[57] = true,
