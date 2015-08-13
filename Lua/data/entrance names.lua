@@ -46,7 +46,6 @@ return {
         "JP grotto (straight) (start?)",
         "JP grotto (vines) (upper)",
         "Lens of Truth",
-        "more damn gossips", -- TODO: what's this?
     },
 
     {[0]=
@@ -108,7 +107,7 @@ return {
     {[0]=
         "from road",
         "from Spirit House",
-        "from house", -- FIXME: just "house"?
+        "from Music Box House",
         "from Stone Tower",
         "from Owl Statue",
         "from Beneath the Well",
@@ -302,8 +301,8 @@ return {
         "from Swamp",
         "being kicked out",
         "from Deku king's chamber",
-        "from monkey",
-        "from what's-it-called",
+        "from Monkey's cell",
+        "from Deku Shrine",
         "from Swamp (above)",
         "from JP grotto 1",
         "from JP grotto 2",
@@ -392,16 +391,15 @@ return {
         "from mama's house",
         "from cucco shack",
         "from doggy Racetrack",
-        -- FIXME: all of these duplicates
-        "in front of Barn",
-        "in front of Barn (duplicate?)",
+        "in front of Barn (a)",
+        "in front of Barn (b)",
         "in front of house",
-        "in front of Barn (duplicate??)",
+        "in front of Barn (c)",
         "in front of Romani",
         "in front of Barn, facing other way",
         "(crash)",
-        "in front of Barn (duplicate!)",
-        "in front of Barn (duplicate!!)",
+        "in front of Barn (d)",
+        "in front of Barn (e)",
     },
 
     {[0]=
@@ -417,8 +415,8 @@ return {
         "from Zora area",
         "from swimming too far",
         "from pinnacle rock",
-        "from fisherman's hut",
-        "from Pirates' fortress",
+        "from Fisherman's Hut",
+        "from Pirates' Fortress",
         "from swimming too far (near pinnacle?)",
         "from lab",
         "from spider house",
@@ -431,10 +429,10 @@ return {
 
     {[0]=
         "from lab area",
-        "from Zora hall",
-        "from Zora hall (turtle)",
+        "from Zora Hall",
+        "from Zora Hall (turtle)",
         "from swimming too far",
-        "from waterfall rapids",
+        "from Waterfall Rapids",
         "from Great Fairy's fountain",
         "from Owl Statue",
         "from Great Bay Temple",
