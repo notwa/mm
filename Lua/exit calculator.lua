@@ -79,15 +79,14 @@ function dump_all_exits(fn)
         print("couldn't open file for writing")
         return
     end
-    f:write('ID,Scene,Entrance,Offset,Original Scene,(entrance),Scene + Entrance,(entrance),Scene + Entrance + Offset,(entrance)\n')
+    f:write('ID,Scene,Entrance,Offset,Scene + Entrance + Offset,(entrance),Scene + Entrance,(entrance),Original Scene,(entrance)\n')
     for i = 0, 0xFFFF do
+        local scene, entrance, offset = split_exit(i)
+        f:write(('0x%04X,%i,%i,%i'):format(i, scene, entrance, offset))
         local fail = function()
-            f:write(('"0x%04X"'):format(i))
-            f:write(',,,,,,,,,\n')
+            f:write(',,,,,,\n')
         end
         for _ = 1, 1 do -- "continue" hack
-            local scene, entrance, offset = split_exit(i)
-
             local sd = sdata(scene)
             local first_entrance = deref(sd[2])
             if not first_entrance then fail(); break end
@@ -96,13 +95,12 @@ function dump_all_exits(fn)
             if not entr_before_offset then fail(); break end
             local final_entrance = entr_before_offset + offset*4
 
-            f:write(('"0x%04X",%i,%i,%i'):format(i, scene, entrance, offset))
             local writer = function(...)
                 return f:write(',"') and f:write(...) and f:write('"')
             end
-            calc_dump(orig_entrance, writer)
-            calc_dump(entr_before_offset, writer)
             calc_dump(final_entrance, writer)
+            calc_dump(entr_before_offset, writer)
+            calc_dump(first_entrance, writer)
             f:write("\n")
         end
     end
