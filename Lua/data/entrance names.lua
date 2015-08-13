@@ -223,14 +223,14 @@ return {
     },
 
     {[0]=
-        "from Termina field",
+        "from Termina Field",
         "from Romani's Ranch",
         "from Gorman track behind fence",
         "from Gorman track",
         "from Owl Statue",
         "from Romani's Ranch facing the wrong way",
         "from Gorman track facing the wrong way",
-        "from Termina field (duplicate)",
+        "from Termina Field (duplicate)",
     },
 
     {[0]=
@@ -287,7 +287,7 @@ return {
 
     {[0]=
         "from Clock Town",
-        "from Termina field",
+        "from Termina Field",
         "after telescope",
         "from Clock Town (duplicate?)",
     },
@@ -411,7 +411,7 @@ return {
     },
 
     {[0]=
-        "from Termina field",
+        "from Termina Field",
         "from Zora area",
         "from swimming too far",
         "from pinnacle rock",
@@ -552,7 +552,7 @@ return {
 
     {[0]=
         "from road",
-        "from… above?",
+        "from above (unused?)",
         "from shrine",
         "from lens of truth cave",
         "from voiding out",
@@ -619,7 +619,7 @@ return {
         "from road to Snowhead",
         "on ice?",
         "from Snowhead passage",
-        "from…?",
+        "from somewhere?", -- FIXME
         "from Owl Statue",
         "after being Snowhead (duplicate)",
     },
@@ -637,10 +637,10 @@ return {
     },
 
     {[0]=
-        "from Termina field",
+        "from Termina Field",
         "from Ikana canyon",
         "from Ikana Graveyard",
-        "from Termina field (duplicate)",
+        "from Termina Field (duplicate)",
     },
 
     {[0]=
@@ -815,7 +815,7 @@ return {
     },
 
     {[0]=
-        "from Termina field",
+        "from Termina Field",
         "from South Clock Town (South)",
         "from Bomber's hideout",
         "from South Clock Town (North)",
@@ -830,20 +830,20 @@ return {
     },
 
     {[0]=
-        "from Termina field",
+        "from Termina Field",
         "from South Clock Town (South)",
         "from South Clock Town (North)",
-        "from swordsman's school",
+        "from Swordsman's School",
         "from curiosity shop",
-        "from trading post",
-        "from bomb shop",
-        "from post office",
-        "from lottery shop",
-        "from Termina field (duplicate)",
+        "from Trading Post",
+        "from Bomb Shop",
+        "from Post Office",
+        "from Lottery Shop",
+        "from Termina Field (duplicate)",
     },
 
     {[0]=
-        "from Termina field",
+        "from Termina Field",
         "from East Clock Town",
         "from South Clock Town",
         "from Great Fairy's fountain",
@@ -855,7 +855,7 @@ return {
 
     {[0]=
         "from Clock Tower",
-        "from Termina field",
+        "from Termina Field",
         "from East Clock Town (North)",
         "from West Clock Town (North)",
         "from North Clock Town",
