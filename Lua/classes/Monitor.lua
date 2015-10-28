@@ -12,12 +12,10 @@ function Monitor:init(name, a)
 end
 
 function Monitor:read()
-    -- bizhawk has an off-by-one bug where this returns length + 1 bytes
-    local raw = mainmemory.readbyterange(self.begin, self.len-1)
+    local raw = mainmemory.readbyterange(self.begin, self.len)
     local bytes = {}
-    local begin = self.begin
     for k, v in pairs(raw) do
-        bytes[k - begin] = v
+        bytes[k] = v
     end
     return bytes
 end

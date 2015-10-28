@@ -43,7 +43,7 @@ function read_ascii(addr, len)
     -- so we'll set up a table we can use ipairs() on
     local ordered_bytes = {}
     for a, v in pairs(bytes) do
-        ordered_bytes[tonumber(a, 16) - begin + 1] = v
+        ordered_bytes[tonumber(a, 16) + 1] = v
     end
 
     local seq = false
