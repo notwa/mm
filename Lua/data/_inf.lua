@@ -1,6 +1,9 @@
 return {
 	[3] = true,
+	[13] = true,
+	[14] = true,
 	[15] = true,
+	[20] = true,
 	[25] = true,
 	[28] = "curious",
 	[29] = true,
