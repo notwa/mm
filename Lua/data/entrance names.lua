@@ -860,7 +860,7 @@ return {
         "from West Clock Town (North)",
         "from North Clock Town",
         "from West Clock Town (South)",
-        "from laundry pool",
+        "from Laundry Pool",
         "from East Clock Town (South)",
         "from atop Clock Tower (unused)",
         "from Owl Statue",
@@ -870,7 +870,7 @@ return {
 
     {[0]=
         "from South Clock Town",
-        "from kafei's room",
+        "from Kafei's room",
     },
 
     {},

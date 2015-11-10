@@ -5,6 +5,8 @@ require "classes"
 require "menu classes"
 require "messages"
 
+local warp_menu = require "warp menu"
+
 local dummy = Callbacks()
 
 local passives = {}
@@ -43,6 +45,11 @@ end
 local everything = Callbacks()
 function everything:on()
     dofile("oneshot.lua")
+end
+
+local escape_cutscene = Callbacks()
+function escape_cutscene:on()
+    addrs.cutscene_status_2(3)
 end
 
 local self_destruct = Callbacks()
@@ -110,14 +117,17 @@ local playas_menu = oot and Menu{
     },
 }
 
+
 local main_menu = Menu{
     Screen{
         Text("Main Menu #1/2"),
-        Toggle("L to Levitate", levitate),
+        --Toggle("L to Levitate", levitate),
         Toggle("A to Run Fast", supersonic),
         Hold("Levitate", levitate),
         Oneshot("100%", everything),
-        LinkTo("Play as", playas_menu),
+        Oneshot("Escape Cutscene", escape_cutscene),
+        LinkTo("Play as...", playas_menu),
+        LinkTo("Warp to...", warp_menu),
         Back(),
     },
     Screen{
