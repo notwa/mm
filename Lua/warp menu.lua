@@ -148,7 +148,9 @@ for si=0x00,0x7F do
         entrances = entrance_names[i]
         scene_name = scene_names[i]
     end
+
     ins(entrance_items, Text( ("Warp to %s"):format(scene_name) ))
+
     for j=0,32 do
         local ename = entrances[j]
         if ename == nil then
@@ -158,16 +160,18 @@ for si=0x00,0x7F do
         local callback = Callbacks()
         function callback:on()
             addrs.warp_destination(make_exit_value(si,j,0))
-            addrs.warp_begin(1)
+            addrs.warp_begin(0x14)
         end
         ins(entrance_items, Oneshot(ename, callback))
     end
+
     ins(entrance_items, Text(""))
     ins(entrance_items, Text("Cutscenes... (TODO)"))
     ins(entrance_items, Text(""))
     ins(entrance_items, Back())
     local entrance_menu = Menu{Screen(entrance_items)}
     ins(scenes_pages[page], LinkTo(scene_name, entrance_menu))
+
     if si % 16 == 15 then
         ins(scenes_pages[page], Text(""))
         ins(scenes_pages[page], Back())

@@ -109,8 +109,9 @@ return {
     day_night           = AL(0x10, 4),
     time_speed          = AL(0x14, 4),
     day                 = AL(0x18, 4),
-    day_again           = AL(0x1C, 4),
+    days_elapsed        = AL(0x1C, 4),
     transformation      = AL(0x20, 1),
+    have_tatl           = AL(0x22, 1),
     owl_save            = AL(0x23, 1), -- "zeroth day" effect
     ZELDA3              = AL(0x24, 6),
     sot_count           = AL(0x2A, 2),
