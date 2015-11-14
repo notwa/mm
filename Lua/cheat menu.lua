@@ -163,6 +163,27 @@ function load_scene_pos:on()
     --AL(0x3CC6, 2)(sp.room)
 end
 
+local kill_fades = Callbacks()
+function kill_fades:on()
+    local et = addrs.entrance_table
+    if et == nil then return end
+    local et_size = 1244
+
+    local new_fade = 0x0B -- instant
+    local fades = new_fade*0x80 + new_fade
+
+    for i=0, et_size*4 - 1, 4 do
+        local a = et.addr + i
+        if R1(a) ~= 0x80 then -- don't mess up the pointers
+            -- the lower word works like this:
+            -- mmIIIIIIIOOOOOOO
+            -- m = mode; I = fade in; O = fade out (probably).
+            local mode = bit.band(R2(a+2), 0xC000)
+            W2(a+2, mode + fades)
+        end
+    end
+end
+
 local time_menu = Menu{
     Screen{
         Text("Day/Time Menu #1/1"),
@@ -228,8 +249,10 @@ local main_menu = Menu{
         Oneshot("Store Scene & Position", save_scene_pos),
         Oneshot("Restore Scene & Position", load_scene_pos),
         Text(""),
-        Oneshot("Soft Reset (Warp to Title)", soft_reset),
+        Oneshot("Kill Transitions", kill_fades),
         Text(""),
+        --Oneshot("Soft Reset (Warp to Title)", soft_reset),
+        --Text(""),
         Back(),
     },
 }
