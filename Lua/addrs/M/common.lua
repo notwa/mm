@@ -377,6 +377,7 @@ return {
     warp_begin          = AG(0x18875, 1),
     screen_dim          = AG(0x18877, 1),
     warp_destination    = AG(0x1887A, 2),
+    fade_type           = AG(0x1887F, 1),
     entrance_entered    = AG(0x18B48, 1),
 
     link_actor = setmetatable({

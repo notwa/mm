@@ -10,6 +10,12 @@ require "flag manager"
 
 dummy = Callbacks()
 
+local fn = 'cheat menu.save.lua'
+local saved = deserialize('cheat menu.save.lua') or {}
+local function save()
+    serialize(fn, saved)
+end
+
 function Setter(t)
     local cb = Callbacks()
     function cb:on()
@@ -75,23 +81,27 @@ local soft_reset = Callbacks()
 function soft_reset:on()
     addrs.warp_begin(0x14)
     addrs.warp_destination(0x1C00)
-    AL(0x3F48, 2)(0xFFFA) -- doesn't quite work
+    --AL(0x3F48, 2)(0xFFFA) -- doesn't really do anything?
 end
 
-local pos = {}
 local save_pos = Callbacks()
 function save_pos:on()
     local la = addrs.link_actor
+    saved.pos = {}
+    local pos = saved.pos
     pos.x = la.x()
     pos.y = la.y()
     pos.z = la.z()
     pos.a = la.angle()
     -- also save ISG for glitch testers ;)
     pos.isg = la.sword_active()
+    save()
 end
 local load_pos = Callbacks()
 function load_pos:on()
     local la = addrs.link_actor
+    local pos = saved.pos
+    if pos == nil then return end
     la.x(pos.x)
     la.y(pos.y)
     la.z(pos.z)
@@ -110,16 +120,47 @@ function reload_scene:on()
     addrs.warp_destination(ev)
 end
 
-local saved_scene = nil
 local save_scene = Callbacks()
 function save_scene:on()
-    saved_scene = addrs.exit_value()
+    saved.scene = addrs.exit_value()
+    save()
 end
 local load_scene = Callbacks()
 function load_scene:on()
-    if saved_scene == nil then return end
+    if saved.scene == nil then return end
     addrs.warp_begin(0x14)
-    addrs.warp_destination(saved_scene)
+    addrs.warp_destination(saved.scene)
+end
+
+local save_scene_pos = Callbacks()
+function save_scene_pos:on()
+    saved.scenepos = {}
+    local sp = saved.scenepos
+    sp.scene = addrs.exit_value()
+    local la = addrs.link_actor
+    sp.x = la.x()
+    sp.y = la.y()
+    sp.z = la.z()
+    sp.a = la.angle()
+    --sp.room = la.room_number()
+    save()
+end
+local load_scene_pos = Callbacks()
+function load_scene_pos:on()
+    local sp = saved.scenepos
+    if sp == nil then return end
+    addrs.warp_begin(0x14)
+    addrs.warp_destination(sp.scene)
+    addrs.fade_type(0x0B) -- this transition is basically instantaneous
+    -- TODO: add these to address list
+    -- probably the same struct for both MM and OoT
+    AL(0x3CB0, 4)(-4) -- void out type: reload area
+    AL(0x3CB4, 'f')(sp.x)
+    AL(0x3CB8, 'f')(sp.y)
+    AL(0x3CBC, 'f')(sp.z)
+    AL(0x3CC0, 2)(sp.a)
+    AL(0x3CC2, 2)(0x0BFF) -- puts camera behind link instead of at entrance
+    --AL(0x3CC6, 2)(sp.room)
 end
 
 local time_menu = Menu{
@@ -183,7 +224,9 @@ local main_menu = Menu{
         Oneshot("Reload Scene", reload_scene),
         Oneshot("Store Scene", save_scene),
         Oneshot("Restore Scene", load_scene),
-        -- TODO: can probably save/load position+scene using void out mechanics
+        Text(""),
+        Oneshot("Store Scene & Position", save_scene_pos),
+        Oneshot("Restore Scene & Position", load_scene_pos),
         Text(""),
         Oneshot("Soft Reset (Warp to Title)", soft_reset),
         Text(""),
