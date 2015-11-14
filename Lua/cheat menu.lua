@@ -81,7 +81,8 @@ local soft_reset = Callbacks()
 function soft_reset:on()
     addrs.warp_begin(0x14)
     addrs.warp_destination(0x1C00)
-    --AL(0x3F48, 2)(0xFFFA) -- doesn't really do anything?
+    addrs.fade_type(0x0B)
+    addrs.entrance_mod_setter(0xFFFA)
 end
 
 local save_pos = Callbacks()
@@ -252,8 +253,8 @@ local main_menu = Menu{
         Text(""),
         Oneshot("Kill Transitions", kill_fades),
         Text(""),
-        --Oneshot("Soft Reset (Warp to Title)", soft_reset),
-        --Text(""),
+        Oneshot("Soft Reset (Warp to Title)", soft_reset),
+        Text(""),
         Back(),
     },
 }
