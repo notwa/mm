@@ -19,6 +19,7 @@ function first_cycle:on()
     scene_flag_reset(0x63, 1, 0)
     -- bombers ladder balloon
     scene_flag_reset(0x29, 1, 1)
+
     -- other things to consider resetting:
     -- skull kid stuff
     -- deed trading quest entirely

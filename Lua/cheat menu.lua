@@ -8,13 +8,13 @@ require "flag manager"
 
 -- TODO: make OoT versions for most of these menus
 
-dummy = Callbacks()
-
 local fn = 'cheat menu.save.lua'
 local saved = deserialize('cheat menu.save.lua') or {}
 local function save()
     serialize(fn, saved)
 end
+
+dummy = Callbacks()
 
 function Setter(t)
     local cb = Callbacks()
@@ -218,7 +218,6 @@ local progress_menu = require "menus.progress"
 local playas_menu = require "menus.playas"
 
 local main_menu = Menu{
-    -- TODO: seperator item that's just a few underscores with half height
     Screen{
         Text("Main Menu #1/2"),
         --Toggle("L to Levitate", levitate),
@@ -241,7 +240,6 @@ local main_menu = Menu{
         LinkTo("Warp to...", warp_menu),
         LinkTo("Set Day/Time...", time_menu),
         Text(""),
-        --Flags("some flags"),
         Oneshot("Store Position", save_pos),
         Oneshot("Restore Position", load_pos),
         Text(""),

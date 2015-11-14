@@ -13,7 +13,6 @@ Toggle = Class(Active)
 Radio = Class(Active)
 Hold = Class(Active)
 Oneshot = Class(Active)
-Flags = Class(Active)
 
 Screen = Class()
 Menu = Class()
@@ -165,8 +164,6 @@ function Hold:release()
     self.callbacks:release()
 end
 
---function Flags:init
-
 function Screen:init(items)
     self.items = items
     self.item_sel = 1
@@ -206,7 +203,6 @@ function Screen:navigate(ctrl, pressed)
             i = i + 1
         end
     end
-
 
     if item ~= old then
         old:unfocus()
