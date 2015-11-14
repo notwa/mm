@@ -8,6 +8,7 @@ require "flag manager"
 
 -- TODO: make OoT versions for most of these menus
 
+local run_while_paused = true
 local fn = 'cheat menu.save.lua'
 local saved = deserialize('cheat menu.save.lua') or {}
 local function save()
@@ -277,5 +278,10 @@ while mm or oot do
         passive:tick()
     end
 
-    emu.frameadvance()
+    if run_while_paused then
+        emu.yield()
+        gui.cleartext()
+    else
+        emu.frameadvance()
+    end
 end
