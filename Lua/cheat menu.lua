@@ -166,11 +166,11 @@ end
 local time_menu = Menu{
     Screen{
         Text("Day/Time Menu #1/1"),
-        Oneshot("Set Day to 0", Setter{[addrs.day]=0, [addrs.days_elapsed]=0}),
-        Oneshot("Set Day to 1", Setter{[addrs.day]=1, [addrs.days_elapsed]=1}),
-        Oneshot("Set Day to 2", Setter{[addrs.day]=2, [addrs.days_elapsed]=2}),
-        Oneshot("Set Day to 3", Setter{[addrs.day]=3, [addrs.days_elapsed]=3}),
-        Oneshot("Set Day to 4", Setter{[addrs.day]=4, [addrs.days_elapsed]=4}),
+        Oneshot("Set Day to Zeroth", Setter{[addrs.day]=0, [addrs.days_elapsed]=0}),
+        Oneshot("Set Day to First",  Setter{[addrs.day]=1, [addrs.days_elapsed]=1}),
+        Oneshot("Set Day to Second", Setter{[addrs.day]=2, [addrs.days_elapsed]=2}),
+        Oneshot("Set Day to Final",  Setter{[addrs.day]=3, [addrs.days_elapsed]=3}),
+        Oneshot("Set Day to New",    Setter{[addrs.day]=4, [addrs.days_elapsed]=4}),
         Oneshot("Set Time to 06:00", Setter{[addrs.time]=0x4000}),
         Oneshot("Set Time to 12:00", Setter{[addrs.time]=0x8000}),
         Oneshot("Set Time to 18:00", Setter{[addrs.time]=0xC000}),
