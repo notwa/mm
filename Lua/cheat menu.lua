@@ -151,7 +151,8 @@ function load_scene_pos:on()
     if sp == nil then return end
     addrs.warp_begin(0x14)
     addrs.warp_destination(sp.scene)
-    addrs.fade_type(0x0B) -- this transition is basically instantaneous
+    local fade = fades_killed and 0x0B or 0x01
+    addrs.fade_type(fade)
     -- TODO: add these to address list
     -- probably the same struct for both MM and OoT
     AL(0x3CB0, 4)(-4) -- void out type: reload area
@@ -182,6 +183,8 @@ function kill_fades:on()
             W2(a+2, mode + fades)
         end
     end
+
+    fades_killed = true
 end
 
 local time_menu = Menu{
