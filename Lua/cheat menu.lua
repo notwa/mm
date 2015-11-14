@@ -8,7 +8,25 @@ require "flag manager"
 
 -- TODO: make OoT versions for most of these menus
 
+--[[ control schemes:
+normal:         (alt_input = false; eat_input = false)
+    L opens the menu
+    L selects menu items
+    D-Pad navigates up/down items and left/right through pages
+alternate:      (alt_input = true; eat_input = false)
+    L+R opens/closes the menu
+    L goes back a menu (or closes)
+    R selects menu items
+    L+Z hides menu without closing (FIXME: interferes with back)
+    D-Pad navigates
+greedy:         (alt_input = false; eat_input = true)
+    TODO: joystick, a/b button etc
+--]]
+
 local run_while_paused = true
+local alt_input = true
+local eat_input = false
+
 local fn = 'cheat menu.save.lua'
 local saved = deserialize('cheat menu.save.lua') or {}
 local function save()
@@ -222,9 +240,8 @@ local playas_menu = require "menus.playas"
 local main_menu = Menu{
     Screen{
         Text("Main Menu #1/2"),
-        --Toggle("L to Levitate", levitate),
+        Toggle("L to Levitate", levitate),
         Toggle("A to Run Fast", supersonic),
-        Hold("Levitate", levitate),
         Toggle("Infinite Items", infinite_items),
         Text(""),
         Oneshot("100% Items", everything),
@@ -261,7 +278,9 @@ local main_menu = Menu{
 }
 
 local input = InputHandler{
-    enter = "P1 L",
+    L = "P1 L",
+    R = "P1 R",
+    Z = "P1 Z",
     up    = "P1 DPad U",
     down  = "P1 DPad D",
     left  = "P1 DPad L",
@@ -270,8 +289,38 @@ local input = InputHandler{
 
 local handle = MenuHandler(main_menu, T_TL)
 
+function handle_alt_input(handle, ctrl, pressed)
+    pressed.enter = false
+    ctrl.enter = false
+    local open_close = ctrl.L and ctrl.R and (pressed.L or pressed.R)
+    local hide = ctrl.L and ctrl.Z and (pressed.L or pressed.Z)
+    if open_close then
+        if handle.menu then -- if menu is open
+            handle:navigate('close')
+        else
+            pressed.enter = true
+            ctrl.enter = true
+        end
+    else
+        if hide then
+            handle:navigate('hide')
+        elseif pressed.L then
+            handle:navigate('back')
+        elseif handle.menu then
+            pressed.enter = pressed.R
+            ctrl.enter = ctrl.R
+        end
+    end
+end
+
 while mm or oot do
     local ctrl, pressed = input:update()
+    if alt_input then
+        handle_alt_input(handle, ctrl, pressed)
+    else
+        ctrl.enter = ctrl.L
+        pressed.enter = pressed.L
+    end
     handle:update(ctrl, pressed)
 
     for i, passive in ipairs(passives) do

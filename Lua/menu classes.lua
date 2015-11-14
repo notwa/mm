@@ -275,6 +275,7 @@ function MenuHandler:init(main_menu, brush)
     self.backstack = {}
     self.brush = brush
     self.menu = nil
+    self.hidden = false
 end
 
 function MenuHandler:push(menu)
@@ -285,23 +286,35 @@ function MenuHandler:pop()
     return table.remove(self.backstack)
 end
 
-function MenuHandler:update(ctrl, pressed)
-    if not self.menu and pressed.enter then
-        self.menu = self.main_menu
-        self.menu:focus()
-    elseif self.menu then
-        local new_menu = self.menu:navigate(ctrl, pressed)
+function MenuHandler:navigate(new_menu)
+    if new_menu ~= self.menu then
         if new_menu == 'back' then
             new_menu = self:pop()
         elseif new_menu == 'close' then
             self.backstack = {}
             new_menu = nil
-        elseif new_menu ~= self.menu then
+        elseif new_menu == 'hide' then
+            self.hidden = true
+            return
+        elseif self.menu and new_menu ~= self.menu then
             self:push(self.menu)
             self.menu:unfocus()
         end
-        if new_menu and new_menu ~= self.menu then new_menu:focus() end
-        self.menu = new_menu
+        if new_menu then new_menu:focus() end
+    end
+    self.menu = new_menu
+end
+
+function MenuHandler:update(ctrl, pressed)
+    if self.hidden then
+        if not pressed.enter then return end
+        self.hidden = false
+    end
+    if not self.menu and pressed.enter then
+        self:navigate(self.main_menu)
+    elseif self.menu then
+        local new_menu = self.menu:navigate(ctrl, pressed)
+        self:navigate(new_menu)
     end
     if self.menu then self.menu:draw(self.brush, 0) end
 end

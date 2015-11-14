@@ -4,10 +4,10 @@ function InputHandler:init(binds)
     self.old_ctrl = {}
 end
 
-function InputHandler:update()
+function InputHandler:update(inputs)
     local ctrl = {}
     local pressed = {}
-    local j = joypad.getimmediate()
+    local j = inputs or joypad.getimmediate()
     for k, v in pairs(self.binds) do
         ctrl[k] = j[v]
     end
