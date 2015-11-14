@@ -203,7 +203,7 @@ return {
     current_save        = AL(0x3CA0, 4),
     title_screen_mod    = AL(0x3CA8, 4),
     entrance_mod        = AL(0x3CAC, 4),
-    dog_spanwer         = AL(0x3DBC, 2),
+    dog_spawner         = AL(0x3DBC, 2),
     timer_crap          = AL(0x3DD0, 4),
     postman_timer       = AL(0x3DE4, 4), -- minigame
     majora_timer        = AL(0x3DFC, 4), -- atop clock tower?
