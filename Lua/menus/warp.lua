@@ -157,8 +157,7 @@ for si=0x00,0x7F do
             if j ~= 0 then break end
             ename = "[crash?]"
         end
-        local callback = Callbacks()
-        function callback:on()
+        local callback = function()
             addrs.warp_destination(make_exit_value(si,j,0))
             addrs.warp_begin(0x14)
         end

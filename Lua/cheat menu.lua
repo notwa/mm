@@ -43,17 +43,12 @@ local function save()
     serialize(fn, saved)
 end
 
-dummy = Callbacks()
-
 function Setter(t)
-    local cb = Callbacks()
-    function cb:on()
-        for addr, value in pairs(t) do
-            addr(value)
+    return function()
+        for func, value in pairs(t) do
+            func(value)
         end
     end
-    cb.hold = cb.on
-    return cb
 end
 
 local passives = {}
@@ -101,18 +96,7 @@ function any_item:tick_on()
     addrs.buttons_enabled(0)
 end
 
-local everything = Callbacks()
-function everything:on()
-    dofile("oneshot.lua")
-end
-
-local escape_cutscene = Callbacks()
-function escape_cutscene:on()
-    addrs.cutscene_status_2(3)
-end
-
-local soft_reset = Callbacks()
-function soft_reset:on()
+local function soft_reset()
     if oot then
         -- FIXME: Link voids out on title screen.
         -- need to load title screen save?
@@ -128,8 +112,7 @@ function soft_reset:on()
     end
 end
 
-local save_pos = Callbacks()
-function save_pos:on()
+local function save_pos()
     local la = addrs.link_actor
     saved.pos = {}
     local pos = saved.pos
@@ -141,8 +124,7 @@ function save_pos:on()
     pos.isg = la.sword_active()
     save()
 end
-local load_pos = Callbacks()
-function load_pos:on()
+local function load_pos()
     local la = addrs.link_actor
     local pos = saved.pos
     if pos == nil then return end
@@ -157,27 +139,23 @@ function load_pos:on()
     la.sword_active(pos.isg)
 end
 
-reload_scene = Callbacks()
-function reload_scene:on()
+local function reload_scene()
     local ev = addrs.exit_value()
     addrs.warp_begin(0x14)
     addrs.warp_destination(ev)
 end
 
-local save_scene = Callbacks()
-function save_scene:on()
+local function save_scene()
     saved.scene = addrs.exit_value()
     save()
 end
-local load_scene = Callbacks()
-function load_scene:on()
+local function load_scene()
     if saved.scene == nil then return end
     addrs.warp_begin(0x14)
     addrs.warp_destination(saved.scene)
 end
 
-local save_scene_pos = Callbacks()
-function save_scene_pos:on()
+local function save_scene_pos()
     saved.scenepos = {}
     local sp = saved.scenepos
     sp.scene = addrs.exit_value()
@@ -189,8 +167,7 @@ function save_scene_pos:on()
     --sp.room = la.room_number()
     save()
 end
-local load_scene_pos = Callbacks()
-function load_scene_pos:on()
+local function load_scene_pos()
     local sp = saved.scenepos
     if sp == nil then return end
     addrs.warp_begin(0x14)
@@ -207,8 +184,7 @@ function load_scene_pos:on()
     --voidout_room_number(sp.room)
 end
 
-local kill_fades = Callbacks()
-function kill_fades:on()
+local function kill_fades()
     local et = addrs.entrance_table
     if et == nil then return end
     local et_size = 1244
@@ -275,10 +251,10 @@ local main_menu = Menu{
         Toggle("Infinite Items", infinite_items),
         Toggle("Use Any Item", any_item),
         Text(""),
-        Oneshot("100% Items", everything),
+        Oneshot("100% Items", Setter{[dofile]="oneshot.lua"}),
         LinkTo("Set Progress...", progress_menu),
         Text(""),
-        Oneshot("Escape Cutscene", escape_cutscene),
+        Oneshot("Escape Cutscene", Setter{[addrs.cutscene_status_2]=3}),
         Text(""),
         LinkTo("Play as...", playas_menu),
         Oneshot("Kill Link", Setter{[addrs.hearts]=0}),

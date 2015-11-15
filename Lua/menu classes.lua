@@ -33,6 +33,8 @@ end
 function Callbacks:release()
 end
 
+local dummy = Callbacks()
+
 function MenuItem:init()
     self.focused = false
 end
@@ -89,7 +91,13 @@ end
 
 function Active:init(text, callbacks)
     Text.init(self, text)
-    self.callbacks = callbacks or {}
+    if type(callbacks) == 'function' then
+        local f = callbacks
+        callbacks = Callbacks()
+        function callbacks:on() f() end
+        callbacks.hold = callbacks.on
+    end
+    self.callbacks = callbacks or dummy
 end
 
 function Toggle:init(text, callbacks)
