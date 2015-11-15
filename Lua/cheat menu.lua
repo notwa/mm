@@ -188,15 +188,13 @@ function load_scene_pos:on()
     addrs.warp_destination(sp.scene)
     local fade = fades_killed and 0x0B or 0x01
     addrs.fade_type(fade)
-    -- TODO: add these to address list
-    -- probably the same struct for both MM and OoT
-    AL(0x3CB0, 4)(-4) -- void out type: reload area
-    AL(0x3CB4, 'f')(sp.x)
-    AL(0x3CB8, 'f')(sp.y)
-    AL(0x3CBC, 'f')(sp.z)
-    AL(0x3CC0, 2)(sp.a)
-    AL(0x3CC2, 2)(0x0BFF) -- puts camera behind link instead of at entrance
-    --AL(0x3CC6, 2)(sp.room)
+    addrs.voidout_type(-4) -- void out type: reload area
+    addrs.voidout_x(sp.x)
+    addrs.voidout_y(sp.y)
+    addrs.voidout_z(sp.z)
+    addrs.voidout_angle(sp.a)
+    addrs.voidout_var(0x0BFF) -- puts camera behind link instead of at entrance
+    --voidout_room_number(sp.room)
 end
 
 local kill_fades = Callbacks()

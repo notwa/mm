@@ -117,6 +117,14 @@ return {
     item_get_inf        = AL(0xEF0,  0x8),
     inf_table           = AL(0xEF8, 0x3C),
     checksum            = AL(0x1352, 2),
+    voidout_type        = AL(0x1364, 4), -- TODO: verify. i'm just inferring
+    voidout_x           = AL(0x1368, 'f'),
+    voidout_y           = AL(0x136C, 'f'),
+    voidout_z           = AL(0x1370, 'f'),
+    voidout_angle       = AL(0x1374, 2),
+    voidout_var         = AL(0x1376, 2),
+    voidout_entrance    = AL(0x1378, 2),
+    voidout_room_number = AL(0x137A, 2),
     event_inf           = AL(0x13FA, 0x8),
     magic_max           = AL(0x13F4, 2),
 
