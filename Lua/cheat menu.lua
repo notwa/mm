@@ -37,8 +37,8 @@ local run_while_paused = true
 local alt_input = true
 local eat_input = true
 
-local fn = 'cheat menu.save.lua'
-local saved = deserialize('cheat menu.save.lua') or {}
+local fn = oot and 'cm oot save.lua' or 'cm mm save.lua'
+local saved = deserialize(fn) or {}
 local function save()
     serialize(fn, saved)
 end
@@ -113,6 +113,7 @@ end
 
 local soft_reset = Callbacks()
 function soft_reset:on()
+    if oot then return end
     addrs.warp_begin(0x14)
     addrs.warp_destination(0x1C00)
     addrs.fade_type(0x0B)
@@ -220,7 +221,15 @@ function kill_fades:on()
     fades_killed = true
 end
 
-local time_menu = Menu{
+local time_menu = oot and Menu{
+    Screen{
+        Text("Time Menu #1/1"),
+        Text("Unimplemented for OoT."),
+        Text("Sorry! Try again later."),
+        Text(""),
+        Back(),
+    },
+} or Menu{
     Screen{
         Text("Day/Time Menu #1/1"),
         Oneshot("Set Day to Zeroth", Setter{[addrs.day]=0, [addrs.days_elapsed]=0}),

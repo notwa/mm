@@ -125,6 +125,7 @@ return {
     voidout_var         = AL(0x1376, 2),
     voidout_entrance    = AL(0x1378, 2),
     voidout_room_number = AL(0x137A, 2),
+    buttons_enabled     = AL(0x13E2, 4), -- lol unaligned access
     event_inf           = AL(0x13FA, 0x8),
     magic_max           = AL(0x13F4, 2),
 
@@ -169,11 +170,16 @@ return {
     current_scene_flags_1 = AG(0x1D38, 4), -- chest flags
     current_scene_flags_3 = AG(0x1D3C, 4), -- room clear flags
     current_scene_flags_4 = AG(0x1D44, 4), -- collectible flags
+    cutscene_pointer    = AG(0x1D68, 4),
+    cutscene_status_2   = AG(0x1D6C, 1), -- needs a rename
     -- somewhere around here should be visited room flags?
 
     room_number         = AG(0x11CBC, 1),
     room_pointer        = AG(0x11CC8, 4),
     age_modifier_global = AG(0x11DE8, 1),
+    warp_begin          = AG(0x11E15, 1),
+    warp_destination    = AG(0x11E18, 4),
+    fade_type           = AG(0x11E1F, 1), -- TODO: verify
 
     link_actor = setmetatable({
         item_in_hand    = AA(0x142, 1),

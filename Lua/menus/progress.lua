@@ -1,3 +1,13 @@
+if oot then return Menu{
+    Screen{
+        Text("Progress Menu #1/1"),
+        Text("Unimplemented for OoT."),
+        Text("Sorry! Try again later."),
+        Text(""),
+        Back(),
+    },
+} end
+
 local first_cycle = Callbacks()
 function first_cycle:on()
     addrs.warp_begin(0x14)

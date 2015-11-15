@@ -384,7 +384,7 @@ return {
     actor_disable       = AG(0x18846, 2),
     warp_begin          = AG(0x18875, 1),
     screen_dim          = AG(0x18877, 1),
-    warp_destination    = AG(0x1887A, 2),
+    warp_destination    = AG(0x18878, 4),
     fade_type           = AG(0x1887F, 1),
     entrance_entered    = AG(0x18B48, 1),
 
