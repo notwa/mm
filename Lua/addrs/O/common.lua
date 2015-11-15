@@ -117,7 +117,7 @@ return {
     item_get_inf        = AL(0xEF0,  0x8),
     inf_table           = AL(0xEF8, 0x3C),
     checksum            = AL(0x1352, 2),
-    voidout_type        = AL(0x1364, 4), -- TODO: verify. i'm just inferring
+    voidout_type        = AL(0x1364, 4),
     voidout_x           = AL(0x1368, 'f'),
     voidout_y           = AL(0x136C, 'f'),
     voidout_z           = AL(0x1370, 'f'),

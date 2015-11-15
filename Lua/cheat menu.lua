@@ -189,7 +189,8 @@ function load_scene_pos:on()
     addrs.warp_destination(sp.scene)
     local fade = fades_killed and 0x0B or 0x01
     addrs.fade_type(fade)
-    addrs.voidout_type(-4) -- void out type: reload area
+    local vt = oot and 1 or -4 -- TODO: check if there's a better type for OoT
+    addrs.voidout_type(vt)
     addrs.voidout_x(sp.x)
     addrs.voidout_y(sp.y)
     addrs.voidout_z(sp.z)
