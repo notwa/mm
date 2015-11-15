@@ -35,14 +35,16 @@ function handle_eat_input(handle, ctrl, pressed)
     if not handle.menu then
         pressed.enter = pressed.L
     else
-        if pressed.Z then
+        if pressed.L then
+            handle:navigate('close')
+        elseif pressed.Z then
             handle:navigate('hide')
         elseif pressed.R or pressed.B then
             handle:navigate('back')
+        else
+            pressed.enter = pressed.A or pressed.L
+            ctrl.enter = ctrl.A
         end
-
-        pressed.enter = pressed.A or pressed.L
-        ctrl.enter = ctrl.A or ctrl.L
 
         joypad.set({}, 1)
         joypad.setanalog({["X Axis"]=false, ["Y Axis"]=false}, 1)

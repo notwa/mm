@@ -21,10 +21,10 @@ alternate:      (alt_input = true;  eat_input = false)
     L+Z hides the menu without closing (FIXME: interferes with back button)
     D-Pad navigates
 greedy:         (alt_input = false; eat_input = true)
-    L opens the menu
+    L opens/closes the menu
     while the menu is open, the game receives no inputs
     D-Pad/Joystick/C-Buttons navigate through items and pages
-    A/L select menu items
+    A select menu items
     B/R go back a menu (or closes)
     Z hides the menu without closing
     TODO: joystick, a/b button etc
