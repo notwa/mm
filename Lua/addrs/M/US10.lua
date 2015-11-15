@@ -13,4 +13,5 @@ return {
     buttons_3           = A(0x1FB870, 2),
     buttons_4           = A(0x1FB876, 2),
     music_speed         = A(0x2050D8, 1),
+    scene_time_speed    = A(0x382502, 2),
 }

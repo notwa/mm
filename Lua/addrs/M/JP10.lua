@@ -50,4 +50,8 @@ return {
     screen_scale_enable = AL(0x42EC, 1),
     screen_scale        = AL(0x42F0, 'f'),
     scene_flags_ingame  = AL(0x42F4, 0x960),
+
+    stored_epona        = A(0x1B892F, 1),
+    stored_song         = A(0x1C18ED, 1),
+    scene_time_speed    = A(0x382672, 2),
 }
