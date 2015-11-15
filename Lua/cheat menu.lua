@@ -113,11 +113,19 @@ end
 
 local soft_reset = Callbacks()
 function soft_reset:on()
-    if oot then return end
-    addrs.warp_begin(0x14)
-    addrs.warp_destination(0x1C00)
-    addrs.fade_type(0x0B)
-    addrs.entrance_mod_setter(0xFFFA)
+    if oot then
+        -- FIXME: Link voids out on title screen.
+        -- need to load title screen save?
+        addrs.warp_begin(0x14)
+        addrs.warp_destination(0x00CD)
+        addrs.fade_type(0x0B)
+        addrs.entrance_mod_setter(0xFFF3)
+    else
+        addrs.warp_begin(0x14)
+        addrs.warp_destination(0x1C00)
+        addrs.fade_type(0x0B)
+        addrs.entrance_mod_setter(0xFFFA)
+    end
 end
 
 local save_pos = Callbacks()

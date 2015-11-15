@@ -128,6 +128,7 @@ return {
     buttons_enabled     = AL(0x13E2, 4), -- lol unaligned access
     event_inf           = AL(0x13FA, 0x8),
     magic_max           = AL(0x13F4, 2),
+    entrance_mod_setter = AL(0x1412, 2),
 
     buttons             = AG(0x14, 2),
     scene_number        = AG(0xA4, 2),
