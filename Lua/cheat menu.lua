@@ -71,7 +71,7 @@ end
 
 local levitate = Passive()
 function levitate:tick_on()
-    if bit.band(addrs.buttons(), 0x20) > 0 then
+    if bit.band(addrs.buttons(), 0x800) > 0 then
         self:hold()
     end
 end
@@ -255,7 +255,7 @@ local playas_menu = require "menus.playas"
 local main_menu = Menu{
     Screen{
         Text("Main Menu #1/2"),
-        Toggle("L to Levitate", levitate),
+        Toggle("D-Up to Levitate", levitate),
         Toggle("A to Run Fast", supersonic),
         Toggle("Infinite Items", infinite_items),
         Toggle("Use Any Item", any_item),
