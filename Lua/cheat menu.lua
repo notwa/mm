@@ -3,6 +3,7 @@ require "boilerplate"
 require "addrs.init"
 require "classes"
 require "menu classes"
+require "menu input handlers"
 require "messages"
 require "flag manager"
 
@@ -13,19 +14,28 @@ normal:         (alt_input = false; eat_input = false)
     L opens the menu
     L selects menu items
     D-Pad navigates up/down items and left/right through pages
-alternate:      (alt_input = true; eat_input = false)
+alternate:      (alt_input = true;  eat_input = false)
     L+R opens/closes the menu
     L goes back a menu (or closes)
     R selects menu items
-    L+Z hides menu without closing (FIXME: interferes with back)
+    L+Z hides the menu without closing (FIXME: interferes with back button)
     D-Pad navigates
 greedy:         (alt_input = false; eat_input = true)
+    L opens the menu
+    while the menu is open, the game receives no inputs
+    D-Pad/Joystick/C-Buttons navigate through items and pages
+    A/L select menu items
+    B/R go back a menu (or closes)
+    Z hides the menu without closing
     TODO: joystick, a/b button etc
+greedy alt:     (alt_input = true;  eat_input = true)
+    same as greedy but pauses the game while in menu
+    (enables run_while_paused)
 --]]
 
 local run_while_paused = true
 local alt_input = true
-local eat_input = false
+local eat_input = true
 
 local fn = 'cheat menu.save.lua'
 local saved = deserialize('cheat menu.save.lua') or {}
@@ -277,51 +287,32 @@ local main_menu = Menu{
     },
 }
 
-local input = InputHandler{
-    L = "P1 L",
-    R = "P1 R",
-    Z = "P1 Z",
-    up    = "P1 DPad U",
-    down  = "P1 DPad D",
-    left  = "P1 DPad L",
-    right = "P1 DPad R",
-}
+local input = InputHandler()
+input = JoyWrapper(input)
 
 local handle = MenuHandler(main_menu, T_TL)
 
-function handle_alt_input(handle, ctrl, pressed)
-    pressed.enter = false
-    ctrl.enter = false
-    local open_close = ctrl.L and ctrl.R and (pressed.L or pressed.R)
-    local hide = ctrl.L and ctrl.Z and (pressed.L or pressed.Z)
-    if open_close then
-        if handle.menu then -- if menu is open
-            handle:navigate('close')
-        else
-            pressed.enter = true
-            ctrl.enter = true
-        end
-    else
-        if hide then
-            handle:navigate('hide')
-        elseif pressed.L then
-            handle:navigate('back')
-        elseif handle.menu then
-            pressed.enter = pressed.R
-            ctrl.enter = ctrl.R
-        end
-    end
-end
-
 while mm or oot do
     local ctrl, pressed = input:update()
-    if alt_input then
+
+    if eat_input then
+        local old_menu = handle.menu
+        handle_eat_input(handle, ctrl, pressed)
+        if alt_input and handle.menu ~= old_menu then
+            run_while_paused = true
+            if handle.menu then client.pause() else client.unpause() end
+        end
+    elseif alt_input then
         handle_alt_input(handle, ctrl, pressed)
     else
+        for _, v in ipairs{'left', 'right', 'up', 'down'} do
+            ctrl[v] = ctrl['d_'..v]
+            pressed[v] = pressed['d_'..v]
+        end
         ctrl.enter = ctrl.L
         pressed.enter = pressed.L
+        handle:update(ctrl, pressed)
     end
-    handle:update(ctrl, pressed)
 
     for i, passive in ipairs(passives) do
         passive:tick()

@@ -11,6 +11,7 @@ local classes = {
     "SceneFlagMonitor",
     "ActorLister",
     "InputHandler",
+    "JoyWrapper",
 }
 
 for _, class in ipairs(classes) do
