@@ -96,6 +96,11 @@ function infinite_items:tick_on()
     end
 end
 
+local any_item = Passive()
+function any_item:tick_on()
+    addrs.buttons_enabled(0)
+end
+
 local everything = Callbacks()
 function everything:on()
     dofile("oneshot.lua")
@@ -253,6 +258,7 @@ local main_menu = Menu{
         Toggle("L to Levitate", levitate),
         Toggle("A to Run Fast", supersonic),
         Toggle("Infinite Items", infinite_items),
+        Toggle("Use Any Item", any_item),
         Text(""),
         Oneshot("100% Items", everything),
         LinkTo("Set Progress...", progress_menu),
