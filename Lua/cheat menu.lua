@@ -251,7 +251,7 @@ local main_menu = Menu{
         Toggle("Infinite Items", infinite_items),
         Toggle("Use Any Item", any_item),
         Text(""),
-        Oneshot("100% Items", Setter{[dofile]="oneshot.lua"}),
+        Oneshot("Have Everything", Setter{[dofile]="oneshot.lua"}),
         LinkTo("Set Progress...", progress_menu),
         Text(""),
         Oneshot("Escape Cutscene", Setter{[addrs.cutscene_status_2]=3}),
