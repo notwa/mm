@@ -206,11 +206,18 @@ local function kill_fades()
     fades_killed = true
 end
 
+local function timestop()
+    -- doesn't set it up quite like the glitch, but this is the main effect
+    set(timestop, 4) -- normally -1
+end
+
 local time_menu = oot and Menu{
     Screen{
         Text("Time Menu #1/1"),
-        Text("Unimplemented for OoT."),
-        Text("Sorry! Try again later."),
+        Oneshot("Set Time to 06:00", Setter{[addrs.time]=0x4000}),
+        Oneshot("Set Time to 12:00", Setter{[addrs.time]=0x8000}),
+        Oneshot("Set Time to 18:00", Setter{[addrs.time]=0xC000}),
+        Oneshot("Set Time to 00:00", Setter{[addrs.time]=0x0000}),
         Text(""),
         Back(),
     },
@@ -233,7 +240,7 @@ local time_menu = oot and Menu{
         Oneshot("Time flow: Stopped",     Setter{[addrs.time_speed]=-3}),
         Oneshot("Time flow: Backwards",   Setter{[addrs.time_speed]=-5}),
         Oneshot("Disable time flow (Scene)", Setter{[addrs.scene_time_speed]=0}),
-        --Oneshot("Stop time glitch", stop_time),
+        Oneshot("Timestop glitch", timestop),
         Text(""),
         Back(),
     },

@@ -1,13 +1,3 @@
-if oot then return Menu{
-    Screen{
-        Text("Progress Menu #1/1"),
-        Text("Unimplemented for OoT."),
-        Text("Sorry! Try again later."),
-        Text(""),
-        Back(),
-    },
-} end
-
 local a = addrs
 local inv = a.inventory
 local masks = a.masks
@@ -176,7 +166,7 @@ local function max_quantity()
     end
 end
 
-local function all_quests()
+local function all_quest()
     a.quest_items(0x00FFFFFF)
 end
 
@@ -195,7 +185,36 @@ local function all_notebook()
     end
 end
 
-return Menu{
+return oot and Menu{
+    Screen{
+        -- cheaty stuff
+        Text("Progress Menu #1/2"),
+        Oneshot("All Items", all_items),
+        Oneshot("Max Quantities", max_quantity),
+        Oneshot("All Bottles", all_bottles),
+        Oneshot("All Equipment", all_equips),
+        Oneshot("Max Hearts", max_hearts),
+        Oneshot("Max Magic", max_magic),
+        Oneshot("Max Rupees", max_rupees),
+        Oneshot("All Upgrades", all_upgrades),
+        Oneshot("All Dungeon Items", all_dungeon),
+        Oneshot("Complete Map", all_map),
+        Oneshot("All Songs", all_quest), -- TODO
+        Oneshot("All Medallions", all_quest), -- TODO
+        Text(""),
+        Back(),
+    },
+    Screen{
+        -- not so cheaty
+        Text("Progress Menu #2/2"),
+        Oneshot("Z Targeting: Switch", Setter{[a.target_style]=0}),
+        Oneshot("Z Targeting: Hold",   Setter{[a.target_style]=1}),
+        Text(""),
+        Oneshot("Reset Death Count", Setter{[a.death_count]=0}),
+        Text(""),
+        Back(),
+    },
+} or Menu{
     Screen{
         -- cheaty stuff
         Text("Progress Menu #1/2"),
@@ -241,9 +260,9 @@ return Menu{
             [a.spider_mask_order[6]]=0,
         }),
         Oneshot("Set Lottery Numbers to 123,456,789", Setter{
-            [a.lottery_numbers[1]]=1*0x10000 + 2*0x100 + 3,
-            [a.lottery_numbers[2]]=4*0x10000 + 5*0x100 + 6,
-            [a.lottery_numbers[3]]=7*0x10000 + 8*0x100 + 9,
+            [a.lottery_numbers[1]]=0x010203,
+            [a.lottery_numbers[2]]=0x040506,
+            [a.lottery_numbers[3]]=0x070809,
         }),
         Text(""),
         Oneshot("Enable Owl Save",  Setter{[a.owl_save]=1}),

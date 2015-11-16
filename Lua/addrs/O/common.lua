@@ -112,7 +112,6 @@ return {
         beans           = AL(0x9A, 1),
     },
 
-
     event_chk_inf       = AL(0xED4, 0x1C),
     item_get_inf        = AL(0xEF0,  0x8),
     inf_table           = AL(0xEF8, 0x3C),
@@ -127,6 +126,7 @@ return {
     voidout_room_number = AL(0x137A, 2),
     buttons_enabled     = AL(0x13E2, 4), -- lol unaligned access
     event_inf           = AL(0x13FA, 0x8),
+    target_style        = AL(0x140C, 1),
     magic_max           = AL(0x13F4, 2),
     entrance_mod_setter = AL(0x1412, 2),
 

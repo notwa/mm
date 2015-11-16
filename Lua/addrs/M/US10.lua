@@ -2,7 +2,7 @@ return {
     random              = A(0x097530, 4),
     massive_counter     = A(0x09E5B0, 4),
     visibility          = A(0x166118, 2),
-    timestop            = A(0x1BD8B0, 4),
+    timestop            = A(0x1BD8B0, 2),
     stored_epona        = A(0x1BDA9F, 1),
     entrance_table      = A(0x1C43B0, 0),
     scene_table         = A(0x1C5720, 0),
