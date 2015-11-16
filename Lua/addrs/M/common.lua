@@ -99,7 +99,7 @@ function Actor(addr)
 end
 
 return {
-    link                = AL(0x00, 0x4000),
+    link                = AL(0x00, 0x3CA0),
     exit_value          = AL(0x02, 2),
     mask_worn           = AL(0x04, 1),
     intro_completed     = AL(0x05, 1),

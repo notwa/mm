@@ -16,9 +16,8 @@ end
 require "flag manager"
 
 -- TODO: just force a song of time cutscene to reset most things
--- TODO: wipe flags
 
-for i=a.link.addr, a.link.addr + a.link.type, 4 do
+for i=a.link.addr, a.link.addr + a.link.type - 1, 4 do
     W4(i, 0)
 end
 
