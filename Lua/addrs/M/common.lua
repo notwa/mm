@@ -99,7 +99,7 @@ function Actor(addr)
 end
 
 return {
-    link                = A(link, 0x4000),
+    link                = AL(0x00, 0x4000),
     exit_value          = AL(0x02, 2),
     mask_worn           = AL(0x04, 1),
     intro_completed     = AL(0x05, 1),
@@ -125,6 +125,7 @@ return {
     has_normal_magic    = AL(0x40, 1),
     has_double_magic    = AL(0x41, 1),
     owls_hit            = AL(0x46, 2),
+    tunic_boots         = AL(0x6C, 1),
     sword_shield        = AL(0x6D, 1),
     inventory_items     = AL(0x70, 24),
     inventory_masks     = AL(0x88, 24),
@@ -188,6 +189,11 @@ return {
     },
 
     -- note: these addresses are invalid for JP10, JP11.
+    epona_scene         = AL(0x1000, 2), -- this is where you left epona
+    epona_x             = AL(0x1002, 2), -- NOT where she currently is
+    epona_y             = AL(0x1004, 2),
+    epona_z             = AL(0x1006, 2),
+    epona_angle         = AL(0x1008, 2),
     checksum            = AL(0x100A, 2),
     event_inf           = AL(0x100C, 8),
     disable_pause       = AL(0x100D, 1),

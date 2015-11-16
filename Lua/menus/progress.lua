@@ -242,7 +242,7 @@ return oot and Menu{
         Oneshot("Z Targeting: Hold",   Setter{[a.target_style]=1}),
         Text(""),
         Oneshot("Setup First Cycle", first_cycle),
-        --Oneshot("Setup Race File", race_file),
+        Oneshot("Setup Race File", Setter{[dofile]="race.lua"}),
         Text(""),
         Oneshot("Set Bombers Code to 12345", Setter{
             [a.bombers_code[1]]=1,
