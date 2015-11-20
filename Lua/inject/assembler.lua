@@ -17,7 +17,6 @@ local registers = {
 local all_registers = registers -- TODO
 
 local all_instructions = {
-    'ABS',
     'ADD', 'ADDI', 'ADDIU', 'ADDU',
     'AND', 'ANDI',
     'BC1F', 'BC1FL',
@@ -29,27 +28,9 @@ local all_instructions = {
     'BLTZ', 'BLTZAL', 'BLTZALL', 'BLTZL',
     'BNE', 'BNEL',
     'BREAK',
-    'C.EQ',
-    'C.F',
-    'C.LE',
-    'C.LT',
-    'C.NGE',
-    'C.NGL',
-    'C.NGLE',
-    'C.NGT',
-    'C.OLE',
-    'C.OLT',
-    'C.SEQ',
-    'C.SF',
-    'C.UEQ',
-    'C.ULE',
-    'C.ULT',
-    'C.UN',
     'CACHE',
-    'CEIL.L', 'CEIL.W',
     'CFC1',
     'CTC1',
-    'CVT.D', 'CVT.L', 'CVT.S', 'CVT.W',
     'DADD', 'DADDI', 'DADDIU', 'DADDU',
     'DDIV', 'DDIVU',
     'DIV', 'DIVU',
@@ -60,7 +41,6 @@ local all_instructions = {
     'DSRL', 'DSRL32', 'DSRLV',
     'DSUB', 'DSUBU',
     'ERET',
-    'FLOOR.L', 'FLOOR.W',
     'J',
     'JAL', 'JALR',
     'JR',
@@ -81,15 +61,11 @@ local all_instructions = {
     'MFC1',
     'MFHI',
     'MFLO',
-    'MOV',
     'MTC0', 'MTC1',
     'MTHI', 'MTLO',
-    'MUL',
     'MULT', 'MULTU',
-    'NEG',
     'NOR',
     'OR', 'ORI',
-    'ROUND.L', 'ROUND.W',
     'SB',
     'SC',
     'SCD',
@@ -99,7 +75,6 @@ local all_instructions = {
     'SH',
     'SLL', 'SLLV',
     'SLT', 'SLTI', 'SLTIU', 'SLTU',
-    'SQRT',
     'SRA', 'SRAV',
     'SRL', 'SRLV',
     'SUB', 'SUBU',
@@ -113,10 +88,59 @@ local all_instructions = {
     'TLBP', 'TLBR', 'TLBWI', 'TLBWR',
     'TLT', 'TLTI', 'TLTIU', 'TLTU',
     'TNE', 'TNEI',
-    'TRUNC.L', 'TRUNC.W',
     'XOR', 'XORI',
 
+    'ABS.D', 'ABS.S',
+    'ADD.D', 'ADD.S',
+    'CEIL.L.D', 'CEIL.L.S',
+    'CEIL.W.D', 'CEIL.W.S',
+    'CVT.D.L', 'CVT.D.S', 'CVT.D.W',
+    'CVT.L.D', 'CVT.L.S',
+    'CVT.S.D', 'CVT.S.L', 'CVT.S.W',
+    'CVT.W.D', 'CVT.W.S',
+    'DIV.D', 'DIV.S',
+    'FLOOR.L.D', 'FLOOR.L.S',
+    'FLOOR.W.D', 'FLOOR.W.S',
+    'MOV.F', 'MOV.S',
+    'MUL.F', 'MUL.S',
+    'NEG.F', 'NEG.S',
+    'ROUND.L.D', 'ROUND.L.S',
+    'ROUND.W.D', 'ROUND.W.S',
+    'SQRT.D', 'SQRT.S',
+    'SUB.D', 'SUB.S',
+    'TRUNC.L.S', 'TRUNC.W.D',
+
+    'C.EQ.D', 'C.EQ.S',
+    'C.F.D', 'C.F.S',
+    'C.LE.D', 'C.LE.S',
+    'C.LT.D', 'C.LT.S',
+    'C.NGE.D', 'C.NGE.S',
+    'C.NGL.D', 'C.NGL.S',
+    'C.NGLE.D', 'C.NGLE.S',
+    'C.NGT.D', 'C.NGT.S',
+    'C.OLE.D', 'C.OLE.S',
+    'C.OLT.D', 'C.OLT.S',
+    'C.SEQ.D', 'C.SEQ.S',
+    'C.SF.D', 'C.SF.S',
+    'C.UEQ.D', 'C.UEQ.S',
+    'C.ULE.D', 'C.ULE.S',
+    'C.ULT.D', 'C.ULT.S',
+    'C.UN.D', 'C.UN.S',
+
+    -- pseudo-instructions
+    'B',
+    'BAL',
+    'BEQI',
+    'BNEI',
+    'BGE', 'BGEI',
+    'BLE', 'BLEI',
+    'BLT', 'BLTI',
+    'BGT', 'BGTI',
+    'CL',
+    'LI',
+    'MOV',
     'NOP',
+    'SUBI', 'SUBIU',
 }
 
 local all_directives = {
@@ -177,7 +201,10 @@ local argtypes = {
 
 local at = argtypes -- temporary shorthand
 local instruction_handlers = {
-    -- formats: var (negative for specials), arg1 type, arg2 type, arg3 type
+    
+
+    --
+
     MTHI    = { 0, at.s,   17},
     MTLO    = { 0, at.s,   19},
     JR      = { 0, at.s,    8},
@@ -637,7 +664,7 @@ function Parser:instruction()
     local h = instruction_handlers[name]
 
     if h == nil then
-        self:error('unknown instruction')
+        self:error('undefined instruction')
     elseif h[2] == nil then
         -- OP
         Dumper:add_instruction_26(h[1])
@@ -844,6 +871,10 @@ end
 
 function Dumper:add_label(name)
     self.labels[name] = #self.lines + 1
+end
+
+function Dumper:add_directive(...)
+    self:error('unimplemented directive')
 end
 
 function Dumper:print(uw, lw)
