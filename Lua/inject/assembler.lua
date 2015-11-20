@@ -14,7 +14,13 @@ local registers = {
     'T8', 'T9', 'K0', 'K1', 'GP', 'SP', 'S8', 'RA',
 }
 
-local all_registers = registers -- TODO
+local fpu_registers = {
+    [0]=
+    'F0',  'F1',  'F2',  'F3',  'F4',  'F5',  'F6',  'F7',
+    'F8',  'F9',  'F10', 'F11', 'F12', 'F13', 'F14', 'F15',
+    'F16', 'F17', 'F18', 'F19', 'F20', 'F21', 'F22', 'F23',
+    'F24', 'F25', 'F26', 'F27', 'F28', 'F29', 'F30', 'F31',
+}
 
 local all_instructions = {
     'ADD', 'ADDI', 'ADDIU', 'ADDU',
@@ -168,6 +174,14 @@ local all_tokens = {
     'SEP',
 }
 
+local all_registers = {}
+for k, v in pairs(registers) do
+    all_registers[k] = v
+end
+for k, v in pairs(fpu_registers) do
+    all_registers[k + 32] = v
+end
+
 -- set up reverse table lookups
 local function revtable(t)
     for k, v in pairs(t) do
@@ -176,12 +190,13 @@ local function revtable(t)
 end
 
 revtable(registers)
+revtable(fpu_registers)
 revtable(all_registers)
 revtable(all_instructions)
 revtable(all_tokens)
 
 local argtypes = {
-    bro = 'base rt offset',
+    bto = 'base rt offset',
     sti = 'rs rt immediate',
     std = 'rs rt rd', -- ending with 5 unset bits and a const
     st  = 'rs rt', -- ending with 10 unset bits and a const
@@ -197,11 +212,27 @@ local argtypes = {
     mf  = 'rd', -- 10 unset bits on left, 5 on right, ending with a const
     jalr= 'rs rd', -- 5 unset bits inbetween, 5 on right, ending with a const
     code= 'code', -- ending with a const
+
+    movf= 'rd fs', -- starting with const, ending with 11 unset bits
+    bfo = 'base fs offset',
 }
+
 
 local at = argtypes -- temporary shorthand
 local instruction_handlers = {
-    
+    CFC1    = {17, at.movf, 2},
+    CTC1    = {17, at.movf, 6},
+    DMFC1   = {17, at.movf, 1},
+    DMTC1   = {17, at.movf, 5},
+    MFC0    = {16, at.movf, 0},
+    MFC1    = {16, at.movf, 0},
+    MTC0    = {17, at.movf, 4},
+    MTC1    = {17, at.movf, 4},
+
+    LDC1    = {53, at.bfo},
+    LWC1    = {49, at.bfo},
+    SDC1    = {61, at.bfo},
+    SWC1    = {57, at.bfo},
 
     --
 
@@ -253,29 +284,29 @@ local instruction_handlers = {
 
     NOP     = { 0, at.code, 0},
 
-    LB      = {32, at.bro},
-    LBU     = {36, at.bro},
-    LD      = {55, at.bro},
-    LDL     = {26, at.bro},
-    LDR     = {27, at.bro},
-    LH      = {33, at.bro},
-    LHU     = {37, at.bro},
-    LL      = {48, at.bro},
-    LLD     = {52, at.bro},
-    LW      = {35, at.bro},
-    LWL     = {34, at.bro},
-    LWR     = {38, at.bro},
-    LWU     = {39, at.bro},
-    SB      = {40, at.bro},
-    SC      = {56, at.bro},
-    SCD     = {60, at.bro},
-    SD      = {63, at.bro},
-    SDL     = {44, at.bro},
-    SDR     = {45, at.bro},
-    SH      = {41, at.bro},
-    SW      = {43, at.bro},
-    SWL     = {42, at.bro},
-    SWR     = {46, at.bro},
+    LB      = {32, at.bto},
+    LBU     = {36, at.bto},
+    LD      = {55, at.bto},
+    LDL     = {26, at.bto},
+    LDR     = {27, at.bto},
+    LH      = {33, at.bto},
+    LHU     = {37, at.bto},
+    LL      = {48, at.bto},
+    LLD     = {52, at.bto},
+    LW      = {35, at.bto},
+    LWL     = {34, at.bto},
+    LWR     = {38, at.bto},
+    LWU     = {39, at.bto},
+    SB      = {40, at.bto},
+    SC      = {56, at.bto},
+    SCD     = {60, at.bto},
+    SD      = {63, at.bto},
+    SDL     = {44, at.bto},
+    SDR     = {45, at.bto},
+    SH      = {41, at.bto},
+    SW      = {43, at.bto},
+    SWL     = {42, at.bto},
+    SWR     = {46, at.bto},
 
     ADDI    = { 8, at.sti},
     ADDIU   = { 9, at.sti},
@@ -625,7 +656,8 @@ function Parser:directive()
     end
 end
 
-function Parser:register()
+function Parser:register(t)
+    t = t or registers
     if self.tt ~= 'REG' then
         if self.tt == 'NUM' and self.tok == '0' then
             -- i don't think cajeasm actually does this
@@ -636,6 +668,9 @@ function Parser:register()
         end
     end
     local reg = self.tok
+    if not t[reg] then
+        self:error('wrong type of register')
+    end
     self:advance()
     return reg
 end
@@ -665,12 +700,16 @@ function Parser:instruction()
 
     if h == nil then
         self:error('undefined instruction')
-    elseif h[2] == nil then
-        -- OP
-        Dumper:add_instruction_26(h[1])
-    elseif h[2] == argtypes.bro then
+    elseif h[2] == argtypes.bto then
         -- OP rt, offset(base)
         local rt = self:register()
+        self:optional_comma()
+        local offset = {'LOWER', self:const()}
+        local base = self:deref()
+        Dumper:add_instruction_5_5_16(h[1], base, rt, offset)
+    elseif h[2] == argtypes.bfo then
+        -- OP ft, offset(base)
+        local ft = self:register(fpu_registers)
         self:optional_comma()
         local offset = {'LOWER', self:const()}
         local base = self:deref()
@@ -743,6 +782,7 @@ function Parser:instruction()
         self:optional_comma()
         local offset = self:const()
         local const = h[3] or self:error('internal error: expected const')
+        -- FIXME: branches are relative
         Dumper:add_instruction_5_5_16(h[1], rs, const, offset)
     elseif h[2] == argtypes.sync then
         -- OP
@@ -775,6 +815,19 @@ function Parser:instruction()
         -- OP
         local const = h[3] or self:error('internal error: expected const')
         Dumper:add_instruction_26(h[1], const)
+    elseif h[2] == argtypes.movf then
+        local rt = self:register()
+        self:optional_comma()
+        local rd
+        if name == 'MFC0' or name == 'MTC0' then
+            -- OP rt, rd
+            rd = self:register()
+        else
+            -- OP rt, fs
+            rd = self:register(fpu_registers)
+        end
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_5_5_6(h[1], const, rt, rd, 0, 0)
     else
         self:error('TODO')
     end
