@@ -1,0 +1,1005 @@
+-- i've lost control of my life
+
+-- lexer and parser somewhat based on http://chunkbake.luaforge.net/
+
+-- https://github.com/mikeryan/n64dev/tree/master/docs/n64ops
+-- cajeasm style assembly
+
+-- TODO: maybe support reg# style too
+local registers = {
+    [0]=
+    'R0', 'AT', 'V0', 'V1', 'A0', 'A1', 'A2', 'A3',
+    'T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7',
+    'S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7',
+    'T8', 'T9', 'K0', 'K1', 'GP', 'SP', 'S8', 'RA',
+}
+
+local all_registers = registers -- TODO
+
+local all_instructions = {
+    'ABS',
+    'ADD', 'ADDI', 'ADDIU', 'ADDU',
+    'AND', 'ANDI',
+    'BC1F', 'BC1FL',
+    'BC1T', 'BC1TL',
+    'BEQ', 'BEQL',
+    'BGEZ', 'BGEZAL', 'BGEZALL', 'BGEZL',
+    'BGTZ', 'BGTZL',
+    'BLEZ', 'BLEZL',
+    'BLTZ', 'BLTZAL', 'BLTZALL', 'BLTZL',
+    'BNE', 'BNEL',
+    'BREAK',
+    'C.EQ',
+    'C.F',
+    'C.LE',
+    'C.LT',
+    'C.NGE',
+    'C.NGL',
+    'C.NGLE',
+    'C.NGT',
+    'C.OLE',
+    'C.OLT',
+    'C.SEQ',
+    'C.SF',
+    'C.UEQ',
+    'C.ULE',
+    'C.ULT',
+    'C.UN',
+    'CACHE',
+    'CEIL.L', 'CEIL.W',
+    'CFC1',
+    'CTC1',
+    'CVT.D', 'CVT.L', 'CVT.S', 'CVT.W',
+    'DADD', 'DADDI', 'DADDIU', 'DADDU',
+    'DDIV', 'DDIVU',
+    'DIV', 'DIVU',
+    'DMFC1', 'DMTC1',
+    'DMULT', 'DMULTU',
+    'DSLL', 'DSLL32', 'DSLLV',
+    'DSRA', 'DSRA32', 'DSRAV',
+    'DSRL', 'DSRL32', 'DSRLV',
+    'DSUB', 'DSUBU',
+    'ERET',
+    'FLOOR.L', 'FLOOR.W',
+    'J',
+    'JAL', 'JALR',
+    'JR',
+    'LB', 'LBU',
+    'LD',
+    'LDC1', 'LDC2',
+    'LDL', 'LDR',
+    'LH',
+    'LHU',
+    'LL',
+    'LLD',
+    'LUI',
+    'LW',
+    'LWC1',
+    'LWL', 'LWR',
+    'LWU',
+    'MFC0',
+    'MFC1',
+    'MFHI',
+    'MFLO',
+    'MOV',
+    'MTC0', 'MTC1',
+    'MTHI', 'MTLO',
+    'MUL',
+    'MULT', 'MULTU',
+    'NEG',
+    'NOR',
+    'OR', 'ORI',
+    'ROUND.L', 'ROUND.W',
+    'SB',
+    'SC',
+    'SCD',
+    'SD',
+    'SDC1', 'SDC2',
+    'SDL', 'SDR',
+    'SH',
+    'SLL', 'SLLV',
+    'SLT', 'SLTI', 'SLTIU', 'SLTU',
+    'SQRT',
+    'SRA', 'SRAV',
+    'SRL', 'SRLV',
+    'SUB', 'SUBU',
+    'SW',
+    'SWC1',
+    'SWL', 'SWR',
+    'SYNC',
+    'SYSCALL',
+    'TEQ', 'TEQI',
+    'TGE', 'TGEI', 'TGEIU', 'TGEU',
+    'TLBP', 'TLBR', 'TLBWI', 'TLBWR',
+    'TLT', 'TLTI', 'TLTIU', 'TLTU',
+    'TNE', 'TNEI',
+    'TRUNC.L', 'TRUNC.W',
+    'XOR', 'XORI',
+
+    'NOP',
+}
+
+local all_directives = {
+    'ALIGN', 'SKIP',
+    'ASCII', 'ASCIIZ',
+    'BYTE', 'HALFWORD', 'WORD', 'FLOAT',
+    --'HEX', -- excluded here due to different syntax
+    'INC', 'INCASM', 'INCLUDE',
+    'INCBIN',
+    'ORG',
+}
+
+local all_tokens = {
+    'DEF',
+    'DEFSYM',
+    'DEREF',
+    'DIR',
+    'EOF',
+    'EOL',
+    'INSTR',
+    'LABEL',
+    'LABELSYM',
+    'NUM',
+    'REG',
+    'SEP',
+}
+
+-- set up reverse table lookups
+local function revtable(t)
+    for k, v in pairs(t) do
+        t[v] = k
+    end
+end
+
+revtable(registers)
+revtable(all_registers)
+revtable(all_instructions)
+revtable(all_tokens)
+
+local argtypes = {
+    bro = 'base rt offset',
+    sti = 'rs rt immediate',
+    std = 'rs rt rd', -- ending with 5 unset bits and a const
+    st  = 'rs rt', -- ending with 10 unset bits and a const
+    tds = 'rs rd rs/sa', -- starting with 5 unset bits, ending with a const
+    s   = 'rs', -- followed by 15 unset bits and a const
+    sto = 'rs rt offset',
+    stc = 'rs rt code', -- followed by a const
+    so  = 'rs offset', -- with a const inbetween
+    sync= 'stype', -- starting with 15 unset bits, ending with a const
+    indx= 'index',
+
+    lui = 'rt immediate', -- starting with 5 unset bits
+    mf  = 'rd', -- 10 unset bits on left, 5 on right, ending with a const
+    jalr= 'rs rd', -- 5 unset bits inbetween, 5 on right, ending with a const
+    code= 'code', -- ending with a const
+}
+
+local at = argtypes -- temporary shorthand
+local instruction_handlers = {
+    -- formats: var (negative for specials), arg1 type, arg2 type, arg3 type
+    MTHI    = { 0, at.s,   17},
+    MTLO    = { 0, at.s,   19},
+    JR      = { 0, at.s,    8},
+
+    BREAK   = { 0, at.code,13},
+    SYSCALL = { 0, at.code,12},
+
+    SYNC    = { 0, at.sync,15},
+
+    BEQ     = { 4, at.sto},
+    BEQL    = {20, at.sto},
+    BNE     = { 5, at.sto},
+    BNEL    = {21, at.sto},
+
+    TEQ     = { 0, at.stc, 52},
+    TGE     = { 0, at.stc, 48},
+    TGEU    = { 0, at.stc, 49},
+    TLT     = { 0, at.stc, 50},
+    TLTU    = { 0, at.stc, 51},
+    TNE     = { 0, at.stc, 54},
+
+    J       = { 2, at.indx},
+    JAL     = { 3, at.indx},
+
+    JALR    = { 0, at.jalr, 9},
+
+    LUI     = {15, at.lui},
+
+    MFHI    = { 0, at.mf,  16},
+    MFLO    = { 0, at.mf,  18},
+
+    BGEZ    = { 1, at.so,   1},
+    BGEZAL  = { 1, at.so,  17},
+    BGEZALL = { 1, at.so,  19},
+    BGEZL   = { 1, at.so,   3},
+    BGTZ    = { 7, at.so,   0},
+    BGTZL   = {23, at.so,   0},
+    BLEZ    = { 6, at.so,   0},
+    BLEZL   = {22, at.so,   0},
+    BLTZ    = { 1, at.so,   0},
+    BLTZAL  = { 1, at.so,  16},
+    BLTZALL = { 1, at.so,  18},
+    BLTZL   = { 1, at.so,   2},
+
+    --
+
+    NOP     = { 0, at.code, 0},
+
+    LB      = {32, at.bro},
+    LBU     = {36, at.bro},
+    LD      = {55, at.bro},
+    LDL     = {26, at.bro},
+    LDR     = {27, at.bro},
+    LH      = {33, at.bro},
+    LHU     = {37, at.bro},
+    LL      = {48, at.bro},
+    LLD     = {52, at.bro},
+    LW      = {35, at.bro},
+    LWL     = {34, at.bro},
+    LWR     = {38, at.bro},
+    LWU     = {39, at.bro},
+    SB      = {40, at.bro},
+    SC      = {56, at.bro},
+    SCD     = {60, at.bro},
+    SD      = {63, at.bro},
+    SDL     = {44, at.bro},
+    SDR     = {45, at.bro},
+    SH      = {41, at.bro},
+    SW      = {43, at.bro},
+    SWL     = {42, at.bro},
+    SWR     = {46, at.bro},
+
+    ADDI    = { 8, at.sti},
+    ADDIU   = { 9, at.sti},
+    ANDI    = {12, at.sti},
+    DADDI   = {24, at.sti},
+    DADDIU  = {25, at.sti},
+    ORI     = {13, at.sti},
+    SLTI    = {10, at.sti},
+    SLTIU   = {11, at.sti},
+    XORI    = {14, at.sti},
+
+    ADD     = { 0, at.std, 32},
+    ADDU    = { 0, at.std, 33},
+    AND     = { 0, at.std, 36},
+    DADD    = { 0, at.std, 44},
+    DADDU   = { 0, at.std, 45},
+    DSLLV   = { 0, at.std, 20},
+    DSUB    = { 0, at.std, 46},
+    DSUBU   = { 0, at.std, 47},
+    NOR     = { 0, at.std, 39},
+    OR      = { 0, at.std, 37},
+    SLLV    = { 0, at.std,  4},
+    SLT     = { 0, at.std, 42},
+    SLTU    = { 0, at.std, 43},
+    SRAV    = { 0, at.std,  7},
+    SRLV    = { 0, at.std,  6},
+    SUB     = { 0, at.std, 34},
+    SUBU    = { 0, at.std, 35},
+    XOR     = { 0, at.std, 38},
+
+    DDIV    = { 0, at.st,  30},
+    DDIVU   = { 0, at.st,  31},
+    DIV     = { 0, at.st,  26},
+    DIVU    = { 0, at.st,  27},
+    DMULT   = { 0, at.st,  28},
+    DMULTU  = { 0, at.st,  29},
+    MULT    = { 0, at.st,  24},
+    MULTU   = { 0, at.st,  25},
+
+    DSLL    = { 0, at.tds, 56},
+    DSLL32  = { 0, at.tds, 60},
+    DSRA    = { 0, at.tds, 59},
+    DSRA32  = { 0, at.tds, 63},
+    DSRAV   = { 0, at.tds, 23},
+    DSRL    = { 0, at.tds, 58},
+    DSRL32  = { 0, at.tds, 62},
+    DSRLV   = { 0, at.tds, 22},
+    SLL     = { 0, at.tds,  0},
+    SRA     = { 0, at.tds,  3},
+    SRL     = { 0, at.tds,  2},
+}
+at = nil
+
+local asm = ''
+
+local f = io.open('Moonjump 2.asm', 'r')
+if not f then
+    f = io.open('inject/Moonjump 2.asm', 'r')
+    if not f then
+        print('could not load assembly')
+        return
+    end
+end
+asm = f:read('*a')
+f:close()
+
+Lexer = {}
+function Lexer:setup(asm)
+    self.asm = asm
+    self.pos = 1
+    self.line = 1
+    self.EOF = -1
+    self:nextc()
+end
+
+function Lexer:error(msg)
+    error(string.format('%s:%d: Error: %s', 'file.asm', self.line, msg), 2)
+end
+
+function Lexer:nextc()
+    if self.pos > #self.asm then
+        self.ord = self.EOF
+        self.chr = ''
+        self.chrchr = ''
+        return
+    end
+
+    if self.chr == '\n' then
+        self.line = self.line + 1
+    end
+
+    self.ord = string.byte(self.asm, self.pos)
+    self.pos = self.pos + 1
+
+    -- handle newlines; translate CRLF to LF
+    if self.ord == 13 then
+        if self.pos <= #self.asm and string.byte(self.asm, self.pos) == 10 then
+            self.pos = self.pos + 1
+        end
+        self.ord = 10
+    end
+
+    self.chr = string.char(self.ord)
+    if self.pos <= #self.asm then
+        self.ord2 = string.byte(self.asm, self.pos)
+        self.chr2 = string.char(self.ord2)
+        self.chrchr = string.char(self.ord, self.ord2)
+    else
+        self.chrchr = self.chr
+    end
+end
+
+function Lexer:skip_to_EOL()
+    while self.chr ~= '\n' and self.ord ~= self.EOF do
+        self:nextc()
+    end
+end
+
+function Lexer:save_next()
+    self.buff = self.buff..self.chr
+    self:nextc()
+end
+
+function Lexer:read_chars(pattern)
+    while string.find(self.chr, pattern) do
+        self:save_next()
+    end
+end
+
+function Lexer:read_number()
+    self.buff = ''
+    self:nextc()
+    self:read_chars('%d')
+    local num = tonumber(self.buff)
+    if not num then self:error('invalid number') end
+    return num
+end
+
+function Lexer:read_hex()
+    self.buff = ''
+    if self.chr ~= '$' then self:nextc() end
+    self:nextc()
+    self:read_chars('%x')
+    local num = tonumber(self.buff, 16)
+    if not num then self:error('invalid hex number') end
+    return num
+end
+
+function Lexer:read_binary()
+    self.buff = ''
+    self:nextc()
+    self:read_chars('[01]')
+    local num = tonumber(self.buff, 2)
+    if not num then self:error('invalid binary number') end
+    return num
+end
+
+function Lexer:skip_block_comment()
+    self:nextc()
+    self:nextc()
+    while true do
+        if self.ord == self.EOF then
+            self:error('incomplete block comment')
+        elseif self.chrchr == '*/' then
+            self:nextc()
+            self:nextc()
+            break
+        else
+            self:nextc()
+        end
+    end
+end
+
+function Lexer:lex()
+    while true do
+        if self.chr == '\n' then
+            self:nextc()
+            return 'EOL', '\n'
+        elseif self.ord == self.EOF then
+            return 'EOF', self.EOF
+        elseif self.chr == ';' then
+            self:skip_to_EOL()
+        elseif self.chrchr == '//' then
+            self:skip_to_EOL()
+        elseif self.chrchr == '/*' then
+            self:skip_block_comment()
+        elseif self.chr:find('%s') then
+            self:nextc()
+        elseif self.chr == '$' then
+            return 'NUM', self:read_hex()
+        elseif self.chr == '%' then
+            return 'NUM', self:read_binary()
+        elseif self.chr:find('%d') then
+            -- TODO: check if cajaasm accepts 0X0
+            if self.chr2 == 'x' or self.chr2 == 'X' then
+                return 'NUM', self:read_hex()
+            end
+            return 'NUM', self:read_number()
+        elseif self.chr == ',' then
+            self:nextc()
+            return 'SEP', ','
+        elseif self.chr == '[' then
+            self.buff = ''
+            self:nextc()
+            self:read_chars('[%w_]')
+            if self.chr ~= ']' then
+                self:error('invalid define name')
+            end
+            self:nextc()
+            if self.chr ~= ':' then
+                self:error('define requires a colon')
+            end
+            self:nextc()
+            return 'DEF', self.buff
+        elseif self.chr == '(' then
+            self.buff = ''
+            self:nextc()
+            self:read_chars('[%w_]')
+            if self.chr ~= ')' then
+                self:error('invalid register name')
+            end
+            self:nextc()
+            local up = self.buff:upper()
+            if not all_registers[up] then
+                self:error('not a register')
+            end
+            return 'DEREF', up
+        elseif self.chr == '.' then
+            self.buff = ''
+            self:read_chars('[%w]')
+            local up = self.buff:upper()
+            if not all_directives[up] then
+                self:error('not a directive')
+            end
+            if up == 'INC' or up == 'INCASM' or up == 'INCLUDE' then
+                return 'DIR', 'UP'
+            end
+            return 'DIR', up
+        elseif self.chr == '@' then
+            self.buff = ''
+            self:nextc()
+            self:read_chars('[%w_]')
+            return 'DEFSYM', self.buff
+        elseif self.chr:find('[%a_]') then
+            self.buff = ''
+            -- now that we know we're looking at an identifier,
+            -- we can start matching numbers and dots too.
+            self:read_chars('[%w_.]')
+            if self.chr == ':' then
+                if self.buff:find('\\.') then
+                    self:error('labels cannot contain dots')
+                end
+                self:nextc()
+                return 'LABEL', self.buff
+            end
+            local up = self.buff:upper()
+            if up == 'HEX' then
+                return 'DIR', up
+            elseif all_registers[up] then
+                return 'REG', up
+            elseif all_instructions[up] then
+                return 'INSTR', up
+            else
+                if self.buff:find('\\.') then
+                    self:error('labels cannot contain dots')
+                end
+                return 'LABELSYM', self.buff
+            end
+        elseif self.chr == ']' then
+            self:error('unmatched closing bracket')
+        elseif self.chr == ')' then
+            self:error('unmatched closing parenthesis')
+        else
+            self:error('unknown character or control character')
+        end
+    end
+end
+
+Parser = {}
+function Parser:error(msg)
+    error(string.format('%s:%d: Error: %s', 'file.asm', self.line, msg), 2)
+end
+
+function Parser:advance()
+    self.tt, self.tok = Lexer:lex()
+    self.line = Lexer.line
+    return self.tt, self.tok
+end
+
+function Parser:is_EOL()
+    return self.tt == 'EOL' or self.tt == 'EOF'
+end
+
+function Parser:expect_EOL()
+    if self:is_EOL() then
+        self:advance()
+        return
+    end
+    self:error('expected end of line')
+end
+
+function Parser:optional_comma()
+    if self.tt == 'SEP' and self.tok == ',' then
+        self:advance()
+        return true
+    end
+end
+
+function Parser:number()
+    if self.tt ~= 'NUM' then
+        self:error('expected number')
+    end
+    local value = self.tok
+    self:advance()
+    return value
+end
+
+function Parser:directive()
+    local name = self.tok
+    self:advance()
+    if name == 'ORG' then
+        Dumper:add_directive(name, self:number())
+    elseif name == 'ALIGN' or name == 'SKIP' then
+        local size = self:number()
+        if self:optional_comma() then
+            Dumper:add_directive(name, size, self:number())
+        else
+            Dumper:add_directive(name, size)
+        end
+        self:expect_EOL()
+    elseif name == 'BYTE' or name == 'HALFWORD' or name == 'WORD' then
+        Dumper:add_directive(name, self:number())
+        while not self:is_EOL() do
+            self:advance()
+            self:optional_comma()
+            Dumper:add_directive(name, self:number())
+        end
+        self:expect_EOL()
+    elseif name == 'HEX' then
+        self:error('unimplemented')
+    elseif name == 'INC' or name == 'INCBIN' then
+        self:error('unimplemented')
+    elseif name == 'FLOAT' or name == 'ASCII' or name == 'ASCIIZ' then
+        self:error('unimplemented')
+    else
+        self:error('unknown directive')
+    end
+end
+
+function Parser:register()
+    if self.tt ~= 'REG' then
+        if self.tt == 'NUM' and self.tok == '0' then
+            -- i don't think cajeasm actually does this
+            self.tt = 'REG'
+            self.tok = 'R0'
+        else
+            self:error('expected register')
+        end
+    end
+    local reg = self.tok
+    self:advance()
+    return reg
+end
+
+function Parser:deref()
+    if self.tt ~= 'DEREF' then
+        self:error('expected register to dereference')
+    end
+    local reg = self.tok
+    self:advance()
+    return reg
+end
+
+function Parser:const()
+    if self.tt ~= 'NUM' and self.tt ~= 'DEFSYM' and self.tt ~= 'LABELSYM' then
+        self:error('expected constant')
+    end
+    local t = {self.tt, self.tok}
+    self:advance()
+    return t
+end
+
+function Parser:instruction()
+    local name = self.tok
+    self:advance()
+    local h = instruction_handlers[name]
+
+    if h == nil then
+        self:error('unknown instruction')
+    elseif h[2] == nil then
+        -- OP
+        Dumper:add_instruction_26(h[1])
+    elseif h[2] == argtypes.bro then
+        -- OP rt, offset(base)
+        local rt = self:register()
+        self:optional_comma()
+        local offset = {'LOWER', self:const()}
+        local base = self:deref()
+        Dumper:add_instruction_5_5_16(h[1], base, rt, offset)
+    elseif h[2] == argtypes.sti then
+        -- OP rt, rs, immediate
+        local rs = self:register()
+        self:optional_comma()
+        local rt = self:register()
+        self:optional_comma()
+        local immediate = {'LOWER', self:const()}
+        Dumper:add_instruction_5_5_16(h[1], rs, rt, immediate)
+    elseif h[2] == argtypes.std then
+        -- OP rd, rs, rt
+        local rd = self:register()
+        self:optional_comma()
+        local rs = self:register()
+        self:optional_comma()
+        local rt = self:register()
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_5_11(h[1], rs, rt, rd, const)
+    elseif h[2] == argtypes.st then
+        -- OP rs, rt
+        local rs = self:register()
+        self:optional_comma()
+        local rt = self:register()
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_16(h[1], rs, rt, const)
+    elseif h[2] == argtypes.tds then
+        local rd = self:register()
+        self:optional_comma()
+        local rt = self:register()
+        self:optional_comma()
+        local rs
+        if name == 'DSRAV' or name == 'DSRLV' then
+            -- OP rd, rt, rs
+            rs = self:register()
+        else
+            -- OP rd, rt, sa
+            rs = self:const()
+        end
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_5_5_6(h[1], 0, rt, rd, rs, const)
+    elseif h[2] == argtypes.s then
+        -- OP rs
+        local rs = self:register()
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_16(h[1], rs, 0, const)
+    elseif h[2] == argtypes.sto then
+        -- OP rs, rt, offset
+        local rs = self:register()
+        self:optional_comma()
+        local rt = self:register()
+        self:optional_comma()
+        local offset = self:const()
+        Dumper:add_instruction_5_5_16(h[1], rs, rt, offset)
+    elseif h[2] == argtypes.stc then
+        -- OP TEQ rs, rt
+        local rs = self:register()
+        self:optional_comma()
+        local rt = self:register()
+        local const = h[3] or self:error('internal error: expected const')
+        -- FIXME: there's supposed to be 'code' before const
+        -- but i dunno what it's supposed to be
+        -- so i'm leaving it as zero here
+        Dumper:add_instruction_5_5_16(h[1], rs, rt, const)
+    elseif h[2] == argtypes.so then
+        -- OP rs, offset
+        local rs = self:register()
+        self:optional_comma()
+        local offset = self:const()
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_16(h[1], rs, const, offset)
+    elseif h[2] == argtypes.sync then
+        -- OP
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_26(h[1], const)
+    elseif h[2] == argtypes.indx then
+        -- OP target
+        local target = {'INDEX', self:const()}
+        Dumper:add_instruction_26(h[1], target)
+    elseif h[2] == argtypes.lui then
+        -- OP rt, immediate
+        local rt = self:register()
+        self:optional_comma()
+        local immediate = {'UPPER', self:const()}
+        Dumper:add_instruction_5_5_16(h[1], 0, rt, immediate)
+    elseif h[2] == argtypes.mf then
+        -- OP rd
+        local rd = self:register()
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_5_5_6(h[1], 0, 0, rd, 0, const)
+    elseif h[2] == argtypes.jalr then
+        -- OP rs, rd
+        local rs = self:register()
+        self:optional_comma()
+        local rd = self:register()
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_5_5_6(h[1], rs, 0, rd, 0, const)
+        local rd = self:register()
+    elseif h[2] == argtypes.code then
+        -- OP
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_26(h[1], const)
+    else
+        self:error('TODO')
+    end
+    self:expect_EOL()
+end
+
+function Parser:parse(asm)
+    self.asm = asm
+    Lexer:setup(asm)
+    Dumper:setup()
+
+    self:advance()
+    while self.tt ~= 'EOF' do
+        if self.tt == 'EOL' then
+            -- empty line
+            self:advance()
+        elseif self.tt == 'DEF' then
+            local name = self.tok
+            self:advance()
+            Dumper:add_define(name, self:number())
+        elseif self.tt == 'DIR' then
+            self:directive()
+        elseif self.tt == 'LABEL' then
+            Dumper:add_label(self.tok)
+            self:advance()
+        elseif self.tt == 'INSTR' then
+            self:instruction()
+        else
+            self:error('unexpected token (unknown instruction?)')
+        end
+    end
+
+    return Dumper:dump()
+end
+
+Dumper = {}
+function Dumper:setup()
+    self.defines = {}
+    self.labels = {}
+    self.lines = {}
+end
+
+function Dumper:error(msg)
+    error(string.format('Internal Error: %s', msg), 2)
+end
+
+function Dumper:add_instruction_26(i, a)
+    local t = {}
+    t.sizes = {26}
+    t.data = {i, a}
+    table.insert(self.lines, t)
+    --print(('added {%s, %s}'):format(
+    --    tostring(i),
+    --    tostring(a)
+    --))
+end
+
+function Dumper:add_instruction_5_5_16(i, a, b, c)
+    local t = {}
+    t.sizes = {5, 5, 16}
+    t.data = {i, a, b, c}
+    table.insert(self.lines, t)
+    --print(('added {%s, %s, %s, %s}'):format(
+    --    tostring(i),
+    --    tostring(a), tostring(b), tostring(c)
+    --))
+end
+
+function Dumper:add_instruction_5_5_5_11(i, a, b, c, d)
+    local t = {}
+    t.sizes = {5, 5, 5, 11}
+    t.data = {i, a, b, c, d}
+    table.insert(self.lines, t)
+    --print(('added {%s, %s, %s, %s, %s}'):format(
+    --    tostring(i),
+    --    tostring(a), tostring(b), tostring(c), tostring(d)
+    --))
+end
+
+function Dumper:add_instruction_5_5_5_5_6(i, a, b, c, d, e)
+    local t = {}
+    t.sizes = {5, 5, 5, 5, 6}
+    t.data = {i, a, b, c, d, e}
+    table.insert(self.lines, t)
+    --print(('added {%s, %s, %s, %s, %s, %s}'):format(
+    --    tostring(i),
+    --    tostring(a), tostring(b), tostring(c), tostring(d), tostring(e)
+    --))
+end
+
+function Dumper:add_define(name, number)
+    self.defines[name] = number
+end
+
+function Dumper:add_label(name)
+    self.labels[name] = #self.lines + 1
+end
+
+function Dumper:print(uw, lw)
+    print(('%04X%04X'):format(uw, lw))
+end
+
+function Dumper:desym(tok)
+    if type(tok[2]) == 'number' then
+        return tok[2]
+    elseif all_registers[tok] then
+        return registers[tok]
+    elseif tok[1] == 'LABELSYM' then
+        print('(label)', tok[2])
+        return self.labels[tok[2]]*4
+    elseif tok[1] == 'DEFSYM' then
+        print('(define)')
+        local val = self.defines[tok[2]]
+        if val == nil then
+            self:error('unknown define')
+        end
+        return val
+    end
+    print(tok)
+    self:error('failed to desym')
+end
+
+function Dumper:toval(tok)
+    if tok == nil then
+        self:error('nil value')
+    elseif type(tok) == 'number' then
+        return tok
+    elseif all_registers[tok] then
+        return registers[tok]
+    end
+    if type(tok) == 'table' then
+        if #tok ~= 2 then
+            print('toval', tok)
+            self:error('invalid token')
+        end
+        if tok[1] == 'UPPER' then
+            local val = self:desym(tok[2])
+            while val >= 0x10000 do
+                val = val/2
+            end
+            return val
+        elseif tok[1] == 'LOWER' then
+            local val = self:desym(tok[2]) % 0x10000
+            return val
+        elseif tok[1] == 'INDEX' then
+            local val
+            if type(tok[2]) == 'table' and tok[2][1] == 'LABELSYM' then
+                -- don't multiply by 4 twice
+                val = self:desym(tok[2])
+            else
+                val = self:desym(tok[2])*4
+            end
+            print('(index)', val)
+            return val
+        else
+            return self:desym(tok)
+        end
+    end
+    print('toval', tok)
+    self:error('invalid value')
+end
+
+function Dumper:validate(n, bits)
+    local max = 2^bits
+    if n > max or n < 0 then
+        print(("n %08X"):format(math.abs(n)))
+        self:error('value out of range')
+    end
+end
+
+function Dumper:dump()
+    for i, t in ipairs(self.lines) do
+        local uw = 0
+        local lw = 0
+        local val = nil
+
+        local i = t.data[1]
+        uw = uw + i*0x400
+
+        if #t.sizes == 1 then
+            if t.sizes[1] == 26 then
+                val = self:toval(t.data[2])
+                self:validate(val, 26)
+                uw = uw + math.floor(val/0x10000)
+                lw = lw + val % 0x10000
+            else
+                self:error('bad 1-size')
+            end
+        elseif #t.sizes == 3 then
+            if t.sizes[1] == 5 and t.sizes[2] == 5 and t.sizes[3] == 16 then
+                val = self:toval(t.data[2])
+                self:validate(val, 5)
+                uw = uw + val*0x20
+                val = self:toval(t.data[3])
+                self:validate(val, 5)
+                uw = uw + val
+                val = self:toval(t.data[4])
+                self:validate(val, 16)
+                lw = lw + val
+            else
+                self:error('bad 3-size')
+            end
+        elseif #t.sizes == 4 then
+            if t.sizes[1] == 5 and t.sizes[2] == 5 and t.sizes[3] == 5 and t.sizes[4] == 11 then
+                val = self:toval(t.data[2])
+                self:validate(val, 5)
+                uw = uw + val*0x20
+                val = self:toval(t.data[3])
+                self:validate(val, 5)
+                uw = uw + val
+                val = self:toval(t.data[4])
+                self:validate(val, 5)
+                lw = lw + val*0x800
+                val = self:toval(t.data[5])
+                self:validate(val, 11)
+                lw = lw + val
+            else
+                self:error('bad 4-size')
+            end
+        elseif #t.sizes == 5 then
+            if t.sizes[1] == 5 and t.sizes[2] == 5 and t.sizes[3] == 5 and t.sizes[4] == 5 and t.sizes[5] == 6 then
+                val = self:toval(t.data[2])
+                self:validate(val, 5)
+                uw = uw + val*0x20
+                val = self:toval(t.data[3])
+                self:validate(val, 5)
+                uw = uw + val
+                val = self:toval(t.data[4])
+                self:validate(val, 5)
+                lw = lw + val*0x800
+                val = self:toval(t.data[5])
+                self:validate(val, 5)
+                lw = lw + val*0x40
+                val = self:toval(t.data[6])
+                self:validate(val, 6)
+                lw = lw + val
+            else
+                self:error('bad 5-size')
+            end
+        else
+            self:error('unknown n-size')
+        end
+
+        self:print(uw, lw)
+    end
+end
+
+function main()
+    Parser:parse(asm)
+end
+
+local ok, msg = pcall(main)
+if not ok then
+    print(msg)
+end
