@@ -222,30 +222,10 @@ local argtypes = {
 
 local at = argtypes -- temporary shorthand
 local instruction_handlers = {
-    ADD_D   = {17, at.tsdd,  0},
-    ADD_S   = {17, at.tsdf,  0},
-    DIV_D   = {17, at.tsdd,  3},
-    DIV_S   = {17, at.tsdf,  3},
-    MUL_D   = {17, at.tsdd,  2},
-    MUL_S   = {17, at.tsdf,  2},
-    SUB_D   = {17, at.tsdd,  1},
-    SUB_S   = {17, at.tsdf,  1},
+    J       = { 2, at.indx},
+    JAL     = { 3, at.indx},
 
-    CFC1    = {17, at.movf, 2},
-    CTC1    = {17, at.movf, 6},
-    DMFC1   = {17, at.movf, 1},
-    DMTC1   = {17, at.movf, 5},
-    MFC0    = {16, at.movf, 0},
-    MFC1    = {16, at.movf, 0},
-    MTC0    = {17, at.movf, 4},
-    MTC1    = {17, at.movf, 4},
-
-    LDC1    = {53, at.bfo},
-    LWC1    = {49, at.bfo},
-    SDC1    = {61, at.bfo},
-    SWC1    = {57, at.bfo},
-
-    --
+    JALR    = { 0, at.jalr, 9},
 
     MTHI    = { 0, at.s,   17},
     MTLO    = { 0, at.s,   19},
@@ -256,44 +236,7 @@ local instruction_handlers = {
 
     SYNC    = { 0, at.sync,15},
 
-    BEQ     = { 4, at.sto},
-    BEQL    = {20, at.sto},
-    BNE     = { 5, at.sto},
-    BNEL    = {21, at.sto},
-
-    TEQ     = { 0, at.stc, 52},
-    TGE     = { 0, at.stc, 48},
-    TGEU    = { 0, at.stc, 49},
-    TLT     = { 0, at.stc, 50},
-    TLTU    = { 0, at.stc, 51},
-    TNE     = { 0, at.stc, 54},
-
-    J       = { 2, at.indx},
-    JAL     = { 3, at.indx},
-
-    JALR    = { 0, at.jalr, 9},
-
-    LUI     = {15, at.lui},
-
-    MFHI    = { 0, at.mf,  16},
-    MFLO    = { 0, at.mf,  18},
-
-    BGEZ    = { 1, at.so,   1},
-    BGEZAL  = { 1, at.so,  17},
-    BGEZALL = { 1, at.so,  19},
-    BGEZL   = { 1, at.so,   3},
-    BGTZ    = { 7, at.so,   0},
-    BGTZL   = {23, at.so,   0},
-    BLEZ    = { 6, at.so,   0},
-    BLEZL   = {22, at.so,   0},
-    BLTZ    = { 1, at.so,   0},
-    BLTZAL  = { 1, at.so,  16},
-    BLTZALL = { 1, at.so,  18},
-    BLTZL   = { 1, at.so,   2},
-
     --
-
-    NOP     = { 0, at.code, 0},
 
     LB      = {32, at.bto},
     LBU     = {36, at.bto},
@@ -318,6 +261,11 @@ local instruction_handlers = {
     SW      = {43, at.bto},
     SWL     = {42, at.bto},
     SWR     = {46, at.bto},
+
+    LUI     = {15, at.lui},
+
+    MFHI    = { 0, at.mf,  16},
+    MFLO    = { 0, at.mf,  18},
 
     ADDI    = { 8, at.sti},
     ADDIU   = { 9, at.sti},
@@ -368,6 +316,57 @@ local instruction_handlers = {
     SLL     = { 0, at.tds,  0},
     SRA     = { 0, at.tds,  3},
     SRL     = { 0, at.tds,  2},
+
+    BEQ     = { 4, at.sto},
+    BEQL    = {20, at.sto},
+    BNE     = { 5, at.sto},
+    BNEL    = {21, at.sto},
+
+    BGEZ    = { 1, at.so,   1},
+    BGEZAL  = { 1, at.so,  17},
+    BGEZALL = { 1, at.so,  19},
+    BGEZL   = { 1, at.so,   3},
+    BGTZ    = { 7, at.so,   0},
+    BGTZL   = {23, at.so,   0},
+    BLEZ    = { 6, at.so,   0},
+    BLEZL   = {22, at.so,   0},
+    BLTZ    = { 1, at.so,   0},
+    BLTZAL  = { 1, at.so,  16},
+    BLTZALL = { 1, at.so,  18},
+    BLTZL   = { 1, at.so,   2},
+
+    TEQ     = { 0, at.stc, 52},
+    TGE     = { 0, at.stc, 48},
+    TGEU    = { 0, at.stc, 49},
+    TLT     = { 0, at.stc, 50},
+    TLTU    = { 0, at.stc, 51},
+    TNE     = { 0, at.stc, 54},
+
+    ADD_D   = {17, at.tsdd, 0},
+    ADD_S   = {17, at.tsdf, 0},
+    DIV_D   = {17, at.tsdd, 3},
+    DIV_S   = {17, at.tsdf, 3},
+    MUL_D   = {17, at.tsdd, 2},
+    MUL_S   = {17, at.tsdf, 2},
+    SUB_D   = {17, at.tsdd, 1},
+    SUB_S   = {17, at.tsdf, 1},
+
+    CFC1    = {17, at.movf, 2},
+    CTC1    = {17, at.movf, 6},
+    DMFC1   = {17, at.movf, 1},
+    DMTC1   = {17, at.movf, 5},
+    MFC0    = {16, at.movf, 0},
+    MFC1    = {16, at.movf, 0},
+    MTC0    = {17, at.movf, 4},
+    MTC1    = {17, at.movf, 4},
+
+    LDC1    = {53, at.bfo},
+    LWC1    = {49, at.bfo},
+    SDC1    = {61, at.bfo},
+    SWC1    = {57, at.bfo},
+
+    -- pseudo-instructions
+    NOP     = { 0, at.code, 0},
 }
 at = nil
 
@@ -566,7 +565,6 @@ function Lexer:lex()
             elseif all_registers[up] then
                 return 'REG', up
             elseif all_instructions[up] then
-                -- note: this allows instructions like "C_EQ.F" / "C.EQ_F"
                 return 'INSTR', up:gsub('%.', '_')
             else
                 if self.buff:find('%.') then
@@ -945,10 +943,10 @@ function Dumper:desym(tok)
     elseif all_registers[tok] then
         return registers[tok] or fpu_registers[tok]
     elseif tok[1] == 'LABELSYM' then
-        print('(label)', tok[2])
+        --print('(label)', tok[2])
         return self.labels[tok[2]]*4
     elseif tok[1] == 'DEFSYM' then
-        print('(define)')
+        --print('(define)')
         local val = self.defines[tok[2]]
         if val == nil then
             self:error('unknown define')
@@ -1010,6 +1008,12 @@ function Dumper:validate(n, bits)
     end
 end
 
+function Dumper:valvar(tok, bits)
+    local val = self:toval(tok)
+    self:validate(val, bits)
+    return val
+end
+
 function Dumper:dump()
     for i, t in ipairs(self.lines) do
         local uw = 0
@@ -1021,8 +1025,7 @@ function Dumper:dump()
 
         if #t.sizes == 1 then
             if t.sizes[1] == 26 then
-                val = self:toval(t.data[2])
-                self:validate(val, 26)
+                val = self:valvar(t.data[2], 26)
                 uw = uw + math.floor(val/0x10000)
                 lw = lw + val % 0x10000
             else
@@ -1030,51 +1033,39 @@ function Dumper:dump()
             end
         elseif #t.sizes == 3 then
             if t.sizes[1] == 5 and t.sizes[2] == 5 and t.sizes[3] == 16 then
-                val = self:toval(t.data[2])
-                self:validate(val, 5)
+                val = self:valvar(t.data[2], 5)
                 uw = uw + val*0x20
-                val = self:toval(t.data[3])
-                self:validate(val, 5)
+                val = self:valvar(t.data[3], 5)
                 uw = uw + val
-                val = self:toval(t.data[4])
-                self:validate(val, 16)
+                val = self:valvar(t.data[4], 16)
                 lw = lw + val
             else
                 self:error('bad 3-size')
             end
         elseif #t.sizes == 4 then
             if t.sizes[1] == 5 and t.sizes[2] == 5 and t.sizes[3] == 5 and t.sizes[4] == 11 then
-                val = self:toval(t.data[2])
-                self:validate(val, 5)
+                val = self:valvar(t.data[2], 5)
                 uw = uw + val*0x20
-                val = self:toval(t.data[3])
-                self:validate(val, 5)
+                val = self:valvar(t.data[3], 5)
                 uw = uw + val
-                val = self:toval(t.data[4])
-                self:validate(val, 5)
+                val = self:valvar(t.data[4], 5)
                 lw = lw + val*0x800
-                val = self:toval(t.data[5])
-                self:validate(val, 11)
+                val = self:valvar(t.data[5], 11)
                 lw = lw + val
             else
                 self:error('bad 4-size')
             end
         elseif #t.sizes == 5 then
             if t.sizes[1] == 5 and t.sizes[2] == 5 and t.sizes[3] == 5 and t.sizes[4] == 5 and t.sizes[5] == 6 then
-                val = self:toval(t.data[2])
-                self:validate(val, 5)
+                val = self:valvar(t.data[2], 5)
                 uw = uw + val*0x20
-                val = self:toval(t.data[3])
-                self:validate(val, 5)
+                val = self:valvar(t.data[3], 5)
                 uw = uw + val
-                val = self:toval(t.data[4])
-                self:validate(val, 5)
+                val = self:valvar(t.data[4], 5)
                 lw = lw + val*0x800
-                val = self:toval(t.data[5])
-                self:validate(val, 5)
+                val = self:valvar(t.data[5], 5)
                 lw = lw + val*0x40
-                val = self:toval(t.data[6])
-                self:validate(val, 6)
+                val = self:valvar(t.data[6], 6)
                 lw = lw + val
             else
                 self:error('bad 5-size')
