@@ -681,9 +681,12 @@ function Parser:deref()
     return reg
 end
 
-function Parser:const()
+function Parser:const(relative)
     if self.tt ~= 'NUM' and self.tt ~= 'DEFSYM' and self.tt ~= 'LABELSYM' then
         self:error('expected constant')
+    end
+    if relative and self.tt == 'LABELSYM' then
+        self.tt = 'LABELREL'
     end
     local t = {self.tt, self.tok}
     self:advance()
@@ -713,9 +716,9 @@ function Parser:instruction()
         Dumper:add_instruction_5_5_16(h[1], base, ft, offset)
     elseif h[2] == argtypes.sti then
         -- OP rt, rs, immediate
-        local rs = self:register()
-        self:optional_comma()
         local rt = self:register()
+        self:optional_comma()
+        local rs = self:register()
         self:optional_comma()
         local immediate = {'LOWER', self:const()}
         Dumper:add_instruction_5_5_16(h[1], rs, rt, immediate)
@@ -761,7 +764,7 @@ function Parser:instruction()
         self:optional_comma()
         local rt = self:register()
         self:optional_comma()
-        local offset = self:const()
+        local offset = self:const('relative')
         Dumper:add_instruction_5_5_16(h[1], rs, rt, offset)
     elseif h[2] == argtypes.stc then
         -- OP TEQ rs, rt
@@ -777,9 +780,8 @@ function Parser:instruction()
         -- OP rs, offset
         local rs = self:register()
         self:optional_comma()
-        local offset = self:const()
+        local offset = self:const('relative')
         local const = h[3] or self:error('internal error: expected const')
-        -- FIXME: branches are relative
         Dumper:add_instruction_5_5_16(h[1], rs, const, offset)
     elseif h[2] == argtypes.sync then
         -- OP
@@ -833,7 +835,7 @@ function Parser:instruction()
         self:optional_comma()
         local ft = self:register(fpu_registers)
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_5_5_6(h[1], 16, fd, fs, ft, const)
+        Dumper:add_instruction_5_5_5_5_6(h[1], 16, ft, fs, fd, const)
     elseif h[2] == argtypes.tsdd then
         local fd = self:register(fpu_registers)
         self:optional_comma()
@@ -841,7 +843,7 @@ function Parser:instruction()
         self:optional_comma()
         local ft = self:register(fpu_registers)
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_5_5_6(h[1], 17, fd, fs, ft, const)
+        Dumper:add_instruction_5_5_5_5_6(h[1], 17, ft, fs, fd, const)
     else
         self:error('TODO')
     end
@@ -945,6 +947,12 @@ function Dumper:desym(tok)
     elseif tok[1] == 'LABELSYM' then
         --print('(label)', tok[2])
         return self.labels[tok[2]]*4
+    elseif tok[1] == 'LABELREL' then
+        local rel = self.labels[tok[2]] - 2 - self.line
+        if rel > 0x8000 or rel <= -0x8000 then
+            self:error('branch too far')
+        end
+        return (0x10000 + rel) % 0x10000
     elseif tok[1] == 'DEFSYM' then
         --print('(define)')
         local val = self.defines[tok[2]]
@@ -1016,6 +1024,7 @@ end
 
 function Dumper:dump()
     for i, t in ipairs(self.lines) do
+        self.line = i
         local uw = 0
         local lw = 0
         local val = nil
