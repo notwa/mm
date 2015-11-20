@@ -1,9 +1,23 @@
 -- i've lost control of my life
 
--- lexer and parser somewhat based on http://chunkbake.luaforge.net/
+-- instructions: https://github.com/mikeryan/n64dev/tree/master/docs/n64ops
+-- CajeASM style assembly; refer to the manual included with CajeASM.
+-- lexer and parser are somewhat based on http://chunkbake.luaforge.net/
 
--- https://github.com/mikeryan/n64dev/tree/master/docs/n64ops
--- cajeasm style assembly
+local Class = Class or function(inherit)
+    local class = {}
+    local mt_obj = {__index = class}
+    local mt_class = {
+        __call = function(self, ...)
+            local obj = setmetatable({}, mt_obj)
+            obj:init(...)
+            return obj
+        end,
+        __index = inherit,
+    }
+
+    return setmetatable(class, mt_class)
+end
 
 -- TODO: maybe support reg# style too
 local registers = {
@@ -370,13 +384,26 @@ local instruction_handlers = {
 }
 at = nil
 
-Lexer = {}
-function Lexer:setup(asm)
+local Lexer = Class()
+function Lexer:init(asm)
     self.asm = asm
     self.pos = 1
     self.line = 1
     self.EOF = -1
     self:nextc()
+end
+
+local Dumper = Class()
+function Dumper:init(writer)
+    self.writer = writer
+    self.defines = {}
+    self.labels = {}
+    self.lines = {}
+end
+
+local Parser = Class()
+function Parser:init(writer)
+    self.dumper = Dumper(writer)
 end
 
 function Lexer:error(msg)
@@ -582,14 +609,13 @@ function Lexer:lex()
     end
 end
 
-Parser = {}
 function Parser:error(msg)
     error(string.format('%s:%d: Error: %s', 'file.asm', self.line, msg), 2)
 end
 
 function Parser:advance()
-    self.tt, self.tok = Lexer:lex()
-    self.line = Lexer.line
+    self.tt, self.tok = self.lexer:lex()
+    self.line = self.lexer.line
     return self.tt, self.tok
 end
 
@@ -625,21 +651,21 @@ function Parser:directive()
     local name = self.tok
     self:advance()
     if name == 'ORG' then
-        Dumper:add_directive(name, self:number())
+        self.dumper:add_directive(name, self:number())
     elseif name == 'ALIGN' or name == 'SKIP' then
         local size = self:number()
         if self:optional_comma() then
-            Dumper:add_directive(name, size, self:number())
+            self.dumper:add_directive(name, size, self:number())
         else
-            Dumper:add_directive(name, size)
+            self.dumper:add_directive(name, size)
         end
         self:expect_EOL()
     elseif name == 'BYTE' or name == 'HALFWORD' or name == 'WORD' then
-        Dumper:add_directive(name, self:number())
+        self.dumper:add_directive(name, self:number())
         while not self:is_EOL() do
             self:advance()
             self:optional_comma()
-            Dumper:add_directive(name, self:number())
+            self.dumper:add_directive(name, self:number())
         end
         self:expect_EOL()
     elseif name == 'HEX' then
@@ -706,14 +732,14 @@ function Parser:instruction()
         self:optional_comma()
         local offset = {'LOWER', self:const()}
         local base = self:deref()
-        Dumper:add_instruction_5_5_16(h[1], base, rt, offset)
+        self.dumper:add_instruction_5_5_16(h[1], base, rt, offset)
     elseif h[2] == argtypes.bfo then
         -- OP ft, offset(base)
         local ft = self:register(fpu_registers)
         self:optional_comma()
         local offset = {'LOWER', self:const()}
         local base = self:deref()
-        Dumper:add_instruction_5_5_16(h[1], base, ft, offset)
+        self.dumper:add_instruction_5_5_16(h[1], base, ft, offset)
     elseif h[2] == argtypes.sti then
         -- OP rt, rs, immediate
         local rt = self:register()
@@ -721,7 +747,7 @@ function Parser:instruction()
         local rs = self:register()
         self:optional_comma()
         local immediate = {'LOWER', self:const()}
-        Dumper:add_instruction_5_5_16(h[1], rs, rt, immediate)
+        self.dumper:add_instruction_5_5_16(h[1], rs, rt, immediate)
     elseif h[2] == argtypes.std then
         -- OP rd, rs, rt
         local rd = self:register()
@@ -730,14 +756,14 @@ function Parser:instruction()
         self:optional_comma()
         local rt = self:register()
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_5_11(h[1], rs, rt, rd, const)
+        self.dumper:add_instruction_5_5_5_11(h[1], rs, rt, rd, const)
     elseif h[2] == argtypes.st then
         -- OP rs, rt
         local rs = self:register()
         self:optional_comma()
         local rt = self:register()
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_16(h[1], rs, rt, const)
+        self.dumper:add_instruction_5_5_16(h[1], rs, rt, const)
     elseif h[2] == argtypes.tds then
         local rd = self:register()
         self:optional_comma()
@@ -752,12 +778,12 @@ function Parser:instruction()
             rs = self:const()
         end
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_5_5_6(h[1], 0, rt, rd, rs, const)
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 0, rt, rd, rs, const)
     elseif h[2] == argtypes.s then
         -- OP rs
         local rs = self:register()
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_16(h[1], rs, 0, const)
+        self.dumper:add_instruction_5_5_16(h[1], rs, 0, const)
     elseif h[2] == argtypes.sto then
         -- OP rs, rt, offset
         local rs = self:register()
@@ -765,7 +791,7 @@ function Parser:instruction()
         local rt = self:register()
         self:optional_comma()
         local offset = self:const('relative')
-        Dumper:add_instruction_5_5_16(h[1], rs, rt, offset)
+        self.dumper:add_instruction_5_5_16(h[1], rs, rt, offset)
     elseif h[2] == argtypes.stc then
         -- OP TEQ rs, rt
         local rs = self:register()
@@ -775,45 +801,45 @@ function Parser:instruction()
         -- FIXME: there's supposed to be 'code' before const
         -- but i dunno what it's supposed to be
         -- so i'm leaving it as zero here
-        Dumper:add_instruction_5_5_16(h[1], rs, rt, const)
+        self.dumper:add_instruction_5_5_16(h[1], rs, rt, const)
     elseif h[2] == argtypes.so then
         -- OP rs, offset
         local rs = self:register()
         self:optional_comma()
         local offset = self:const('relative')
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_16(h[1], rs, const, offset)
+        self.dumper:add_instruction_5_5_16(h[1], rs, const, offset)
     elseif h[2] == argtypes.sync then
         -- OP
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_26(h[1], const)
+        self.dumper:add_instruction_26(h[1], const)
     elseif h[2] == argtypes.indx then
         -- OP target
         local target = {'INDEX', self:const()}
-        Dumper:add_instruction_26(h[1], target)
+        self.dumper:add_instruction_26(h[1], target)
     elseif h[2] == argtypes.lui then
         -- OP rt, immediate
         local rt = self:register()
         self:optional_comma()
         local immediate = {'UPPER', self:const()}
-        Dumper:add_instruction_5_5_16(h[1], 0, rt, immediate)
+        self.dumper:add_instruction_5_5_16(h[1], 0, rt, immediate)
     elseif h[2] == argtypes.mf then
         -- OP rd
         local rd = self:register()
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_5_5_6(h[1], 0, 0, rd, 0, const)
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 0, 0, rd, 0, const)
     elseif h[2] == argtypes.jalr then
         -- OP rs, rd
         local rs = self:register()
         self:optional_comma()
         local rd = self:register()
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_5_5_6(h[1], rs, 0, rd, 0, const)
+        self.dumper:add_instruction_5_5_5_5_6(h[1], rs, 0, rd, 0, const)
         local rd = self:register()
     elseif h[2] == argtypes.code then
         -- OP
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_26(h[1], const)
+        self.dumper:add_instruction_26(h[1], const)
     elseif h[2] == argtypes.movf then
         local rt = self:register()
         self:optional_comma()
@@ -826,7 +852,7 @@ function Parser:instruction()
             rd = self:register(fpu_registers)
         end
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_5_5_6(h[1], const, rt, rd, 0, 0)
+        self.dumper:add_instruction_5_5_5_5_6(h[1], const, rt, rd, 0, 0)
     elseif h[2] == argtypes.tsdf then
         -- OP fd, fs, ft
         local fd = self:register(fpu_registers)
@@ -835,7 +861,7 @@ function Parser:instruction()
         self:optional_comma()
         local ft = self:register(fpu_registers)
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_5_5_6(h[1], 16, ft, fs, fd, const)
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 16, ft, fs, fd, const)
     elseif h[2] == argtypes.tsdd then
         local fd = self:register(fpu_registers)
         self:optional_comma()
@@ -843,7 +869,7 @@ function Parser:instruction()
         self:optional_comma()
         local ft = self:register(fpu_registers)
         local const = h[3] or self:error('internal error: expected const')
-        Dumper:add_instruction_5_5_5_5_6(h[1], 17, ft, fs, fd, const)
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 17, ft, fs, fd, const)
     else
         self:error('TODO')
     end
@@ -852,8 +878,7 @@ end
 
 function Parser:parse(asm)
     self.asm = asm
-    Lexer:setup(asm)
-    Dumper:setup()
+    self.lexer = Lexer(asm)
 
     self:advance()
     while self.tt ~= 'EOF' do
@@ -863,11 +888,11 @@ function Parser:parse(asm)
         elseif self.tt == 'DEF' then
             local name = self.tok
             self:advance()
-            Dumper:add_define(name, self:number())
+            self.dumper:add_define(name, self:number())
         elseif self.tt == 'DIR' then
             self:directive()
         elseif self.tt == 'LABEL' then
-            Dumper:add_label(self.tok)
+            self.dumper:add_label(self.tok)
             self:advance()
         elseif self.tt == 'INSTR' then
             self:instruction()
@@ -876,18 +901,13 @@ function Parser:parse(asm)
         end
     end
 
-    return Dumper:dump()
-end
-
-Dumper = {}
-function Dumper:setup()
-    self.defines = {}
-    self.labels = {}
-    self.lines = {}
+    return self.dumper:dump()
 end
 
 function Dumper:error(msg)
-    error(string.format('Internal Error: %s', msg), 2)
+    -- TODO: sometimes internal error, sometimes not.
+    --       also, we should pass line numbers down to add_instruction.
+    error(string.format('Dumping Error: %s', msg), 2)
 end
 
 function Dumper:push(t)
@@ -936,7 +956,7 @@ function Dumper:add_directive(...)
 end
 
 function Dumper:print(uw, lw)
-    print(('%04X%04X'):format(uw, lw))
+    self.writer(('%04X%04X'):format(uw, lw))
 end
 
 function Dumper:desym(tok)
@@ -961,7 +981,7 @@ function Dumper:desym(tok)
         end
         return val
     end
-    print(tok)
+    --print(tok)
     self:error('failed to desym')
 end
 
@@ -975,7 +995,7 @@ function Dumper:toval(tok)
     end
     if type(tok) == 'table' then
         if #tok ~= 2 then
-            print('toval', tok)
+            --print('toval', tok)
             self:error('invalid token')
         end
         if tok[1] == 'UPPER' then
@@ -995,13 +1015,13 @@ function Dumper:toval(tok)
             else
                 val = self:desym(tok[2])*4
             end
-            print('(index)', val)
+            --print('(index)', val)
             return val
         else
             return self:desym(tok)
         end
     end
-    print('toval', tok)
+    --print('toval', tok)
     self:error('invalid value')
 end
 
@@ -1011,7 +1031,7 @@ function Dumper:validate(n, bits)
         self:error('value is nil')
     end
     if n > max or n < 0 then
-        print(("n %08X"):format(math.abs(n)))
+        --print(("n %08X"):format(math.abs(n)))
         self:error('value out of range')
     end
 end
@@ -1087,24 +1107,24 @@ function Dumper:dump()
     end
 end
 
-function main()
-    local asm = ''
+function assemble(fn, writer)
+    -- assemble a MIPS R4300i assembly file
+    -- returns error message on error, or nil on success
+    writer = writer or io.write
 
-    local f = io.open('Moonjump 2.asm', 'r')
+    local asm = ''
+    local f = io.open(fn, 'r')
     if not f then
-        f = io.open('inject/Moonjump 2.asm', 'r')
-        if not f then
-            error('could not load assembly', 1)
-            return
-        end
+        error('could not read assembly file', 1)
     end
     asm = f:read('*a')
     f:close()
 
-    Parser:parse(asm)
-end
+    function main()
+        local p = Parser(writer)
+        return p:parse(asm)
+    end
 
-local ok, msg = pcall(main)
-if not ok then
-    print(msg)
+    local ok, err = pcall(main)
+    return err
 end
