@@ -215,11 +215,22 @@ local argtypes = {
 
     movf= 'rd fs', -- starting with const, ending with 11 unset bits
     bfo = 'base fs offset',
-}
 
+    tsdf= 'ft fs fd', -- starting with a const of 16, ending with a const
+    tsdd= 'ft fs fd', -- starting with a const of 17, ending with a const
+}
 
 local at = argtypes -- temporary shorthand
 local instruction_handlers = {
+    ADD_D   = {17, at.tsdd,  0},
+    ADD_S   = {17, at.tsdf,  0},
+    DIV_D   = {17, at.tsdd,  3},
+    DIV_S   = {17, at.tsdf,  3},
+    MUL_D   = {17, at.tsdd,  2},
+    MUL_S   = {17, at.tsdf,  2},
+    SUB_D   = {17, at.tsdd,  1},
+    SUB_S   = {17, at.tsdf,  1},
+
     CFC1    = {17, at.movf, 2},
     CTC1    = {17, at.movf, 6},
     DMFC1   = {17, at.movf, 1},
@@ -359,19 +370,6 @@ local instruction_handlers = {
     SRL     = { 0, at.tds,  2},
 }
 at = nil
-
-local asm = ''
-
-local f = io.open('Moonjump 2.asm', 'r')
-if not f then
-    f = io.open('inject/Moonjump 2.asm', 'r')
-    if not f then
-        print('could not load assembly')
-        return
-    end
-end
-asm = f:read('*a')
-f:close()
 
 Lexer = {}
 function Lexer:setup(asm)
@@ -556,7 +554,7 @@ function Lexer:lex()
             -- we can start matching numbers and dots too.
             self:read_chars('[%w_.]')
             if self.chr == ':' then
-                if self.buff:find('\\.') then
+                if self.buff:find('%.') then
                     self:error('labels cannot contain dots')
                 end
                 self:nextc()
@@ -568,9 +566,10 @@ function Lexer:lex()
             elseif all_registers[up] then
                 return 'REG', up
             elseif all_instructions[up] then
-                return 'INSTR', up
+                -- note: this allows instructions like "C_EQ.F" / "C.EQ_F"
+                return 'INSTR', up:gsub('%.', '_')
             else
-                if self.buff:find('\\.') then
+                if self.buff:find('%.') then
                     self:error('labels cannot contain dots')
                 end
                 return 'LABELSYM', self.buff
@@ -713,7 +712,7 @@ function Parser:instruction()
         self:optional_comma()
         local offset = {'LOWER', self:const()}
         local base = self:deref()
-        Dumper:add_instruction_5_5_16(h[1], base, rt, offset)
+        Dumper:add_instruction_5_5_16(h[1], base, ft, offset)
     elseif h[2] == argtypes.sti then
         -- OP rt, rs, immediate
         local rs = self:register()
@@ -818,7 +817,7 @@ function Parser:instruction()
     elseif h[2] == argtypes.movf then
         local rt = self:register()
         self:optional_comma()
-        local rd
+        local rd = nil
         if name == 'MFC0' or name == 'MTC0' then
             -- OP rt, rd
             rd = self:register()
@@ -828,6 +827,23 @@ function Parser:instruction()
         end
         local const = h[3] or self:error('internal error: expected const')
         Dumper:add_instruction_5_5_5_5_6(h[1], const, rt, rd, 0, 0)
+    elseif h[2] == argtypes.tsdf then
+        -- OP fd, fs, ft
+        local fd = self:register(fpu_registers)
+        self:optional_comma()
+        local fs = self:register(fpu_registers)
+        self:optional_comma()
+        local ft = self:register(fpu_registers)
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_5_5_6(h[1], 16, fd, fs, ft, const)
+    elseif h[2] == argtypes.tsdd then
+        local fd = self:register(fpu_registers)
+        self:optional_comma()
+        local fs = self:register(fpu_registers)
+        self:optional_comma()
+        local ft = self:register(fpu_registers)
+        local const = h[3] or self:error('internal error: expected const')
+        Dumper:add_instruction_5_5_5_5_6(h[1], 17, fd, fs, ft, const)
     else
         self:error('TODO')
     end
@@ -874,48 +890,37 @@ function Dumper:error(msg)
     error(string.format('Internal Error: %s', msg), 2)
 end
 
+function Dumper:push(t)
+    --print(t.data)
+    table.insert(self.lines, t)
+end
+
 function Dumper:add_instruction_26(i, a)
     local t = {}
     t.sizes = {26}
     t.data = {i, a}
-    table.insert(self.lines, t)
-    --print(('added {%s, %s}'):format(
-    --    tostring(i),
-    --    tostring(a)
-    --))
+    self:push(t)
 end
 
 function Dumper:add_instruction_5_5_16(i, a, b, c)
     local t = {}
     t.sizes = {5, 5, 16}
     t.data = {i, a, b, c}
-    table.insert(self.lines, t)
-    --print(('added {%s, %s, %s, %s}'):format(
-    --    tostring(i),
-    --    tostring(a), tostring(b), tostring(c)
-    --))
+    self:push(t)
 end
 
 function Dumper:add_instruction_5_5_5_11(i, a, b, c, d)
     local t = {}
     t.sizes = {5, 5, 5, 11}
     t.data = {i, a, b, c, d}
-    table.insert(self.lines, t)
-    --print(('added {%s, %s, %s, %s, %s}'):format(
-    --    tostring(i),
-    --    tostring(a), tostring(b), tostring(c), tostring(d)
-    --))
+    self:push(t)
 end
 
 function Dumper:add_instruction_5_5_5_5_6(i, a, b, c, d, e)
     local t = {}
     t.sizes = {5, 5, 5, 5, 6}
     t.data = {i, a, b, c, d, e}
-    table.insert(self.lines, t)
-    --print(('added {%s, %s, %s, %s, %s, %s}'):format(
-    --    tostring(i),
-    --    tostring(a), tostring(b), tostring(c), tostring(d), tostring(e)
-    --))
+    self:push(t)
 end
 
 function Dumper:add_define(name, number)
@@ -938,7 +943,7 @@ function Dumper:desym(tok)
     if type(tok[2]) == 'number' then
         return tok[2]
     elseif all_registers[tok] then
-        return registers[tok]
+        return registers[tok] or fpu_registers[tok]
     elseif tok[1] == 'LABELSYM' then
         print('(label)', tok[2])
         return self.labels[tok[2]]*4
@@ -960,7 +965,7 @@ function Dumper:toval(tok)
     elseif type(tok) == 'number' then
         return tok
     elseif all_registers[tok] then
-        return registers[tok]
+        return registers[tok] or fpu_registers[tok]
     end
     if type(tok) == 'table' then
         if #tok ~= 2 then
@@ -996,6 +1001,9 @@ end
 
 function Dumper:validate(n, bits)
     local max = 2^bits
+    if n == nil then
+        self:error('value is nil')
+    end
     if n > max or n < 0 then
         print(("n %08X"):format(math.abs(n)))
         self:error('value out of range')
@@ -1080,6 +1088,19 @@ function Dumper:dump()
 end
 
 function main()
+    local asm = ''
+
+    local f = io.open('Moonjump 2.asm', 'r')
+    if not f then
+        f = io.open('inject/Moonjump 2.asm', 'r')
+        if not f then
+            error('could not load assembly', 1)
+            return
+        end
+    end
+    asm = f:read('*a')
+    f:close()
+
     Parser:parse(asm)
 end
 
