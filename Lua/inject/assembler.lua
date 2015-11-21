@@ -4,7 +4,20 @@
 -- CajeASM style assembly; refer to the manual included with CajeASM.
 -- lexer and parser are somewhat based on http://chunkbake.luaforge.net/
 
-local Class = Class or function(inherit)
+local assembler = {
+    _VERSION = 'assembler v1',
+    _DESCRIPTION = 'Assembles MIPS assembly files for the R4300i CPU.',
+    _URL = 'https://github.com/notwa/mm/blob/master/Lua/inject/assembler.lua',
+    _LICENSE = [[
+        Copyright (C) 2015 Connor Olding
+
+        This program is licensed under the terms of the MIT License, and
+        is distributed without any warranty.  You should have received a
+        copy of the license along with this program; see the file LICENSE.
+    ]],
+}
+
+local Class = function(inherit)
     local class = {}
     local mt_obj = {__index = class}
     local mt_class = {
@@ -173,21 +186,6 @@ local all_directives = {
     'ORG',
 }
 
-local all_tokens = {
-    'DEF',
-    'DEFSYM',
-    'DEREF',
-    'DIR',
-    'EOF',
-    'EOL',
-    'INSTR',
-    'LABEL',
-    'LABELSYM',
-    'NUM',
-    'REG',
-    'SEP',
-}
-
 local all_registers = {}
 for k, v in pairs(registers) do
     all_registers[k] = v
@@ -207,7 +205,6 @@ revtable(registers)
 revtable(fpu_registers)
 revtable(all_registers)
 revtable(all_instructions)
-revtable(all_tokens)
 
 local argtypes = {
     bto = 'base rt offset',
@@ -1031,7 +1028,7 @@ function Dumper:validate(n, bits)
         self:error('value is nil')
     end
     if n > max or n < 0 then
-        --print(("n %08X"):format(math.abs(n)))
+        --print(('n %08X'):format(math.abs(n)))
         self:error('value out of range')
     end
 end
@@ -1107,24 +1104,47 @@ function Dumper:dump()
     end
 end
 
-function assemble(fn, writer)
+local function assemble(fn_or_asm, writer)
     -- assemble a MIPS R4300i assembly file
+    -- if fn_or_asm contains a newline; treat as assembly, otherwise load file
     -- returns error message on error, or nil on success
+    fn_or_asm = tostring(fn_or_asm)
     writer = writer or io.write
 
-    local asm = ''
-    local f = io.open(fn, 'r')
-    if not f then
-        error('could not read assembly file', 1)
-    end
-    asm = f:read('*a')
-    f:close()
-
     function main()
-        local p = Parser(writer)
-        return p:parse(asm)
+        local asm = ''
+        if fn_or_asm:find('[\r\n]') then
+            asm = fn_or_asm
+        else
+            local f = io.open(fn_or_asm, 'r')
+            if not f then
+                error('could not read assembly file', 1)
+            end
+            asm = f:read('*a')
+            f:close()
+        end
+
+        local parser = Parser(writer)
+        return parser:parse(asm)
     end
 
     local ok, err = pcall(main)
     return err
 end
+
+return setmetatable(assembler, {
+    __call = function(_, ...)
+        return assemble(...)
+    end,
+
+    Lexer = Lexer,
+    Parser = Parser,
+    Dumper = Dumper,
+
+    registers = registers,
+    fpu_registers = fpu_registers,
+    all_registers = all_registers,
+    all_instructions = all_instructions,
+    all_directives = all_directives,
+    argtypes = argtypes,
+})
