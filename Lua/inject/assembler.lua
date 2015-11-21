@@ -337,8 +337,8 @@ local instruction_handlers = {
     SUBIU   = {9, 'tsk', 'sti'},
 
     -- ...that expand to multiple instructions
-    LI      = {}, -- only one instruction for values < 0x10000
-    LA      = {}, -- alias for li
+    LI      = 'LI', -- only one instruction for values < 0x10000
+    LA      = 'LA',
 
     BEQI    = {},
     BNEI    = {},
@@ -825,8 +825,23 @@ function Parser:instruction()
 
     if h == nil then
         self:error('undefined instruction')
+    elseif h == 'LI' or h == 'LA' then
+        local lui = instruction_handlers['LUI']
+        local ori = instruction_handlers['ORI']
+        local args = {}
+        args.rt = self:register()
+        self:optional_comma()
+        local im = self:const()
+        if h == 'LA' or im[2] >= 0x10000 then
+            args.rs = args.rt
+            args.immediate = {'UPPER', im}
+            self:format_out(lui[3], lui[1], args, lui[4], lui[5])
+        else
+            args.rs = 'R0'
+        end
+        args.immediate = {'LOWER', im}
+        self:format_out(ori[3], ori[1], args, ori[4], ori[5])
     elseif h[2] ~= nil then
-        -- get format from strings
         args = self:format_in(h[2])
         self:format_out(h[3], h[1], args, h[4], h[5])
     else
@@ -1117,7 +1132,6 @@ function Dumper:dump()
                 self.pos = self.pos + t.skip
             end
         else
-            --require('pt'){t}
             error('Internal Error: unknown command', 1)
         end
     end
