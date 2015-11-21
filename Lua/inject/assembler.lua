@@ -5,7 +5,7 @@
 -- lexer and parser are somewhat based on http://chunkbake.luaforge.net/
 
 local assembler = {
-    _VERSION = 'assembler v3',
+    _VERSION = 'assembler v4',
     _DESCRIPTION = 'Assembles MIPS assembly files for the R4300i CPU.',
     _URL = 'https://github.com/notwa/mm/blob/master/Lua/inject/assembler.lua',
     _LICENSE = [[
@@ -229,9 +229,13 @@ local argtypes = {
 
     tsds= 'ft fs fd (s)', -- starting with a const of 16, ending with a const
     tsdd= 'ft fs fd (d)', -- starting with a const of 17, ending with a const
-
     cfs = 'ft fs (s)', -- starting with a const of 16, ending with a const
     cfd = 'ft fs (d)', -- starting with a const of 17, ending with a const
+    afs = 'fs fd (s)', -- similar; 5 unset bits after const; ending const
+    afd = 'fs fd (d)', -- similar; 5 unset bits after const; ending const
+
+    afl = 'fs fd (l)', -- similar; 5 unset bits after const; ending const
+    afw = 'fs fd (w)', -- similar; 5 unset bits after const; ending const
 }
 
 local at = argtypes -- temporary shorthand
@@ -411,6 +415,40 @@ local instruction_handlers = {
     C_ULT_S = {17, at.cfs, 53},
     C_UN_D  = {17, at.cfd, 49},
     C_UN_S  = {17, at.cfs, 49},
+
+    CVT_D_L = {17, at.afl, 33},
+    CVT_D_S = {17, at.afd, 33},
+    CVT_D_W = {17, at.afw, 33},
+    CVT_L_D = {17, at.afd, 37},
+    CVT_L_S = {17, at.afs, 37},
+    CVT_S_D = {17, at.afd, 32},
+    CVT_S_L = {17, at.afl, 32},
+    CVT_S_W = {17, at.afw, 32},
+    CVT_W_D = {17, at.afd, 36},
+    CVT_W_S = {17, at.afs, 36},
+
+    ABS_D   = {17, at.afd,  5},
+    ABS_S   = {17, at.afs,  5},
+    CEIL_L_D= {17, at.afd, 10},
+    CEIL_L_S= {17, at.afs, 10},
+    CEIL_W_D= {17, at.afd, 14},
+    CEIL_W_S= {17, at.afs, 14},
+    FLOOR_L_D={17, at.afd, 11},
+    FLOOR_L_S={17, at.afs, 11},
+    FLOOR_W_D={17, at.afd, 15},
+    FLOOR_W_S={17, at.afs, 15},
+    MOV_D   = {17, at.afd,  6},
+    MOV_S   = {17, at.afs,  6},
+    NEG_D   = {17, at.afd,  7},
+    NEG_S   = {17, at.afs,  7},
+    ROUND_L_D={17, at.afd,  8},
+    ROUND_L_S={17, at.afs,  8},
+    ROUND_W_D={17, at.afd, 12},
+    ROUND_W_S={17, at.afs, 12},
+    SQRT_D  = {17, at.afd,  4},
+    SQRT_S  = {17, at.afs,  4},
+    TRUNC_L_S={17, at.afs,  9},
+    TRUNC_W_D={17, at.afd, 13},
 
     -- pseudo-instructions
     NOP     = { 0, at.code, 0},
@@ -917,6 +955,30 @@ function Parser:instruction()
         local ft = self:register(fpu_registers)
         local const = h[3] or self:error('internal error: expected const')
         self.dumper:add_instruction_5_5_5_5_6(h[1], 17, ft, fs, 0, const)
+    elseif h[2] == argtypes.afs then
+        local fd = self:register(fpu_registers)
+        self:optional_comma()
+        local fs = self:register(fpu_registers)
+        local const = h[3] or self:error('internal error: expected const')
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 16, 0, fs, fd, const)
+    elseif h[2] == argtypes.afd then
+        local fd = self:register(fpu_registers)
+        self:optional_comma()
+        local fs = self:register(fpu_registers)
+        local const = h[3] or self:error('internal error: expected const')
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 17, 0, fs, fd, const)
+    elseif h[2] == argtypes.afw then
+        local fd = self:register(fpu_registers)
+        self:optional_comma()
+        local fs = self:register(fpu_registers)
+        local const = h[3] or self:error('internal error: expected const')
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 20, 0, fs, fd, const)
+    elseif h[2] == argtypes.afl then
+        local fd = self:register(fpu_registers)
+        self:optional_comma()
+        local fs = self:register(fpu_registers)
+        local const = h[3] or self:error('internal error: expected const')
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 21, 0, fs, fd, const)
     else
         self:error('TODO')
     end
