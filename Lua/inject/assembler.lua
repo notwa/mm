@@ -5,7 +5,7 @@
 -- lexer and parser are somewhat based on http://chunkbake.luaforge.net/
 
 local assembler = {
-    _VERSION = 'assembler v2',
+    _VERSION = 'assembler v3',
     _DESCRIPTION = 'Assembles MIPS assembly files for the R4300i CPU.',
     _URL = 'https://github.com/notwa/mm/blob/master/Lua/inject/assembler.lua',
     _LICENSE = [[
@@ -134,9 +134,9 @@ local all_instructions = {
     'DIV.D', 'DIV.S',
     'FLOOR.L.D', 'FLOOR.L.S',
     'FLOOR.W.D', 'FLOOR.W.S',
-    'MOV.F', 'MOV.S',
-    'MUL.F', 'MUL.S',
-    'NEG.F', 'NEG.S',
+    'MOV.D', 'MOV.S',
+    'MUL.D', 'MUL.S',
+    'NEG.D', 'NEG.S',
     'ROUND.L.D', 'ROUND.L.S',
     'ROUND.W.D', 'ROUND.W.S',
     'SQRT.D', 'SQRT.S',
@@ -227,8 +227,11 @@ local argtypes = {
     movf= 'rd fs', -- starting with const, ending with 11 unset bits
     bfo = 'base fs offset',
 
-    tsdf= 'ft fs fd', -- starting with a const of 16, ending with a const
-    tsdd= 'ft fs fd', -- starting with a const of 17, ending with a const
+    tsds= 'ft fs fd (s)', -- starting with a const of 16, ending with a const
+    tsdd= 'ft fs fd (d)', -- starting with a const of 17, ending with a const
+
+    cfs = 'ft fs (s)', -- starting with a const of 16, ending with a const
+    cfd = 'ft fs (d)', -- starting with a const of 17, ending with a const
 }
 
 local at = argtypes -- temporary shorthand
@@ -354,13 +357,13 @@ local instruction_handlers = {
     TNE     = { 0, at.stc, 54},
 
     ADD_D   = {17, at.tsdd, 0},
-    ADD_S   = {17, at.tsdf, 0},
+    ADD_S   = {17, at.tsds, 0},
     DIV_D   = {17, at.tsdd, 3},
-    DIV_S   = {17, at.tsdf, 3},
+    DIV_S   = {17, at.tsds, 3},
     MUL_D   = {17, at.tsdd, 2},
-    MUL_S   = {17, at.tsdf, 2},
+    MUL_S   = {17, at.tsds, 2},
     SUB_D   = {17, at.tsdd, 1},
-    SUB_S   = {17, at.tsdf, 1},
+    SUB_S   = {17, at.tsds, 1},
 
     CFC1    = {17, at.movf, 2},
     CTC1    = {17, at.movf, 6},
@@ -375,6 +378,39 @@ local instruction_handlers = {
     LWC1    = {49, at.bfo},
     SDC1    = {61, at.bfo},
     SWC1    = {57, at.bfo},
+
+    C_EQ_D  = {17, at.cfd, 50},
+    C_EQ_S  = {17, at.cfs, 50},
+    C_F_D   = {17, at.cfd, 48},
+    C_F_S   = {17, at.cfs, 48},
+    C_LE_D  = {17, at.cfd, 62},
+    C_LE_S  = {17, at.cfs, 62},
+    C_LT_D  = {17, at.cfd, 60},
+    C_LT_S  = {17, at.cfs, 60},
+    C_NGE_D = {17, at.cfd, 61},
+    C_NGE_S = {17, at.cfs, 61},
+    C_NGL_D = {17, at.cfd, 59},
+    C_NGL_S = {17, at.cfs, 59},
+    C_NGLE_D= {17, at.cfd, 57},
+    C_NGLE_S= {17, at.cfs, 57},
+    C_NGT_D = {17, at.cfd, 63},
+    C_NGT_S = {17, at.cfs, 63},
+    C_OLE_D = {17, at.cfd, 54},
+    C_OLE_S = {17, at.cfs, 54},
+    C_OLT_D = {17, at.cfd, 52},
+    C_OLT_S = {17, at.cfs, 52},
+    C_SEQ_D = {17, at.cfd, 58},
+    C_SEQ_S = {17, at.cfs, 58},
+    C_SF_D  = {17, at.cfd, 56},
+    C_SF_S  = {17, at.cfs, 56},
+    C_UEQ_D = {17, at.cfd, 51},
+    C_UEQ_S = {17, at.cfs, 51},
+    C_ULE_D = {17, at.cfd, 55},
+    C_ULE_S = {17, at.cfs, 55},
+    C_ULT_D = {17, at.cfd, 53},
+    C_ULT_S = {17, at.cfs, 53},
+    C_UN_D  = {17, at.cfd, 49},
+    C_UN_S  = {17, at.cfs, 49},
 
     -- pseudo-instructions
     NOP     = { 0, at.code, 0},
@@ -852,7 +888,7 @@ function Parser:instruction()
         end
         local const = h[3] or self:error('internal error: expected const')
         self.dumper:add_instruction_5_5_5_5_6(h[1], const, rt, rd, 0, 0)
-    elseif h[2] == argtypes.tsdf then
+    elseif h[2] == argtypes.tsds then
         -- OP fd, fs, ft
         local fd = self:register(fpu_registers)
         self:optional_comma()
@@ -869,6 +905,18 @@ function Parser:instruction()
         local ft = self:register(fpu_registers)
         local const = h[3] or self:error('internal error: expected const')
         self.dumper:add_instruction_5_5_5_5_6(h[1], 17, ft, fs, fd, const)
+    elseif h[2] == argtypes.cfs then
+        local fs = self:register(fpu_registers)
+        self:optional_comma()
+        local ft = self:register(fpu_registers)
+        local const = h[3] or self:error('internal error: expected const')
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 16, ft, fs, 0, const)
+    elseif h[2] == argtypes.cfd then
+        local fs = self:register(fpu_registers)
+        self:optional_comma()
+        local ft = self:register(fpu_registers)
+        local const = h[3] or self:error('internal error: expected const')
+        self.dumper:add_instruction_5_5_5_5_6(h[1], 17, ft, fs, 0, const)
     else
         self:error('TODO')
     end
@@ -1107,7 +1155,7 @@ function Dumper:dump()
 end
 
 local function assemble(fn_or_asm, writer)
-    -- assemble a MIPS R4300i assembly file
+    -- assemble MIPS R4300i assembly code
     -- if fn_or_asm contains a newline; treat as assembly, otherwise load file
     -- returns error message on error, or nil on success
     fn_or_asm = tostring(fn_or_asm)
