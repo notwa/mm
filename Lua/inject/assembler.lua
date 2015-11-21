@@ -740,7 +740,6 @@ function Parser:format_out(outformat, first, args, const, formatconst)
     local lookup = {
         [1]=self.dumper.add_instruction_26,
         [3]=self.dumper.add_instruction_5_5_16,
-        [4]=self.dumper.add_instruction_5_5_5_11,
         [5]=self.dumper.add_instruction_5_5_5_5_6,
     }
     out = {}
@@ -838,31 +837,15 @@ function Dumper:push(t)
 end
 
 function Dumper:add_instruction_26(i, a)
-    local t = {}
-    t.sizes = {26}
-    t.data = {i, a}
-    self:push(t)
+    self:push{i, a}
 end
 
 function Dumper:add_instruction_5_5_16(i, a, b, c)
-    local t = {}
-    t.sizes = {5, 5, 16}
-    t.data = {i, a, b, c}
-    self:push(t)
-end
-
-function Dumper:add_instruction_5_5_5_11(i, a, b, c, d)
-    local t = {}
-    t.sizes = {5, 5, 5, 11}
-    t.data = {i, a, b, c, d}
-    self:push(t)
+    self:push{i, a, b, c}
 end
 
 function Dumper:add_instruction_5_5_5_5_6(i, a, b, c, d, e)
-    local t = {}
-    t.sizes = {5, 5, 5, 5, 6}
-    t.data = {i, a, b, c, d, e}
-    self:push(t)
+    self:push{i, a, b, c, d, e}
 end
 
 function Dumper:add_define(name, number)
@@ -974,56 +957,23 @@ function Dumper:dump()
         local lw = 0
         local val = nil
 
-        local i = t.data[1]
+        local i = t[1]
         uw = uw + i*0x400
 
-        if #t.sizes == 1 then
-            if t.sizes[1] == 26 then
-                val = self:valvar(t.data[2], 26)
-                uw = uw + math.floor(val/0x10000)
-                lw = lw + val % 0x10000
-            else
-                self:error('bad 1-size')
-            end
-        elseif #t.sizes == 3 then
-            if t.sizes[1] == 5 and t.sizes[2] == 5 and t.sizes[3] == 16 then
-                val = self:valvar(t.data[2], 5)
-                uw = uw + val*0x20
-                val = self:valvar(t.data[3], 5)
-                uw = uw + val
-                val = self:valvar(t.data[4], 16)
-                lw = lw + val
-            else
-                self:error('bad 3-size')
-            end
-        elseif #t.sizes == 4 then
-            if t.sizes[1] == 5 and t.sizes[2] == 5 and t.sizes[3] == 5 and t.sizes[4] == 11 then
-                val = self:valvar(t.data[2], 5)
-                uw = uw + val*0x20
-                val = self:valvar(t.data[3], 5)
-                uw = uw + val
-                val = self:valvar(t.data[4], 5)
-                lw = lw + val*0x800
-                val = self:valvar(t.data[5], 11)
-                lw = lw + val
-            else
-                self:error('bad 4-size')
-            end
-        elseif #t.sizes == 5 then
-            if t.sizes[1] == 5 and t.sizes[2] == 5 and t.sizes[3] == 5 and t.sizes[4] == 5 and t.sizes[5] == 6 then
-                val = self:valvar(t.data[2], 5)
-                uw = uw + val*0x20
-                val = self:valvar(t.data[3], 5)
-                uw = uw + val
-                val = self:valvar(t.data[4], 5)
-                lw = lw + val*0x800
-                val = self:valvar(t.data[5], 5)
-                lw = lw + val*0x40
-                val = self:valvar(t.data[6], 6)
-                lw = lw + val
-            else
-                self:error('bad 5-size')
-            end
+        if #t == 2 then
+            val = self:valvar(t[2], 26)
+            uw = uw + math.floor(val/0x10000)
+            lw = lw + val % 0x10000
+        elseif #t == 4 then
+            uw = uw + self:valvar(t[2], 5)*0x20
+            uw = uw + self:valvar(t[3], 5)
+            lw = lw + self:valvar(t[4], 16)
+        elseif #t == 6 then
+            uw = uw + self:valvar(t[2], 5)*0x20
+            uw = uw + self:valvar(t[3], 5)
+            lw = lw + self:valvar(t[4], 5)*0x800
+            lw = lw + self:valvar(t[5], 5)*0x40
+            lw = lw + self:valvar(t[6], 6)
         else
             self:error('unknown n-size')
         end
