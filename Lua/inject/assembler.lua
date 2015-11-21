@@ -76,6 +76,11 @@ end
 revtable(registers)
 revtable(fpu_registers)
 revtable(all_registers)
+revtable(all_directives)
+
+
+registers['ZERO'] = 0
+all_registers['ZERO'] = 0
 
 local fmt_single = 16
 local fmt_double = 17
@@ -333,6 +338,7 @@ local instruction_handlers = {
 
     -- ...that expand to multiple instructions
     LI      = {}, -- only one instruction for values < 0x10000
+    LA      = {}, -- alias for li
 
     BEQI    = {},
     BNEI    = {},
@@ -437,28 +443,32 @@ function Lexer:read_chars(pattern)
     end
 end
 
-function Lexer:read_number()
+function Lexer:read_decimal()
     self.buff = ''
-    self:nextc()
     self:read_chars('%d')
     local num = tonumber(self.buff)
-    if not num then self:error('invalid number') end
+    if not num then self:error('invalid decimal number') end
     return num
 end
 
 function Lexer:read_hex()
     self.buff = ''
-    if self.chr ~= '$' then self:nextc() end
-    self:nextc()
     self:read_chars('%x')
     local num = tonumber(self.buff, 16)
     if not num then self:error('invalid hex number') end
     return num
 end
 
+function Lexer:read_octal()
+    self.buff = ''
+    self:read_chars('[0-7]')
+    local num = tonumber(self.buff)
+    if not num then self:error('invalid octal number') end
+    return num
+end
+
 function Lexer:read_binary()
     self.buff = ''
-    self:nextc()
     self:read_chars('[01]')
     local num = tonumber(self.buff, 2)
     if not num then self:error('invalid binary number') end
@@ -481,6 +491,30 @@ function Lexer:skip_block_comment()
     end
 end
 
+function Lexer:read_number()
+    if self.chr == '%' then
+        self:nextc()
+        return self:read_binary()
+    elseif self.chr == '$' then
+        self:nextc()
+        return self:read_hex()
+    elseif self.chr:find('%d') then
+        if self.chr2 == 'x' or self.chr2 == 'X' then
+            self:nextc()
+            self:nextc()
+            return self:read_hex()
+        elseif self.chr == '0' and self.chr2:find('%d') then
+            self:nextc()
+            return self:read_octal_number()
+        else
+            return self:read_decimal()
+        end
+    elseif self.chr == '#' then
+        self:nextc()
+        return self:read_decimal()
+    end
+end
+
 function Lexer:lex()
     while true do
         if self.chr == '\n' then
@@ -496,16 +530,6 @@ function Lexer:lex()
             self:skip_block_comment()
         elseif self.chr:find('%s') then
             self:nextc()
-        elseif self.chr == '$' then
-            return 'NUM', self:read_hex()
-        elseif self.chr == '%' then
-            return 'NUM', self:read_binary()
-        elseif self.chr:find('%d') then
-            -- TODO: check if cajaasm accepts 0X0
-            if self.chr2 == 'x' or self.chr2 == 'X' then
-                return 'NUM', self:read_hex()
-            end
-            return 'NUM', self:read_number()
         elseif self.chr == ',' then
             self:nextc()
             return 'SEP', ','
@@ -537,6 +561,7 @@ function Lexer:lex()
             return 'DEREF', up
         elseif self.chr == '.' then
             self.buff = ''
+            self:nextc()
             self:read_chars('[%w]')
             local up = self.buff:upper()
             if not all_directives[up] then
@@ -578,7 +603,19 @@ function Lexer:lex()
             self:error('unmatched closing bracket')
         elseif self.chr == ')' then
             self:error('unmatched closing parenthesis')
+        elseif self.chr == '-' then
+            self:nextc()
+            local n = self:read_number()
+            if n then
+                return 'NUM', -n
+            else
+                self:error('expected number after minus sign')
+            end
         else
+            local n = self:read_number()
+            if n then
+                return 'NUM', n
+            end
             self:error('unknown character or control character')
         end
     end
@@ -876,7 +913,7 @@ function Dumper:add_bytes(bs)
     end
     for _, b in ipairs(bs) do
         t.size = t.size + 1
-        t[size] = b
+        t[t.size] = b
     end
     if not use_last then
         table.insert(self.commands, t)
@@ -963,10 +1000,7 @@ function Dumper:toval(tok)
         end
         if tok[1] == 'UPPER' then
             local val = self:desym(tok[2])
-            -- this could cause some unexpected behaviors
-            while val >= 0x10000 do
-                val = val/2
-            end
+            val = math.floor(val/0x10000)
             return val
         elseif tok[1] == 'LOWER' then
             local val = self:desym(tok[2])
