@@ -5,7 +5,7 @@
 -- lexer and parser are somewhat based on http://chunkbake.luaforge.net/
 
 local assembler = {
-    _VERSION = 'assembler v1',
+    _VERSION = 'assembler v2',
     _DESCRIPTION = 'Assembles MIPS assembly files for the R4300i CPU.',
     _URL = 'https://github.com/notwa/mm/blob/master/Lua/inject/assembler.lua',
     _LICENSE = [[
@@ -382,8 +382,9 @@ local instruction_handlers = {
 at = nil
 
 local Lexer = Class()
-function Lexer:init(asm)
+function Lexer:init(asm, fn)
     self.asm = asm
+    self.fn = fn or '(string)'
     self.pos = 1
     self.line = 1
     self.EOF = -1
@@ -391,20 +392,22 @@ function Lexer:init(asm)
 end
 
 local Dumper = Class()
-function Dumper:init(writer)
+function Dumper:init(writer, fn)
     self.writer = writer
+    self.fn = fn or '(string)'
     self.defines = {}
     self.labels = {}
     self.lines = {}
 end
 
 local Parser = Class()
-function Parser:init(writer)
-    self.dumper = Dumper(writer)
+function Parser:init(writer, fn)
+    self.fn = fn or '(string)'
+    self.dumper = Dumper(writer, fn)
 end
 
 function Lexer:error(msg)
-    error(string.format('%s:%d: Error: %s', 'file.asm', self.line, msg), 2)
+    error(string.format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
 function Lexer:nextc()
@@ -607,7 +610,7 @@ function Lexer:lex()
 end
 
 function Parser:error(msg)
-    error(string.format('%s:%d: Error: %s', 'file.asm', self.line, msg), 2)
+    error(string.format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
 function Parser:advance()
@@ -832,7 +835,6 @@ function Parser:instruction()
         local rd = self:register()
         local const = h[3] or self:error('internal error: expected const')
         self.dumper:add_instruction_5_5_5_5_6(h[1], rs, 0, rd, 0, const)
-        local rd = self:register()
     elseif h[2] == argtypes.code then
         -- OP
         local const = h[3] or self:error('internal error: expected const')
@@ -904,7 +906,7 @@ end
 function Dumper:error(msg)
     -- TODO: sometimes internal error, sometimes not.
     --       also, we should pass line numbers down to add_instruction.
-    error(string.format('Dumping Error: %s', msg), 2)
+    error(string.format('%s:%d: Dumper Error: %s', self.fn, self.line, msg), 2)
 end
 
 function Dumper:push(t)
