@@ -49,133 +49,6 @@ local fpu_registers = {
     'F24', 'F25', 'F26', 'F27', 'F28', 'F29', 'F30', 'F31',
 }
 
-local all_instructions = {
-    'ADD', 'ADDI', 'ADDIU', 'ADDU',
-    'AND', 'ANDI',
-    'BC1F', 'BC1FL',
-    'BC1T', 'BC1TL',
-    'BEQ', 'BEQL',
-    'BGEZ', 'BGEZAL', 'BGEZALL', 'BGEZL',
-    'BGTZ', 'BGTZL',
-    'BLEZ', 'BLEZL',
-    'BLTZ', 'BLTZAL', 'BLTZALL', 'BLTZL',
-    'BNE', 'BNEL',
-    'BREAK',
-    'CACHE',
-    'CFC1',
-    'CTC1',
-    'DADD', 'DADDI', 'DADDIU', 'DADDU',
-    'DDIV', 'DDIVU',
-    'DIV', 'DIVU',
-    'DMFC1', 'DMTC1',
-    'DMULT', 'DMULTU',
-    'DSLL', 'DSLL32', 'DSLLV',
-    'DSRA', 'DSRA32', 'DSRAV',
-    'DSRL', 'DSRL32', 'DSRLV',
-    'DSUB', 'DSUBU',
-    'ERET',
-    'J',
-    'JAL', 'JALR',
-    'JR',
-    'LB', 'LBU',
-    'LD',
-    'LDC1', 'LDC2',
-    'LDL', 'LDR',
-    'LH',
-    'LHU',
-    'LL',
-    'LLD',
-    'LUI',
-    'LW',
-    'LWC1',
-    'LWL', 'LWR',
-    'LWU',
-    'MFC0',
-    'MFC1',
-    'MFHI',
-    'MFLO',
-    'MTC0', 'MTC1',
-    'MTHI', 'MTLO',
-    'MULT', 'MULTU',
-    'NOR',
-    'OR', 'ORI',
-    'SB',
-    'SC',
-    'SCD',
-    'SD',
-    'SDC1', 'SDC2',
-    'SDL', 'SDR',
-    'SH',
-    'SLL', 'SLLV',
-    'SLT', 'SLTI', 'SLTIU', 'SLTU',
-    'SRA', 'SRAV',
-    'SRL', 'SRLV',
-    'SUB', 'SUBU',
-    'SW',
-    'SWC1',
-    'SWL', 'SWR',
-    'SYNC',
-    'SYSCALL',
-    'TEQ', 'TEQI',
-    'TGE', 'TGEI', 'TGEIU', 'TGEU',
-    'TLBP', 'TLBR', 'TLBWI', 'TLBWR',
-    'TLT', 'TLTI', 'TLTIU', 'TLTU',
-    'TNE', 'TNEI',
-    'XOR', 'XORI',
-
-    'ABS.D', 'ABS.S',
-    'ADD.D', 'ADD.S',
-    'CEIL.L.D', 'CEIL.L.S',
-    'CEIL.W.D', 'CEIL.W.S',
-    'CVT.D.L', 'CVT.D.S', 'CVT.D.W',
-    'CVT.L.D', 'CVT.L.S',
-    'CVT.S.D', 'CVT.S.L', 'CVT.S.W',
-    'CVT.W.D', 'CVT.W.S',
-    'DIV.D', 'DIV.S',
-    'FLOOR.L.D', 'FLOOR.L.S',
-    'FLOOR.W.D', 'FLOOR.W.S',
-    'MOV.D', 'MOV.S',
-    'MUL.D', 'MUL.S',
-    'NEG.D', 'NEG.S',
-    'ROUND.L.D', 'ROUND.L.S',
-    'ROUND.W.D', 'ROUND.W.S',
-    'SQRT.D', 'SQRT.S',
-    'SUB.D', 'SUB.S',
-    'TRUNC.L.S', 'TRUNC.W.D',
-
-    'C.EQ.D', 'C.EQ.S',
-    'C.F.D', 'C.F.S',
-    'C.LE.D', 'C.LE.S',
-    'C.LT.D', 'C.LT.S',
-    'C.NGE.D', 'C.NGE.S',
-    'C.NGL.D', 'C.NGL.S',
-    'C.NGLE.D', 'C.NGLE.S',
-    'C.NGT.D', 'C.NGT.S',
-    'C.OLE.D', 'C.OLE.S',
-    'C.OLT.D', 'C.OLT.S',
-    'C.SEQ.D', 'C.SEQ.S',
-    'C.SF.D', 'C.SF.S',
-    'C.UEQ.D', 'C.UEQ.S',
-    'C.ULE.D', 'C.ULE.S',
-    'C.ULT.D', 'C.ULT.S',
-    'C.UN.D', 'C.UN.S',
-
-    -- pseudo-instructions
-    'B',
-    'BAL',
-    'BEQI',
-    'BNEI',
-    'BGE', 'BGEI',
-    'BLE', 'BLEI',
-    'BLT', 'BLTI',
-    'BGT', 'BGTI',
-    'CL',
-    'LI',
-    'MOV',
-    'NOP',
-    'SUBI', 'SUBIU',
-}
-
 local all_directives = {
     'ALIGN', 'SKIP',
     'ASCII', 'ASCIIZ',
@@ -204,7 +77,6 @@ end
 revtable(registers)
 revtable(fpu_registers)
 revtable(all_registers)
-revtable(all_instructions)
 
 local argtypes = {
     bto = 'base rt offset',
@@ -450,10 +322,56 @@ local instruction_handlers = {
     TRUNC_L_S={17, at.afs,  9},
     TRUNC_W_D={17, at.afd, 13},
 
+    -- unimplemented
+    TEQI    = {},
+    TGEI    = {},
+    TGEIU   = {},
+    TLBP    = {},
+    TLBR    = {},
+    TLBWI   = {},
+    TLBWR   = {},
+    TLTI    = {},
+    TLTIU   = {},
+    TNEI    = {},
+
+    BC1F    = {},
+    BC1FL   = {},
+    BC1T    = {},
+    BC1TL   = {},
+    CACHE   = {},
+    ERET    = {},
+    LDC2    = {},
+    SDC2    = {},
+
     -- pseudo-instructions
+    B       = {},
+    BAL     = {},
+    BEQI    = {},
+    BNEI    = {},
+    BGE     = {},
+    BGEI    = {},
+    BLE     = {},
+    BLEI    = {},
+    BLT     = {},
+    BLTI    = {},
+    BGT     = {},
+    BGTI    = {},
+    CL      = {},
+    LI      = {},
+    MOV     = {},
     NOP     = { 0, at.code, 0},
+    SUBI    = {},
+    SUBIU   = {},
 }
 at = nil
+
+local all_instructions = {}
+local i = 1
+for k, v in pairs(instruction_handlers) do
+    all_instructions[k:gsub('_', '.')] = i
+    i = i + 1
+end
+revtable(all_instructions)
 
 local Lexer = Class()
 function Lexer:init(asm, fn)
@@ -980,7 +898,7 @@ function Parser:instruction()
         local const = h[3] or self:error('internal error: expected const')
         self.dumper:add_instruction_5_5_5_5_6(h[1], 21, 0, fs, fd, const)
     else
-        self:error('TODO')
+        self:error('unimplemented instruction')
     end
     self:expect_EOL()
 end
