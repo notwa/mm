@@ -5,7 +5,7 @@
 -- lexer and parser are somewhat based on http://chunkbake.luaforge.net/
 
 local assembler = {
-    _VERSION = 'assembler v4',
+    _VERSION = 'assembler v5',
     _DESCRIPTION = 'Assembles MIPS assembly files for the R4300i CPU.',
     _URL = 'https://github.com/notwa/mm/blob/master/Lua/inject/assembler.lua',
     _LICENSE = [[
@@ -78,274 +78,263 @@ revtable(registers)
 revtable(fpu_registers)
 revtable(all_registers)
 
-local argtypes = {
-    bto = 'base rt offset',
-    sti = 'rs rt immediate',
-    std = 'rs rt rd', -- ending with 5 unset bits and a const
-    st  = 'rs rt', -- ending with 10 unset bits and a const
-    tds = 'rs rd rs/sa', -- starting with 5 unset bits, ending with a const
-    s   = 'rs', -- followed by 15 unset bits and a const
-    sto = 'rs rt offset',
-    stc = 'rs rt code', -- followed by a const
-    so  = 'rs offset', -- with a const inbetween
-    sync= 'stype', -- starting with 15 unset bits, ending with a const
-    indx= 'index',
+local fmt_single = 16
+local fmt_double = 17
+local fmt_word = 20
+local fmt_long = 21
 
-    lui = 'rt immediate', -- starting with 5 unset bits
-    mf  = 'rd', -- 10 unset bits on left, 5 on right, ending with a const
-    jalr= 'rs rd', -- 5 unset bits inbetween, 5 on right, ending with a const
-    code= 'code', -- ending with a const
-
-    movf= 'rd fs', -- starting with const, ending with 11 unset bits
-    bfo = 'base fs offset',
-
-    tsds= 'ft fs fd (s)', -- starting with a const of 16, ending with a const
-    tsdd= 'ft fs fd (d)', -- starting with a const of 17, ending with a const
-    cfs = 'ft fs (s)', -- starting with a const of 16, ending with a const
-    cfd = 'ft fs (d)', -- starting with a const of 17, ending with a const
-    afs = 'fs fd (s)', -- similar; 5 unset bits after const; ending const
-    afd = 'fs fd (d)', -- similar; 5 unset bits after const; ending const
-
-    afl = 'fs fd (l)', -- similar; 5 unset bits after const; ending const
-    afw = 'fs fd (w)', -- similar; 5 unset bits after const; ending const
-}
-
-local at = argtypes -- temporary shorthand
 local instruction_handlers = {
-    J       = { 2, at.indx},
-    JAL     = { 3, at.indx},
+    J       = {2, 'I', 'I'},
+    JAL     = {3, 'I', 'I'},
 
-    JALR    = { 0, at.jalr, 9},
+    JALR    = {0, 'sd', 's0d0C', 9},
 
-    MTHI    = { 0, at.s,   17},
-    MTLO    = { 0, at.s,   19},
-    JR      = { 0, at.s,    8},
+    MTHI    = {0, 's', 's000C', 17},
+    MTLO    = {0, 's', 's000C', 19},
+    JR      = {0, 's', 's000C',  8},
 
-    BREAK   = { 0, at.code,13},
-    SYSCALL = { 0, at.code,12},
+    BREAK   = {0, '', '0000C', 13},
+    SYSCALL = {0, '', '0000C', 12},
 
-    SYNC    = { 0, at.sync,15},
+    SYNC    = {0, '', '0000C', 15},
 
-    --
+    LB      = {32, 'tob', 'bto'},
+    LBU     = {36, 'tob', 'bto'},
+    LD      = {55, 'tob', 'bto'},
+    LDL     = {26, 'tob', 'bto'},
+    LDR     = {27, 'tob', 'bto'},
+    LH      = {33, 'tob', 'bto'},
+    LHU     = {37, 'tob', 'bto'},
+    LL      = {48, 'tob', 'bto'},
+    LLD     = {52, 'tob', 'bto'},
+    LW      = {35, 'tob', 'bto'},
+    LWL     = {34, 'tob', 'bto'},
+    LWR     = {38, 'tob', 'bto'},
+    LWU     = {39, 'tob', 'bto'},
+    SB      = {40, 'tob', 'bto'},
+    SC      = {56, 'tob', 'bto'},
+    SCD     = {60, 'tob', 'bto'},
+    SD      = {63, 'tob', 'bto'},
+    SDL     = {44, 'tob', 'bto'},
+    SDR     = {45, 'tob', 'bto'},
+    SH      = {41, 'tob', 'bto'},
+    SW      = {43, 'tob', 'bto'},
+    SWL     = {42, 'tob', 'bto'},
+    SWR     = {46, 'tob', 'bto'},
 
-    LB      = {32, at.bto},
-    LBU     = {36, at.bto},
-    LD      = {55, at.bto},
-    LDL     = {26, at.bto},
-    LDR     = {27, at.bto},
-    LH      = {33, at.bto},
-    LHU     = {37, at.bto},
-    LL      = {48, at.bto},
-    LLD     = {52, at.bto},
-    LW      = {35, at.bto},
-    LWL     = {34, at.bto},
-    LWR     = {38, at.bto},
-    LWU     = {39, at.bto},
-    SB      = {40, at.bto},
-    SC      = {56, at.bto},
-    SCD     = {60, at.bto},
-    SD      = {63, at.bto},
-    SDL     = {44, at.bto},
-    SDR     = {45, at.bto},
-    SH      = {41, at.bto},
-    SW      = {43, at.bto},
-    SWL     = {42, at.bto},
-    SWR     = {46, at.bto},
+    LUI     = {15, 'tJ', '0ti'},
 
-    LUI     = {15, at.lui},
+    MFHI    = {0, 'd', '00d0C', 16},
+    MFLO    = {0, 'd', '00d0C', 18},
 
-    MFHI    = { 0, at.mf,  16},
-    MFLO    = { 0, at.mf,  18},
+    ADDI    = { 8, 'tsj', 'sti'},
+    ADDIU   = { 9, 'tsj', 'sti'},
+    ANDI    = {12, 'tsj', 'sti'},
+    DADDI   = {24, 'tsj', 'sti'},
+    DADDIU  = {25, 'tsj', 'sti'},
+    ORI     = {13, 'tsj', 'sti'},
+    SLTI    = {10, 'tsj', 'sti'},
+    SLTIU   = {11, 'tsj', 'sti'},
+    XORI    = {14, 'tsj', 'sti'},
 
-    ADDI    = { 8, at.sti},
-    ADDIU   = { 9, at.sti},
-    ANDI    = {12, at.sti},
-    DADDI   = {24, at.sti},
-    DADDIU  = {25, at.sti},
-    ORI     = {13, at.sti},
-    SLTI    = {10, at.sti},
-    SLTIU   = {11, at.sti},
-    XORI    = {14, at.sti},
+    --         first 6 bits of instruction
+    --         |  input format
+    --         |  |      output format
+    --         |  |      |        const (only if used in output)
+    --         |  |      |        |   format-const (only if used in output)
+    --         |  |____  |______  |_  |_
+    ADD     = {0, 'dst', 'std0C', 32},
+    ADDU    = {0, 'dst', 'std0C', 33},
+    AND     = {0, 'dst', 'std0C', 36},
+    DADD    = {0, 'dst', 'std0C', 44},
+    DADDU   = {0, 'dst', 'std0C', 45},
+    DSLLV   = {0, 'dst', 'std0C', 20},
+    DSUB    = {0, 'dst', 'std0C', 46},
+    DSUBU   = {0, 'dst', 'std0C', 47},
+    NOR     = {0, 'dst', 'std0C', 39},
+    OR      = {0, 'dst', 'std0C', 37},
+    SLLV    = {0, 'dst', 'std0C',  4},
+    SLT     = {0, 'dst', 'std0C', 42},
+    SLTU    = {0, 'dst', 'std0C', 43},
+    SRAV    = {0, 'dst', 'std0C',  7},
+    SRLV    = {0, 'dst', 'std0C',  6},
+    SUB     = {0, 'dst', 'std0C', 34},
+    SUBU    = {0, 'dst', 'std0C', 35},
+    XOR     = {0, 'dst', 'std0C', 38},
 
-    ADD     = { 0, at.std, 32},
-    ADDU    = { 0, at.std, 33},
-    AND     = { 0, at.std, 36},
-    DADD    = { 0, at.std, 44},
-    DADDU   = { 0, at.std, 45},
-    DSLLV   = { 0, at.std, 20},
-    DSUB    = { 0, at.std, 46},
-    DSUBU   = { 0, at.std, 47},
-    NOR     = { 0, at.std, 39},
-    OR      = { 0, at.std, 37},
-    SLLV    = { 0, at.std,  4},
-    SLT     = { 0, at.std, 42},
-    SLTU    = { 0, at.std, 43},
-    SRAV    = { 0, at.std,  7},
-    SRLV    = { 0, at.std,  6},
-    SUB     = { 0, at.std, 34},
-    SUBU    = { 0, at.std, 35},
-    XOR     = { 0, at.std, 38},
+    DDIV    = {0, 'st', 'st00C', 30},
+    DDIVU   = {0, 'st', 'st00C', 31},
+    DIV     = {0, 'st', 'st00C', 26},
+    DIVU    = {0, 'st', 'st00C', 27},
+    DMULT   = {0, 'st', 'st00C', 28},
+    DMULTU  = {0, 'st', 'st00C', 29},
+    MULT    = {0, 'st', 'st00C', 24},
+    MULTU   = {0, 'st', 'st00C', 25},
 
-    DDIV    = { 0, at.st,  30},
-    DDIVU   = { 0, at.st,  31},
-    DIV     = { 0, at.st,  26},
-    DIVU    = { 0, at.st,  27},
-    DMULT   = { 0, at.st,  28},
-    DMULTU  = { 0, at.st,  29},
-    MULT    = { 0, at.st,  24},
-    MULTU   = { 0, at.st,  25},
+    DSLL    = {0, 'dti', '0tdiC', 56},
+    DSLL32  = {0, 'dti', '0tdiC', 60},
+    DSRA    = {0, 'dti', '0tdiC', 59},
+    DSRA32  = {0, 'dti', '0tdiC', 63},
+    DSRAV   = {0, 'dts', '0tdsC', 23},
+    DSRL    = {0, 'dti', '0tdiC', 58},
+    DSRL32  = {0, 'dti', '0tdiC', 62},
+    DSRLV   = {0, 'dts', '0tdsC', 22},
+    SLL     = {0, 'dti', '0tdiC',  0},
+    SRA     = {0, 'dti', '0tdiC',  3},
+    SRL     = {0, 'dti', '0tdiC',  2},
 
-    DSLL    = { 0, at.tds, 56},
-    DSLL32  = { 0, at.tds, 60},
-    DSRA    = { 0, at.tds, 59},
-    DSRA32  = { 0, at.tds, 63},
-    DSRAV   = { 0, at.tds, 23},
-    DSRL    = { 0, at.tds, 58},
-    DSRL32  = { 0, at.tds, 62},
-    DSRLV   = { 0, at.tds, 22},
-    SLL     = { 0, at.tds,  0},
-    SRA     = { 0, at.tds,  3},
-    SRL     = { 0, at.tds,  2},
+    BEQ     = { 4, 'str', 'sto'},
+    BEQL    = {20, 'str', 'sto'},
+    BNE     = { 5, 'str', 'sto'},
+    BNEL    = {21, 'str', 'sto'},
 
-    BEQ     = { 4, at.sto},
-    BEQL    = {20, at.sto},
-    BNE     = { 5, at.sto},
-    BNEL    = {21, at.sto},
+    BGEZ    = { 1, 'sr', 'sCo',  1},
+    BGEZAL  = { 1, 'sr', 'sCo', 17},
+    BGEZALL = { 1, 'sr', 'sCo', 19},
+    BGEZL   = { 1, 'sr', 'sCo',  3},
+    BGTZ    = { 7, 'sr', 'sCo',  0},
+    BGTZL   = {23, 'sr', 'sCo',  0},
+    BLEZ    = { 6, 'sr', 'sCo',  0},
+    BLEZL   = {22, 'sr', 'sCo',  0},
+    BLTZ    = { 1, 'sr', 'sCo',  0},
+    BLTZAL  = { 1, 'sr', 'sCo', 16},
+    BLTZALL = { 1, 'sr', 'sCo', 18},
+    BLTZL   = { 1, 'sr', 'sCo',  2},
 
-    BGEZ    = { 1, at.so,   1},
-    BGEZAL  = { 1, at.so,  17},
-    BGEZALL = { 1, at.so,  19},
-    BGEZL   = { 1, at.so,   3},
-    BGTZ    = { 7, at.so,   0},
-    BGTZL   = {23, at.so,   0},
-    BLEZ    = { 6, at.so,   0},
-    BLEZL   = {22, at.so,   0},
-    BLTZ    = { 1, at.so,   0},
-    BLTZAL  = { 1, at.so,  16},
-    BLTZALL = { 1, at.so,  18},
-    BLTZL   = { 1, at.so,   2},
+    TEQ     = {0, 'st', 'st00C', 52},
+    TGE     = {0, 'st', 'st00C', 48},
+    TGEU    = {0, 'st', 'st00C', 49},
+    TLT     = {0, 'st', 'st00C', 50},
+    TLTU    = {0, 'st', 'st00C', 51},
+    TNE     = {0, 'st', 'st00C', 54},
 
-    TEQ     = { 0, at.stc, 52},
-    TGE     = { 0, at.stc, 48},
-    TGEU    = { 0, at.stc, 49},
-    TLT     = { 0, at.stc, 50},
-    TLTU    = { 0, at.stc, 51},
-    TNE     = { 0, at.stc, 54},
+    ADD_D   = {17, 'DST', 'FTSDC', 0, fmt_double},
+    ADD_S   = {17, 'DST', 'FTSDC', 0, fmt_single},
+    DIV_D   = {17, 'DST', 'FTSDC', 3, fmt_double},
+    DIV_S   = {17, 'DST', 'FTSDC', 3, fmt_single},
+    MUL_D   = {17, 'DST', 'FTSDC', 2, fmt_double},
+    MUL_S   = {17, 'DST', 'FTSDC', 2, fmt_single},
+    SUB_D   = {17, 'DST', 'FTSDC', 1, fmt_double},
+    SUB_S   = {17, 'DST', 'FTSDC', 1, fmt_single},
 
-    ADD_D   = {17, at.tsdd, 0},
-    ADD_S   = {17, at.tsds, 0},
-    DIV_D   = {17, at.tsdd, 3},
-    DIV_S   = {17, at.tsds, 3},
-    MUL_D   = {17, at.tsdd, 2},
-    MUL_S   = {17, at.tsds, 2},
-    SUB_D   = {17, at.tsdd, 1},
-    SUB_S   = {17, at.tsds, 1},
+    CFC1    = {17, 'tS', 'CtS00', 2},
+    CTC1    = {17, 'tS', 'CtS00', 6},
+    DMFC1   = {17, 'tS', 'CtS00', 1},
+    DMTC1   = {17, 'tS', 'CtS00', 5},
+    MFC0    = {16, 'tS', 'CtS00', 0},
+    MFC1    = {16, 'tS', 'CtS00', 0},
+    MTC0    = {17, 'tS', 'CtS00', 4},
+    MTC1    = {17, 'tS', 'CtS00', 4},
 
-    CFC1    = {17, at.movf, 2},
-    CTC1    = {17, at.movf, 6},
-    DMFC1   = {17, at.movf, 1},
-    DMTC1   = {17, at.movf, 5},
-    MFC0    = {16, at.movf, 0},
-    MFC1    = {16, at.movf, 0},
-    MTC0    = {17, at.movf, 4},
-    MTC1    = {17, at.movf, 4},
+    LDC1    = {53, 'Tob', 'bTo'},
+    LWC1    = {49, 'Tob', 'bTo'},
+    SDC1    = {61, 'Tob', 'bTo'},
+    SWC1    = {57, 'Tob', 'bTo'},
 
-    LDC1    = {53, at.bfo},
-    LWC1    = {49, at.bfo},
-    SDC1    = {61, at.bfo},
-    SWC1    = {57, at.bfo},
+    C_EQ_D  = {17, 'ST', 'FTS0C', 50, fmt_double},
+    C_EQ_S  = {17, 'ST', 'FTS0C', 50, fmt_single},
+    C_F_D   = {17, 'ST', 'FTS0C', 48, fmt_double},
+    C_F_S   = {17, 'ST', 'FTS0C', 48, fmt_single},
+    C_LE_D  = {17, 'ST', 'FTS0C', 62, fmt_double},
+    C_LE_S  = {17, 'ST', 'FTS0C', 62, fmt_single},
+    C_LT_D  = {17, 'ST', 'FTS0C', 60, fmt_double},
+    C_LT_S  = {17, 'ST', 'FTS0C', 60, fmt_single},
+    C_NGE_D = {17, 'ST', 'FTS0C', 61, fmt_double},
+    C_NGE_S = {17, 'ST', 'FTS0C', 61, fmt_single},
+    C_NGL_D = {17, 'ST', 'FTS0C', 59, fmt_double},
+    C_NGL_S = {17, 'ST', 'FTS0C', 59, fmt_single},
+    C_NGLE_D= {17, 'ST', 'FTS0C', 57, fmt_double},
+    C_NGLE_S= {17, 'ST', 'FTS0C', 57, fmt_single},
+    C_NGT_D = {17, 'ST', 'FTS0C', 63, fmt_double},
+    C_NGT_S = {17, 'ST', 'FTS0C', 63, fmt_single},
+    C_OLE_D = {17, 'ST', 'FTS0C', 54, fmt_double},
+    C_OLE_S = {17, 'ST', 'FTS0C', 54, fmt_single},
+    C_OLT_D = {17, 'ST', 'FTS0C', 52, fmt_double},
+    C_OLT_S = {17, 'ST', 'FTS0C', 52, fmt_single},
+    C_SEQ_D = {17, 'ST', 'FTS0C', 58, fmt_double},
+    C_SEQ_S = {17, 'ST', 'FTS0C', 58, fmt_single},
+    C_SF_D  = {17, 'ST', 'FTS0C', 56, fmt_double},
+    C_SF_S  = {17, 'ST', 'FTS0C', 56, fmt_single},
+    C_UEQ_D = {17, 'ST', 'FTS0C', 51, fmt_double},
+    C_UEQ_S = {17, 'ST', 'FTS0C', 51, fmt_single},
+    C_ULE_D = {17, 'ST', 'FTS0C', 55, fmt_double},
+    C_ULE_S = {17, 'ST', 'FTS0C', 55, fmt_single},
+    C_ULT_D = {17, 'ST', 'FTS0C', 53, fmt_double},
+    C_ULT_S = {17, 'ST', 'FTS0C', 53, fmt_single},
+    C_UN_D  = {17, 'ST', 'FTS0C', 49, fmt_double},
+    C_UN_S  = {17, 'ST', 'FTS0C', 49, fmt_single},
 
-    C_EQ_D  = {17, at.cfd, 50},
-    C_EQ_S  = {17, at.cfs, 50},
-    C_F_D   = {17, at.cfd, 48},
-    C_F_S   = {17, at.cfs, 48},
-    C_LE_D  = {17, at.cfd, 62},
-    C_LE_S  = {17, at.cfs, 62},
-    C_LT_D  = {17, at.cfd, 60},
-    C_LT_S  = {17, at.cfs, 60},
-    C_NGE_D = {17, at.cfd, 61},
-    C_NGE_S = {17, at.cfs, 61},
-    C_NGL_D = {17, at.cfd, 59},
-    C_NGL_S = {17, at.cfs, 59},
-    C_NGLE_D= {17, at.cfd, 57},
-    C_NGLE_S= {17, at.cfs, 57},
-    C_NGT_D = {17, at.cfd, 63},
-    C_NGT_S = {17, at.cfs, 63},
-    C_OLE_D = {17, at.cfd, 54},
-    C_OLE_S = {17, at.cfs, 54},
-    C_OLT_D = {17, at.cfd, 52},
-    C_OLT_S = {17, at.cfs, 52},
-    C_SEQ_D = {17, at.cfd, 58},
-    C_SEQ_S = {17, at.cfs, 58},
-    C_SF_D  = {17, at.cfd, 56},
-    C_SF_S  = {17, at.cfs, 56},
-    C_UEQ_D = {17, at.cfd, 51},
-    C_UEQ_S = {17, at.cfs, 51},
-    C_ULE_D = {17, at.cfd, 55},
-    C_ULE_S = {17, at.cfs, 55},
-    C_ULT_D = {17, at.cfd, 53},
-    C_ULT_S = {17, at.cfs, 53},
-    C_UN_D  = {17, at.cfd, 49},
-    C_UN_S  = {17, at.cfs, 49},
+    CVT_D_L = {17, 'DS', 'F0SDC', 33, fmt_long},
+    CVT_D_S = {17, 'DS', 'F0SDC', 33, fmt_single},
+    CVT_D_W = {17, 'DS', 'F0SDC', 33, fmt_word},
+    CVT_L_D = {17, 'DS', 'F0SDC', 37, fmt_double},
+    CVT_L_S = {17, 'DS', 'F0SDC', 37, fmt_single},
+    CVT_S_D = {17, 'DS', 'F0SDC', 32, fmt_double},
+    CVT_S_L = {17, 'DS', 'F0SDC', 32, fmt_long},
+    CVT_S_W = {17, 'DS', 'F0SDC', 32, fmt_word},
+    CVT_W_D = {17, 'DS', 'F0SDC', 36, fmt_double},
+    CVT_W_S = {17, 'DS', 'F0SDC', 36, fmt_single},
 
-    CVT_D_L = {17, at.afl, 33},
-    CVT_D_S = {17, at.afd, 33},
-    CVT_D_W = {17, at.afw, 33},
-    CVT_L_D = {17, at.afd, 37},
-    CVT_L_S = {17, at.afs, 37},
-    CVT_S_D = {17, at.afd, 32},
-    CVT_S_L = {17, at.afl, 32},
-    CVT_S_W = {17, at.afw, 32},
-    CVT_W_D = {17, at.afd, 36},
-    CVT_W_S = {17, at.afs, 36},
+    ABS_D   = {17, 'DS', 'F0SDC',  5, fmt_double},
+    ABS_S   = {17, 'DS', 'F0SDC',  5, fmt_single},
+    CEIL_L_D= {17, 'DS', 'F0SDC', 10, fmt_double},
+    CEIL_L_S= {17, 'DS', 'F0SDC', 10, fmt_single},
+    CEIL_W_D= {17, 'DS', 'F0SDC', 14, fmt_double},
+    CEIL_W_S= {17, 'DS', 'F0SDC', 14, fmt_single},
+    FLOOR_L_D={17, 'DS', 'F0SDC', 11, fmt_double},
+    FLOOR_L_S={17, 'DS', 'F0SDC', 11, fmt_single},
+    FLOOR_W_D={17, 'DS', 'F0SDC', 15, fmt_double},
+    FLOOR_W_S={17, 'DS', 'F0SDC', 15, fmt_single},
+    MOV_D   = {17, 'DS', 'F0SDC',  6, fmt_double},
+    MOV_S   = {17, 'DS', 'F0SDC',  6, fmt_single},
+    NEG_D   = {17, 'DS', 'F0SDC',  7, fmt_double},
+    NEG_S   = {17, 'DS', 'F0SDC',  7, fmt_single},
+    ROUND_L_D={17, 'DS', 'F0SDC',  8, fmt_double},
+    ROUND_L_S={17, 'DS', 'F0SDC',  8, fmt_single},
+    ROUND_W_D={17, 'DS', 'F0SDC', 12, fmt_double},
+    ROUND_W_S={17, 'DS', 'F0SDC', 12, fmt_single},
+    SQRT_D  = {17, 'DS', 'F0SDC',  4, fmt_double},
+    SQRT_S  = {17, 'DS', 'F0SDC',  4, fmt_single},
+    TRUNC_L_S={17, 'DS', 'F0SDC',  9, fmt_single},
+    TRUNC_W_D={17, 'DS', 'F0SDC', 13, fmt_double},
 
-    ABS_D   = {17, at.afd,  5},
-    ABS_S   = {17, at.afs,  5},
-    CEIL_L_D= {17, at.afd, 10},
-    CEIL_L_S= {17, at.afs, 10},
-    CEIL_W_D= {17, at.afd, 14},
-    CEIL_W_S= {17, at.afs, 14},
-    FLOOR_L_D={17, at.afd, 11},
-    FLOOR_L_S={17, at.afs, 11},
-    FLOOR_W_D={17, at.afd, 15},
-    FLOOR_W_S={17, at.afs, 15},
-    MOV_D   = {17, at.afd,  6},
-    MOV_S   = {17, at.afs,  6},
-    NEG_D   = {17, at.afd,  7},
-    NEG_S   = {17, at.afs,  7},
-    ROUND_L_D={17, at.afd,  8},
-    ROUND_L_S={17, at.afs,  8},
-    ROUND_W_D={17, at.afd, 12},
-    ROUND_W_S={17, at.afs, 12},
-    SQRT_D  = {17, at.afd,  4},
-    SQRT_S  = {17, at.afs,  4},
-    TRUNC_L_S={17, at.afs,  9},
-    TRUNC_W_D={17, at.afd, 13},
+    TEQI    = {1, 'sj', 'sCi', 12},
+    TGEI    = {1, 'sj', 'sCi',  8},
+    TGEIU   = {1, 'sj', 'sCi',  9},
+    TLTI    = {1, 'sj', 'sCi', 10},
+    TLTIU   = {1, 'sj', 'sCi', 11},
+    TNEI    = {1, 'sj', 'sCi', 14},
 
-    -- unimplemented
-    TEQI    = {},
-    TGEI    = {},
-    TGEIU   = {},
+    CACHE   = {},
+    ERET    = {},
+
     TLBP    = {},
     TLBR    = {},
     TLBWI   = {},
     TLBWR   = {},
-    TLTI    = {},
-    TLTIU   = {},
-    TNEI    = {},
 
     BC1F    = {},
     BC1FL   = {},
     BC1T    = {},
     BC1TL   = {},
-    CACHE   = {},
-    ERET    = {},
+
+    -- are these undocumented?
     LDC2    = {},
     SDC2    = {},
 
     -- pseudo-instructions
-    B       = {},
-    BAL     = {},
+    B       = {4, 'r', '00o'},
+    BAL     = {1, 'r', '0Co', 17},
+    CL      = {0, 'd', '00d0C', 32},
+    MOV     = {0, 'dt', '0td0C', 32},
+    NOP     = {0, '', '0'},
+
+    SUBI    = {8, 'tsk', 'sti'},
+    SUBIU   = {9, 'tsk', 'sti'},
+
+    -- ...that expand to multiple instructions
+    LI      = {}, -- only one instruction for values < 0x10000
+
     BEQI    = {},
     BNEI    = {},
     BGE     = {},
@@ -356,14 +345,7 @@ local instruction_handlers = {
     BLTI    = {},
     BGT     = {},
     BGTI    = {},
-    CL      = {},
-    LI      = {},
-    MOV     = {},
-    NOP     = { 0, at.code, 0},
-    SUBI    = {},
-    SUBIU   = {},
 }
-at = nil
 
 local all_instructions = {}
 local i = 1
@@ -711,6 +693,94 @@ function Parser:const(relative)
     return t
 end
 
+function Parser:format_in(informat)
+    args = {}
+    for i=1,#informat do
+        local c = informat:sub(i, i)
+        local c2 = informat:sub(i + 1, i + 1)
+        if c == 'd' and not args.rd then
+            args.rd = self:register()
+        elseif c == 's' and not args.rs then
+            args.rs = self:register()
+        elseif c == 't' and not args.rt then
+            args.rt = self:register()
+        elseif c == 'D' and not args.fd then
+            args.fd = self:register(fpu_registers)
+        elseif c == 'S' and not args.fs then
+            args.fs = self:register(fpu_registers)
+        elseif c == 'T' and not args.ft then
+            args.ft = self:register(fpu_registers)
+        elseif c == 'o' and not args.offset then
+            args.offset = {'LOWER', self:const()}
+        elseif c == 'r' and not args.offset then
+            args.offset = {'LOWER', self:const('relative')}
+        elseif c == 'i' and not args.immediate then
+            args.immediate = self:const()
+        elseif c == 'I' and not args.index then
+            args.index = {'INDEX', self:const()}
+        elseif c == 'j' and not args.immediate then
+            args.immediate = {'LOWER', self:const()}
+        elseif c == 'J' and not args.immediate then
+            args.immediate = {'UPPER', self:const()}
+        elseif c == 'k' and not args.immediate then
+            args.immediate = {'NEGATE', self:const()}
+        elseif c == 'b' and not args.base then
+            args.base = self:deref()
+        else
+            error('Internal Error: invalid input formatting string', 1)
+        end
+        if c2:find('[dstDSToiIjJr]') then
+            self:optional_comma()
+        end
+    end
+    return args
+end
+
+function Parser:format_out(outformat, first, args, const, formatconst)
+    local lookup = {
+        [1]=self.dumper.add_instruction_26,
+        [3]=self.dumper.add_instruction_5_5_16,
+        [4]=self.dumper.add_instruction_5_5_5_11,
+        [5]=self.dumper.add_instruction_5_5_5_5_6,
+    }
+    out = {}
+    for i=1,#outformat do
+        local c = outformat:sub(i, i)
+        if c == 'd' then
+            out[#out+1] = args.rd
+        elseif c == 's' then
+            out[#out+1] = args.rs
+        elseif c == 't' then
+            out[#out+1] = args.rt
+        elseif c == 'D' then
+            out[#out+1] = args.fd
+        elseif c == 'S' then
+            out[#out+1] = args.fs
+        elseif c == 'T' then
+            out[#out+1] = args.ft
+        elseif c == 'o' then
+            out[#out+1] = args.offset
+        elseif c == 'i' then
+            out[#out+1] = args.immediate
+        elseif c == 'I' then
+            out[#out+1] = args.index
+        elseif c == 'b' then
+            out[#out+1] = args.base
+        elseif c == '0' then
+            out[#out+1] = 0
+        elseif c == 'C' then
+            out[#out+1] = const
+        elseif c == 'F' then
+            out[#out+1] = formatconst
+        end
+    end
+    local f = lookup[#outformat]
+    if f == nil then
+        error('Internal Error: invalid output formatting string', 1)
+    end
+    f(self.dumper, first, out[1], out[2], out[3], out[4], out[5])
+end
+
 function Parser:instruction()
     local name = self.tok
     self:advance()
@@ -718,185 +788,10 @@ function Parser:instruction()
 
     if h == nil then
         self:error('undefined instruction')
-    elseif h[2] == argtypes.bto then
-        -- OP rt, offset(base)
-        local rt = self:register()
-        self:optional_comma()
-        local offset = {'LOWER', self:const()}
-        local base = self:deref()
-        self.dumper:add_instruction_5_5_16(h[1], base, rt, offset)
-    elseif h[2] == argtypes.bfo then
-        -- OP ft, offset(base)
-        local ft = self:register(fpu_registers)
-        self:optional_comma()
-        local offset = {'LOWER', self:const()}
-        local base = self:deref()
-        self.dumper:add_instruction_5_5_16(h[1], base, ft, offset)
-    elseif h[2] == argtypes.sti then
-        -- OP rt, rs, immediate
-        local rt = self:register()
-        self:optional_comma()
-        local rs = self:register()
-        self:optional_comma()
-        local immediate = {'LOWER', self:const()}
-        self.dumper:add_instruction_5_5_16(h[1], rs, rt, immediate)
-    elseif h[2] == argtypes.std then
-        -- OP rd, rs, rt
-        local rd = self:register()
-        self:optional_comma()
-        local rs = self:register()
-        self:optional_comma()
-        local rt = self:register()
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_11(h[1], rs, rt, rd, const)
-    elseif h[2] == argtypes.st then
-        -- OP rs, rt
-        local rs = self:register()
-        self:optional_comma()
-        local rt = self:register()
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_16(h[1], rs, rt, const)
-    elseif h[2] == argtypes.tds then
-        local rd = self:register()
-        self:optional_comma()
-        local rt = self:register()
-        self:optional_comma()
-        local rs
-        if name == 'DSRAV' or name == 'DSRLV' then
-            -- OP rd, rt, rs
-            rs = self:register()
-        else
-            -- OP rd, rt, sa
-            rs = self:const()
-        end
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 0, rt, rd, rs, const)
-    elseif h[2] == argtypes.s then
-        -- OP rs
-        local rs = self:register()
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_16(h[1], rs, 0, const)
-    elseif h[2] == argtypes.sto then
-        -- OP rs, rt, offset
-        local rs = self:register()
-        self:optional_comma()
-        local rt = self:register()
-        self:optional_comma()
-        local offset = self:const('relative')
-        self.dumper:add_instruction_5_5_16(h[1], rs, rt, offset)
-    elseif h[2] == argtypes.stc then
-        -- OP TEQ rs, rt
-        local rs = self:register()
-        self:optional_comma()
-        local rt = self:register()
-        local const = h[3] or self:error('internal error: expected const')
-        -- FIXME: there's supposed to be 'code' before const
-        -- but i dunno what it's supposed to be
-        -- so i'm leaving it as zero here
-        self.dumper:add_instruction_5_5_16(h[1], rs, rt, const)
-    elseif h[2] == argtypes.so then
-        -- OP rs, offset
-        local rs = self:register()
-        self:optional_comma()
-        local offset = self:const('relative')
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_16(h[1], rs, const, offset)
-    elseif h[2] == argtypes.sync then
-        -- OP
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_26(h[1], const)
-    elseif h[2] == argtypes.indx then
-        -- OP target
-        local target = {'INDEX', self:const()}
-        self.dumper:add_instruction_26(h[1], target)
-    elseif h[2] == argtypes.lui then
-        -- OP rt, immediate
-        local rt = self:register()
-        self:optional_comma()
-        local immediate = {'UPPER', self:const()}
-        self.dumper:add_instruction_5_5_16(h[1], 0, rt, immediate)
-    elseif h[2] == argtypes.mf then
-        -- OP rd
-        local rd = self:register()
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 0, 0, rd, 0, const)
-    elseif h[2] == argtypes.jalr then
-        -- OP rs, rd
-        local rs = self:register()
-        self:optional_comma()
-        local rd = self:register()
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], rs, 0, rd, 0, const)
-    elseif h[2] == argtypes.code then
-        -- OP
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_26(h[1], const)
-    elseif h[2] == argtypes.movf then
-        local rt = self:register()
-        self:optional_comma()
-        local rd = nil
-        if name == 'MFC0' or name == 'MTC0' then
-            -- OP rt, rd
-            rd = self:register()
-        else
-            -- OP rt, fs
-            rd = self:register(fpu_registers)
-        end
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], const, rt, rd, 0, 0)
-    elseif h[2] == argtypes.tsds then
-        -- OP fd, fs, ft
-        local fd = self:register(fpu_registers)
-        self:optional_comma()
-        local fs = self:register(fpu_registers)
-        self:optional_comma()
-        local ft = self:register(fpu_registers)
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 16, ft, fs, fd, const)
-    elseif h[2] == argtypes.tsdd then
-        local fd = self:register(fpu_registers)
-        self:optional_comma()
-        local fs = self:register(fpu_registers)
-        self:optional_comma()
-        local ft = self:register(fpu_registers)
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 17, ft, fs, fd, const)
-    elseif h[2] == argtypes.cfs then
-        local fs = self:register(fpu_registers)
-        self:optional_comma()
-        local ft = self:register(fpu_registers)
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 16, ft, fs, 0, const)
-    elseif h[2] == argtypes.cfd then
-        local fs = self:register(fpu_registers)
-        self:optional_comma()
-        local ft = self:register(fpu_registers)
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 17, ft, fs, 0, const)
-    elseif h[2] == argtypes.afs then
-        local fd = self:register(fpu_registers)
-        self:optional_comma()
-        local fs = self:register(fpu_registers)
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 16, 0, fs, fd, const)
-    elseif h[2] == argtypes.afd then
-        local fd = self:register(fpu_registers)
-        self:optional_comma()
-        local fs = self:register(fpu_registers)
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 17, 0, fs, fd, const)
-    elseif h[2] == argtypes.afw then
-        local fd = self:register(fpu_registers)
-        self:optional_comma()
-        local fs = self:register(fpu_registers)
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 20, 0, fs, fd, const)
-    elseif h[2] == argtypes.afl then
-        local fd = self:register(fpu_registers)
-        self:optional_comma()
-        local fs = self:register(fpu_registers)
-        local const = h[3] or self:error('internal error: expected const')
-        self.dumper:add_instruction_5_5_5_5_6(h[1], 21, 0, fs, fd, const)
+    elseif h[2] ~= nil then
+        -- get format from strings
+        args = self:format_in(h[2])
+        self:format_out(h[3], h[1], args, h[4], h[5])
     else
         self:error('unimplemented instruction')
     end
@@ -1032,8 +927,11 @@ function Dumper:toval(tok)
             end
             return val
         elseif tok[1] == 'LOWER' then
-            local val = self:desym(tok[2]) % 0x10000
-            return val
+            local val = self:desym(tok[2])
+            return val % 0x10000
+        elseif tok[1] == 'NEGATE' then
+            local val = -self:desym(tok[2])
+            return val % 0x10000
         elseif tok[1] == 'INDEX' then
             local val
             if type(tok[2]) == 'table' and tok[2][1] == 'LABELSYM' then
@@ -1176,5 +1074,4 @@ return setmetatable(assembler, {
     all_registers = all_registers,
     all_instructions = all_instructions,
     all_directives = all_directives,
-    argtypes = argtypes,
 })
