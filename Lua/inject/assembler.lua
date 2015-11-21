@@ -5,7 +5,6 @@
 -- lexer and parser are somewhat based on http://chunkbake.luaforge.net/
 
 local assembler = {
-    _VERSION = 'assembler v5',
     _DESCRIPTION = 'Assembles MIPS assembly files for the R4300i CPU.',
     _URL = 'https://github.com/notwa/mm/blob/master/Lua/inject/assembler.lua',
     _LICENSE = [[
@@ -371,7 +370,11 @@ function Dumper:init(writer, fn)
     self.fn = fn or '(string)'
     self.defines = {}
     self.labels = {}
-    self.lines = {}
+    self.commands = {}
+    self.buff = ''
+    self.pos = 0
+    self.size = 0
+    self.lastcommand = nil
 end
 
 local Parser = Class()
@@ -550,8 +553,6 @@ function Lexer:lex()
             return 'DEFSYM', self.buff
         elseif self.chr:find('[%a_]') then
             self.buff = ''
-            -- now that we know we're looking at an identifier,
-            -- we can start matching numbers and dots too.
             self:read_chars('[%w_.]')
             if self.chr == ':' then
                 if self.buff:find('%.') then
@@ -826,26 +827,33 @@ function Parser:parse(asm)
 end
 
 function Dumper:error(msg)
-    -- TODO: sometimes internal error, sometimes not.
-    --       also, we should pass line numbers down to add_instruction.
-    error(string.format('%s:%d: Dumper Error: %s', self.fn, self.line, msg), 2)
+    -- TOOD: we should pass line numbers down to add_instruction.
+    error(string.format('%s:%d: Dumper Error: %s', self.fn, self.pos, msg), 2)
 end
 
-function Dumper:push(t)
-    --print(t.data)
-    table.insert(self.lines, t)
+function Dumper:advance(by)
+    self.pos = self.pos + by
+    if self.pos > self.size then
+        self.size = self.pos
+    end
+end
+
+function Dumper:push_instruction(t)
+    t.kind = 'instruction'
+    table.insert(self.commands, t)
+    self:advance(4)
 end
 
 function Dumper:add_instruction_26(i, a)
-    self:push{i, a}
+    self:push_instruction{i, a}
 end
 
 function Dumper:add_instruction_5_5_16(i, a, b, c)
-    self:push{i, a, b, c}
+    self:push_instruction{i, a, b, c}
 end
 
 function Dumper:add_instruction_5_5_5_5_6(i, a, b, c, d, e)
-    self:push{i, a, b, c, d, e}
+    self:push_instruction{i, a, b, c, d, e}
 end
 
 function Dumper:add_define(name, number)
@@ -853,15 +861,67 @@ function Dumper:add_define(name, number)
 end
 
 function Dumper:add_label(name)
-    self.labels[name] = #self.lines + 1
+    self.labels[name] = self.pos
 end
 
-function Dumper:add_directive(...)
-    self:error('unimplemented directive')
+function Dumper:add_bytes(bs)
+    local t
+    local use_last = self.lastcommand and self.lastcommand.kind == 'bytes'
+    if use_last then
+        t = self.lastcommand
+    else
+        t = {}
+        t.kind = 'bytes'
+        t.size = 0
+    end
+    for _, b in ipairs(bs) do
+        t.size = t.size + 1
+        t[size] = b
+    end
+    if not use_last then
+        table.insert(self.commands, t)
+    end
+    self:advance(t.size)
 end
 
-function Dumper:print(uw, lw)
-    self.writer(('%04X%04X'):format(uw, lw))
+function Dumper:add_directive(name, a, b)
+    -- ORG ALIGN SKIP BYTE HALFWORD WORD
+    local t = {}
+    if name == 'BYTE' then
+        self:add_bytes{a % 0x100}
+    elseif name == 'HALFWORD' then
+        local b0 = a % 0x100
+        local b1 = math.floor(a/0x100) % 0x100
+        self:add_bytes{b1, b0}
+    elseif name == 'WORD' then
+        -- TODO: ensure lua numbers being floats doesn't cause accuracy issues
+        local b0 = a % 0x100
+        local b1 = math.floor(a/0x100) % 0x100
+        local b2 = math.floor(a/0x10000) % 0x100
+        local b3 = math.floor(a/0x1000000) % 0x100
+        self:add_bytes{b3, b2, b1, b0}
+    elseif name == 'ORG' then
+        t.kind = 'goto'
+        t.addr = a
+        table.insert(self.commands, t)
+        self.pos = a
+        self:advance(0)
+    elseif name == 'ALIGN' then
+        t.kind = 'align'
+        t.align = a
+        t.fill = b
+        table.insert(self.commands, t)
+        --self.size = size.size + ???
+        self:error('align directive is unimplemented')
+    elseif name == 'SKIP' then
+        t.kind = 'ahead'
+        t.skip = a
+        t.fill = b
+        table.insert(self.commands, t)
+        self:advance(t.skip)
+    else
+        self:error('unimplemented directive')
+    end
 end
 
 function Dumper:desym(tok)
@@ -870,23 +930,21 @@ function Dumper:desym(tok)
     elseif all_registers[tok] then
         return registers[tok] or fpu_registers[tok]
     elseif tok[1] == 'LABELSYM' then
-        --print('(label)', tok[2])
-        return self.labels[tok[2]]*4
+        return self.labels[tok[2]]
     elseif tok[1] == 'LABELREL' then
-        local rel = self.labels[tok[2]] - 2 - self.line
+        local rel = math.floor(self.labels[tok[2]]/4)
+        rel = rel - 2 - math.floor(self.pos/4)
         if rel > 0x8000 or rel <= -0x8000 then
             self:error('branch too far')
         end
         return (0x10000 + rel) % 0x10000
     elseif tok[1] == 'DEFSYM' then
-        --print('(define)')
         local val = self.defines[tok[2]]
         if val == nil then
             self:error('unknown define')
         end
         return val
     end
-    --print(tok)
     self:error('failed to desym')
 end
 
@@ -905,6 +963,7 @@ function Dumper:toval(tok)
         end
         if tok[1] == 'UPPER' then
             local val = self:desym(tok[2])
+            -- this could cause some unexpected behaviors
             while val >= 0x10000 do
                 val = val/2
             end
@@ -916,12 +975,11 @@ function Dumper:toval(tok)
             local val = -self:desym(tok[2])
             return val % 0x10000
         elseif tok[1] == 'INDEX' then
-            local val
+            local val = self:desym(tok[2])
             if type(tok[2]) == 'table' and tok[2][1] == 'LABELSYM' then
                 -- don't multiply by 4 twice
-                val = self:desym(tok[2])
             else
-                val = self:desym(tok[2])*4
+                val = val*4
             end
             --print('(index)', val)
             return val
@@ -950,35 +1008,88 @@ function Dumper:valvar(tok, bits)
     return val
 end
 
-function Dumper:dump()
-    for i, t in ipairs(self.lines) do
-        self.line = i
-        local uw = 0
-        local lw = 0
-        local val = nil
-
-        local i = t[1]
-        uw = uw + i*0x400
-
-        if #t == 2 then
-            val = self:valvar(t[2], 26)
-            uw = uw + math.floor(val/0x10000)
-            lw = lw + val % 0x10000
-        elseif #t == 4 then
-            uw = uw + self:valvar(t[2], 5)*0x20
-            uw = uw + self:valvar(t[3], 5)
-            lw = lw + self:valvar(t[4], 16)
-        elseif #t == 6 then
-            uw = uw + self:valvar(t[2], 5)*0x20
-            uw = uw + self:valvar(t[3], 5)
-            lw = lw + self:valvar(t[4], 5)*0x800
-            lw = lw + self:valvar(t[5], 5)*0x40
-            lw = lw + self:valvar(t[6], 6)
-        else
-            self:error('unknown n-size')
+function Dumper:write(t)
+    -- this is gonna be really slow, but eh, optimization comes last
+    -- should really use a sparse table and fill in the string later
+    for _, b in ipairs(t) do
+        if self.pos >= self.size then
+            error('Internal Error: pos out of range; size too small', 1)
         end
+        local s = ('%02X'):format(b)
+        local left = self.buff:sub(1, self.pos*2)
+        local right = self.buff:sub(self.pos*2 + 3)
+        self.buff = left..s..right
+        self.pos = self.pos + 1
+    end
+end
 
-        self:print(uw, lw)
+function Dumper:dump_instruction(t)
+    local uw = 0
+    local lw = 0
+
+    local i = t[1]
+    uw = uw + i*0x400
+
+    if #t == 2 then
+        local val = self:valvar(t[2], 26)
+        uw = uw + math.floor(val/0x10000)
+        lw = lw + val % 0x10000
+    elseif #t == 4 then
+        uw = uw + self:valvar(t[2], 5)*0x20
+        uw = uw + self:valvar(t[3], 5)
+        lw = lw + self:valvar(t[4], 16)
+    elseif #t == 6 then
+        uw = uw + self:valvar(t[2], 5)*0x20
+        uw = uw + self:valvar(t[3], 5)
+        lw = lw + self:valvar(t[4], 5)*0x800
+        lw = lw + self:valvar(t[5], 5)*0x40
+        lw = lw + self:valvar(t[6], 6)
+    else
+        error('Internal Error: unknown n-size', 1)
+    end
+
+    return uw, lw
+end
+
+function Dumper:dump()
+    self.pos = 0
+    self.buff = ''
+    for i=1,self.size do
+        self.buff = self.buff..'00'
+    end
+
+    for i, t in ipairs(self.commands) do
+        if t.kind == 'instruction' then
+            uw, lw = self:dump_instruction(t)
+            local b0 = lw % 0x100
+            local b1 = math.floor(lw/0x100)
+            local b2 = uw % 0x100
+            local b3 = math.floor(uw/0x100)
+            self:write{b3, b2, b1, b0}
+        elseif t.kind == 'bytes' then
+            self:write(t)
+        elseif t.kind == 'goto' then
+            self.pos = t.addr
+        elseif t.kind == 'align' then
+            -- actually have no idea how this is meant to be implemented
+            -- the manual is really misleading
+            self:error('align directive is unimplemented')
+        elseif t.kind == 'ahead' then
+            if t.fill then
+                for i=1, t.skip do
+                    self:write{self.fill}
+                end
+            else
+                self.pos = self.pos + t.skip
+            end
+        else
+            --require('pt'){t}
+            error('Internal Error: unknown command', 1)
+        end
+    end
+
+    for i=1, self.size*2 - 1, 8 do
+        self.writer(self.buff:sub(i, i + 7))
     end
 end
 
