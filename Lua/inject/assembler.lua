@@ -412,7 +412,6 @@ local Dumper = Class()
 function Dumper:init(writer, fn)
     self.writer = writer
     self.fn = fn or '(string)'
-    self.defines = {}
     self.labels = {}
     self.commands = {}
     self.buff = ''
@@ -425,6 +424,7 @@ local Parser = Class()
 function Parser:init(writer, fn)
     self.fn = fn or '(string)'
     self.dumper = Dumper(writer, fn)
+    self.defines = {}
 end
 
 function Lexer:error(msg)
@@ -663,6 +663,21 @@ function Parser:error(msg)
     error(string.format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
+function Parser:advance()
+    self.i = self.i + 1
+    local t = self.tokens[self.i]
+    self.tt = t.tt
+    self.tok = t.tok
+    self.line = t.line
+    return t.tt, t.tok
+end
+
+function Parser:lookahead()
+    local t = self.tokens[self.i] + 1
+    if t == nil then return end
+    return t.tt, t.tok
+end
+
 function Parser:is_EOL()
     return self.tt == 'EOL' or self.tt == 'EOF'
 end
@@ -698,10 +713,11 @@ function Parser:directive()
         self.dumper:add_directive(name, self:number())
     elseif name == 'ALIGN' or name == 'SKIP' then
         local size = self:number()
-        if self:optional_comma() then
-            self.dumper:add_directive(name, size, self:number())
-        else
+        if self:is_EOL() then
             self.dumper:add_directive(name, size)
+        else
+            self:optional_comma()
+            self.dumper:add_directive(name, size, self:number())
         end
         self:expect_EOL()
     elseif name == 'BYTE' or name == 'HALFWORD' or name == 'WORD' then
@@ -751,7 +767,7 @@ function Parser:deref()
 end
 
 function Parser:const(relative)
-    if self.tt ~= 'NUM' and self.tt ~= 'DEFSYM' and self.tt ~= 'LABELSYM' then
+    if self.tt ~= 'NUM' and self.tt ~= 'LABELSYM' then
         self:error('expected constant')
     end
     if relative and self.tt == 'LABELSYM' then
@@ -852,11 +868,11 @@ end
 function Parser:instruction()
     local name = self.tok
     local h = instruction_handlers[name]
+    self:advance()
 
     if h == nil then
         self:error('undefined instruction')
     elseif h == 'LI' or h == 'LA' then
-        -- FIXME: probably breaks with defines
         local lui = instruction_handlers['LUI']
         local addi = instruction_handlers['ADDI']
         local ori = instruction_handlers['ORI']
@@ -866,14 +882,12 @@ function Parser:instruction()
         local im = self:const()
         local is_label = im[1] == 'LABELSYM'
         if h == 'LI' and is_label then
-            self:error('use LA for addresses')
+            self:error('use LA for labels')
         end
         if h == 'LA' and not is_label then
             self:error('use LI for immediates')
         end
-        -- FIXME: defines shouldn't need a special case,
-        --        we should know their values already.
-        if h == 'LA' or im[1] == 'DEFSYM' or im[2] >= 0x10000 then
+        if h == 'LA' or im[2] >= 0x10000 then
             args.rs = args.rt
             args.immediate = {'UPPER', im}
             self:format_out(lui[3], lui[1], args, lui[4], lui[5])
@@ -897,6 +911,7 @@ function Parser:tokenize()
     local lexer = Lexer(self.asm, self.fn)
 
     self.tokens = {}
+    self.i = 0
     local line = 1
     local lex = function()
         local t = {line=line}
@@ -918,7 +933,7 @@ function Parser:tokenize()
             if tt2 ~= 'NUM' then
                 self:error('expected number')
             end
-            self.dumper:add_define(tok, tok2)
+            self.defines[tok] = tok2
         elseif tt == 'EOL' then
             line = line + 1
         elseif tt == 'EOF' then
@@ -927,29 +942,42 @@ function Parser:tokenize()
             error('Internal Error: missing token', 1)
         end
     end
+
+    -- resolve defines
+    for i, t in ipairs(self.tokens) do
+        if t.tt == 'DEFSYM' then
+            t.tt = 'NUM'
+            t.tok = self.defines[t.tok]
+            if t.tok == nil then
+                self:error('undefined define') -- uhhh nice wording
+            end
+        end
+    end
+    return t
 end
 
 function Parser:parse(asm)
     self.asm = asm
     self:tokenize()
-    --require('pt'){self.tokens} -- DEBUG
-    for i, t in pairs(self.tokens) do
-        self.tt = t.tt
-        self.tok = t.tok
-        self.line = t.line
-        if t.tt == 'EOL' then
+    self:advance()
+    while true do
+        if self.tt == 'EOL' then
             -- empty line
-        elseif t.tt == 'DIR' then
+            self:advance()
+        elseif self.tt == 'DEF' then
+            self:advance()
+            self:advance()
+        elseif self.tt == 'DIR' then
             self:directive()
-        elseif t.tt == 'LABEL' then
-            self.dumper:add_label(t.tok)
-        elseif t.tt == 'INSTR' then
+        elseif self.tt == 'LABEL' then
+            self.dumper:add_label(self.tok)
+            self:advance()
+        elseif self.tt == 'INSTR' then
             self:instruction()
         else
             self:error('unexpected token (unknown instruction?)')
         end
     end
-
     return self.dumper:dump()
 end
 
@@ -983,8 +1011,7 @@ function Dumper:add_instruction_r(o, s, t, d, f, c)
     self:push_instruction{o, s, t, d, f, c}
 end
 
-function Dumper:add_define(name, number)
-    self.defines[name] = number
+function Dumper:define(name, number)
 end
 
 function Dumper:add_label(name)
@@ -1065,12 +1092,6 @@ function Dumper:desym(tok)
             self:error('branch too far')
         end
         return (0x10000 + rel) % 0x10000
-    elseif tok[1] == 'DEFSYM' then
-        local val = self.defines[tok[2]]
-        if val == nil then
-            self:error('unknown define')
-        end
-        return val
     end
     self:error('failed to desym')
 end
