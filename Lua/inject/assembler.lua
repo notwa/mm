@@ -1,7 +1,6 @@
 -- i've lost control of my life
 
 -- instructions: https://github.com/mikeryan/n64dev/tree/master/docs/n64ops
--- CajeASM style assembly; refer to the manual included with CajeASM.
 -- lexer and parser are somewhat based on http://chunkbake.luaforge.net/
 
 local assembler = {
@@ -126,7 +125,7 @@ local instruction_handlers = {
     SWL     = {42, 'tob', 'bto'},
     SWR     = {46, 'tob', 'bto'},
 
-    LUI     = {15, 'tj', '0ti'},
+    LUI     = {15, 'ti', '0ti'},
 
     MFHI    = {0, 'd', '00d0C', 16},
     MFLO    = {0, 'd', '00d0C', 18},
@@ -331,19 +330,50 @@ local instruction_handlers = {
     BAL     = {1, 'r', '0Co', 17},
     CL      = {0, 'd', '00d0C', 32},
     MOV     = {0, 'dt', '0td0C', 32},
+    MOVE    = {0, 'dt', '0td0C', 32},
+    NEG     = {0, 'ds', 's0d0C', 34},
     NOP     = {0, '', '0'},
-
+    NOR     = {0, 'dst', 's0d0C', 39},
     SUBI    = {8, 'tsk', 'sti'},
     SUBIU   = {9, 'tsk', 'sti'},
-
-    -- LUI only loads the lower 16 bits of its constant.
-    -- if you need the upper 16, use this instead.
-    LUUI    = {15, 'tJ', '0ti'},
 
     -- ...that expand to multiple instructions
     LI      = 'LI', -- only one instruction for values < 0x10000
     LA      = 'LA',
 
+    ABS     = {}, -- BGEZ NOP SUB?
+    MUL     = {}, -- MULT MFLO
+    --DIV     = {}, -- 3 arguments
+    REM     = {}, -- 3 arguments
+
+    NAND    = {},
+    NANDI   = {},
+    NORI    = {},
+    ROL     = {},
+    ROR     = {},
+
+    SEQ     = {},
+    SEQI    = {},
+    SEQIU   = {},
+    SEQU    = {},
+    SGE     = {},
+    SGEI    = {},
+    SGEIU   = {},
+    SGEU    = {},
+    SGT     = {},
+    SGTI    = {},
+    SGTIU   = {},
+    SGTU    = {},
+    SLE     = {},
+    SLEI    = {},
+    SLEIU   = {},
+    SLEU    = {},
+    SNE     = {},
+    SNEI    = {},
+    SNEIU   = {},
+    SNEU    = {},
+
+    -- TODO: immediate, unsigned, likely versions?
     BEQI    = {},
     BNEI    = {},
     BGE     = {},
@@ -699,7 +729,6 @@ function Parser:register(t)
     t = t or registers
     if self.tt ~= 'REG' then
         if self.tt == 'NUM' and self.tok == '0' then
-            -- i don't think cajeasm actually does this
             self.tt = 'REG'
             self.tok = 'R0'
         else
@@ -830,7 +859,7 @@ function Parser:instruction()
     if h == nil then
         self:error('undefined instruction')
     elseif h == 'LI' or h == 'LA' then
-        -- FIXME: this fails horribly with labels
+        -- FIXME: probably breaks with defines
         local lui = instruction_handlers['LUI']
         local addi = instruction_handlers['ADDI']
         local ori = instruction_handlers['ORI']
@@ -838,6 +867,13 @@ function Parser:instruction()
         args.rt = self:register()
         self:optional_comma()
         local im = self:const()
+        local is_label = type(im[2]) ~= 'number'
+        if h == 'LI' and is_label then
+            self:error('use LA for addresses')
+        end
+        if h == 'LA' and not is_label then
+            self:error('use LI for immediates')
+        end
         if h == 'LA' or im[2] >= 0x10000 then
             args.rs = args.rt
             args.immediate = {'UPPER', im}
