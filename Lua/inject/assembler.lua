@@ -126,7 +126,7 @@ local instruction_handlers = {
     SWL     = {42, 'tob', 'bto'},
     SWR     = {46, 'tob', 'bto'},
 
-    LUI     = {15, 'tJ', '0ti'},
+    LUI     = {15, 'tj', '0ti'},
 
     MFHI    = {0, 'd', '00d0C', 16},
     MFLO    = {0, 'd', '00d0C', 18},
@@ -335,6 +335,10 @@ local instruction_handlers = {
 
     SUBI    = {8, 'tsk', 'sti'},
     SUBIU   = {9, 'tsk', 'sti'},
+
+    -- LUI only loads the lower 16 bits of its constant.
+    -- if you need the upper 16, use this instead.
+    LUUI    = {15, 'tJ', '0ti'},
 
     -- ...that expand to multiple instructions
     LI      = 'LI', -- only one instruction for values < 0x10000
@@ -767,7 +771,7 @@ function Parser:format_in(informat)
         else
             error('Internal Error: invalid input formatting string', 1)
         end
-        if c2:find('[dstDSToiIjJr]') then
+        if c2:find('[dstDSToiIjJkr]') then
             self:optional_comma()
         end
     end
@@ -826,7 +830,9 @@ function Parser:instruction()
     if h == nil then
         self:error('undefined instruction')
     elseif h == 'LI' or h == 'LA' then
+        -- FIXME: this fails horribly with labels
         local lui = instruction_handlers['LUI']
+        local addi = instruction_handlers['ADDI']
         local ori = instruction_handlers['ORI']
         local args = {}
         args.rt = self:register()
@@ -836,11 +842,13 @@ function Parser:instruction()
             args.rs = args.rt
             args.immediate = {'UPPER', im}
             self:format_out(lui[3], lui[1], args, lui[4], lui[5])
+            args.immediate = {'LOWER', im}
+            self:format_out(ori[3], ori[1], args, ori[4], ori[5])
         else
             args.rs = 'R0'
+            args.immediate = {'LOWER', im}
+            self:format_out(addi[3], addi[1], args, addi[4], addi[5])
         end
-        args.immediate = {'LOWER', im}
-        self:format_out(ori[3], ori[1], args, ori[4], ori[5])
     elseif h[2] ~= nil then
         args = self:format_in(h[2])
         self:format_out(h[3], h[1], args, h[4], h[5])
@@ -852,7 +860,7 @@ end
 
 function Parser:parse(asm)
     self.asm = asm
-    self.lexer = Lexer(asm)
+    self.lexer = Lexer(asm, self.fn)
 
     self:advance()
     while self.tt ~= 'EOF' do
@@ -880,7 +888,7 @@ end
 
 function Dumper:error(msg)
     -- TOOD: we should pass line numbers down to add_instruction.
-    error(string.format('%s:%d: Dumper Error: %s', self.fn, self.pos, msg), 2)
+    error(string.format('%s:%d: Dumper Error: %s', '(code)', self.pos, msg), 2)
 end
 
 function Dumper:advance(by)
@@ -985,7 +993,7 @@ function Dumper:desym(tok)
         return self.labels[tok[2]]
     elseif tok[1] == 'LABELREL' then
         local rel = math.floor(self.labels[tok[2]]/4)
-        rel = rel - 2 - math.floor(self.pos/4)
+        rel = rel - 1 - math.floor(self.pos/4)
         if rel > 0x8000 or rel <= -0x8000 then
             self:error('branch too far')
         end
@@ -1015,8 +1023,7 @@ function Dumper:toval(tok)
         end
         if tok[1] == 'UPPER' then
             local val = self:desym(tok[2])
-            val = math.floor(val/0x10000)
-            return val
+            return math.floor(val/0x10000)
         elseif tok[1] == 'LOWER' then
             local val = self:desym(tok[2])
             return val % 0x10000
@@ -1024,13 +1031,8 @@ function Dumper:toval(tok)
             local val = -self:desym(tok[2])
             return val % 0x10000
         elseif tok[1] == 'INDEX' then
-            local val = self:desym(tok[2])
-            if type(tok[2]) == 'table' and tok[2][1] == 'LABELSYM' then
-                -- don't multiply by 4 twice
-            else
-                val = val*4
-            end
-            --print('(index)', val)
+            local val = self:desym(tok[2]) % 0x80000000
+            val = math.floor(val/4)
             return val
         else
             return self:desym(tok)
@@ -1149,11 +1151,13 @@ local function assemble(fn_or_asm, writer)
     writer = writer or io.write
 
     function main()
+        local fn = nil
         local asm = ''
         if fn_or_asm:find('[\r\n]') then
             asm = fn_or_asm
         else
-            local f = io.open(fn_or_asm, 'r')
+            fn = fn_or_asm
+            local f = io.open(fn, 'r')
             if not f then
                 error('could not read assembly file', 1)
             end
@@ -1161,7 +1165,7 @@ local function assemble(fn_or_asm, writer)
             f:close()
         end
 
-        local parser = Parser(writer)
+        local parser = Parser(writer, fn)
         return parser:parse(asm)
     end
 
