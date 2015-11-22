@@ -813,9 +813,9 @@ end
 
 function Parser:format_out(outformat, first, args, const, formatconst)
     local lookup = {
-        [1]=self.dumper.add_instruction_26,
-        [3]=self.dumper.add_instruction_5_5_16,
-        [5]=self.dumper.add_instruction_5_5_5_5_6,
+        [1]=self.dumper.add_instruction_j,
+        [3]=self.dumper.add_instruction_i,
+        [5]=self.dumper.add_instruction_r,
     }
     out = {}
     for i=1,#outformat do
@@ -944,16 +944,16 @@ function Dumper:push_instruction(t)
     self:advance(4)
 end
 
-function Dumper:add_instruction_26(i, a)
-    self:push_instruction{i, a}
+function Dumper:add_instruction_j(o, T)
+    self:push_instruction{o, T}
 end
 
-function Dumper:add_instruction_5_5_16(i, a, b, c)
-    self:push_instruction{i, a, b, c}
+function Dumper:add_instruction_i(o, s, t, i)
+    self:push_instruction{o, s, t, i}
 end
 
-function Dumper:add_instruction_5_5_5_5_6(i, a, b, c, d, e)
-    self:push_instruction{i, a, b, c, d, e}
+function Dumper:add_instruction_r(o, s, t, d, f, c)
+    self:push_instruction{o, s, t, d, f, c}
 end
 
 function Dumper:add_define(name, number)
@@ -1058,7 +1058,6 @@ function Dumper:toval(tok)
     end
     if type(tok) == 'table' then
         if #tok ~= 2 then
-            --print('toval', tok)
             self:error('invalid token')
         end
         if tok[1] == 'UPPER' then
@@ -1078,7 +1077,6 @@ function Dumper:toval(tok)
             return self:desym(tok)
         end
     end
-    --print('toval', tok)
     self:error('invalid value')
 end
 
@@ -1088,7 +1086,6 @@ function Dumper:validate(n, bits)
         self:error('value is nil')
     end
     if n > max or n < 0 then
-        --print(('n %08X'):format(math.abs(n)))
         self:error('value out of range')
     end
 end
@@ -1118,8 +1115,8 @@ function Dumper:dump_instruction(t)
     local uw = 0
     local lw = 0
 
-    local i = t[1]
-    uw = uw + i*0x400
+    local o = t[1]
+    uw = uw + o*0x400
 
     if #t == 2 then
         local val = self:valvar(t[2], 26)
