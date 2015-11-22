@@ -663,12 +663,6 @@ function Parser:error(msg)
     error(string.format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
-function Parser:advance()
-    self.tt, self.tok = self.lexer:lex()
-    self.line = self.lexer.line
-    return self.tt, self.tok
-end
-
 function Parser:is_EOL()
     return self.tt == 'EOL' or self.tt == 'EOF'
 end
@@ -857,7 +851,6 @@ end
 
 function Parser:instruction()
     local name = self.tok
-    self:advance()
     local h = instruction_handlers[name]
 
     if h == nil then
@@ -900,25 +893,57 @@ function Parser:instruction()
     self:expect_EOL()
 end
 
+function Parser:tokenize()
+    local lexer = Lexer(self.asm, self.fn)
+
+    self.tokens = {}
+    local line = 1
+    local lex = function()
+        local t = {line=line}
+        t.tt, t.tok = lexer:lex()
+        table.insert(self.tokens, t)
+        return t.tt, t.tok
+    end
+
+    -- first pass: collect tokens and constants.
+    -- can't do more because instruction size can depend on a constant's size
+    -- and labels depend on instruction size.
+    -- note however, instruction size does not depend on label size.
+    -- this would cause a recursive problem to solve,
+    -- which is too much for our simple assembler.
+    while true do
+        local tt, tok = lex()
+        if tt == 'DEF' then
+            local tt2, tok2 = lex()
+            if tt2 ~= 'NUM' then
+                self:error('expected number')
+            end
+            self.dumper:add_define(tok, tok2)
+        elseif tt == 'EOL' then
+            line = line + 1
+        elseif tt == 'EOF' then
+            break
+        elseif tt == nil then
+            error('Internal Error: missing token', 1)
+        end
+    end
+end
+
 function Parser:parse(asm)
     self.asm = asm
-    self.lexer = Lexer(asm, self.fn)
-
-    self:advance()
-    while self.tt ~= 'EOF' do
-        if self.tt == 'EOL' then
+    self:tokenize()
+    --require('pt'){self.tokens} -- DEBUG
+    for i, t in pairs(self.tokens) do
+        self.tt = t.tt
+        self.tok = t.tok
+        self.line = t.line
+        if t.tt == 'EOL' then
             -- empty line
-            self:advance()
-        elseif self.tt == 'DEF' then
-            local name = self.tok
-            self:advance()
-            self.dumper:add_define(name, self:number())
-        elseif self.tt == 'DIR' then
+        elseif t.tt == 'DIR' then
             self:directive()
-        elseif self.tt == 'LABEL' then
-            self.dumper:add_label(self.tok)
-            self:advance()
-        elseif self.tt == 'INSTR' then
+        elseif t.tt == 'LABEL' then
+            self.dumper:add_label(t.tok)
+        elseif t.tt == 'INSTR' then
             self:instruction()
         else
             self:error('unexpected token (unknown instruction?)')
@@ -1161,8 +1186,8 @@ function Dumper:dump()
         elseif t.kind == 'goto' then
             self.pos = t.addr
         elseif t.kind == 'align' then
-            -- actually have no idea how this is meant to be implemented
-            -- the manual is really misleading
+            -- TODO: align next instruction to 2*n boundary
+            -- note: traditionally, alignment keeps until .align 0 is given
             self:error('align directive is unimplemented')
         elseif t.kind == 'ahead' then
             if t.fill then
