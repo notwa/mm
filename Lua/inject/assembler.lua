@@ -1088,7 +1088,7 @@ function Dumper:add_directive(name, a, b)
         t.kind = 'goto'
         t.addr = a
         table.insert(self.commands, t)
-        self.pos = a
+        self.pos = a % 0x80000000
         self:advance(0)
     elseif name == 'ALIGN' then
         t.kind = 'align'
