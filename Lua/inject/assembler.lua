@@ -30,7 +30,6 @@ local Class = function(inherit)
     return setmetatable(class, mt_class)
 end
 
--- TODO: maybe support reg# style too
 local registers = {
     [0]=
     'R0', 'AT', 'V0', 'V1', 'A0', 'A1', 'A2', 'A3',
@@ -77,9 +76,14 @@ revtable(fpu_registers)
 revtable(all_registers)
 revtable(all_directives)
 
-
 registers['ZERO'] = 0
 all_registers['ZERO'] = 0
+
+for i=0, 31 do
+    local r = 'REG'..tostring(i)
+    registers[r] = i
+    all_registers[r] = i
+end
 
 local fmt_single = 16
 local fmt_double = 17
