@@ -898,6 +898,34 @@ function Parser:instruction()
             args.immediate = {'LOWER', im}
             self:format_out(addi[3], addi[1], args, addi[4], addi[5])
         end
+    elseif h[2] == 'tob' then -- or h[2] == 'Tob' then
+        local lui = instruction_handlers['LUI']
+        local args = {}
+        args.rt = self:register()
+        self:optional_comma()
+        local o = self:const()
+        if o[1] == 'LABELSYM' then
+            self:error('unimplemented: label as an offset')
+        end
+        if self:is_EOL() then
+            local upper = math.floor(o[2]/0x10000)
+            local lower = o[2] % 0x10000
+            if lower >= 0x8000 then
+                -- accommodate for offsets being signed
+                upper = (upper + 1) % 0x10000
+            end
+            local lui_args = {}
+            lui_args.immediate = {'NUM', upper}
+            lui_args.rt = 'AT'
+            self:format_out(lui[3], lui[1], lui_args, lui[4], lui[5])
+            args.offset = {'NUM', lower}
+            args.base = 'AT'
+        else
+            args.offset = o
+            self:optional_comma()
+            args.base = self:deref()
+        end
+        self:format_out(h[3], h[1], args, h[4], h[5])
     elseif h[2] ~= nil then
         args = self:format_in(h[2])
         self:format_out(h[3], h[1], args, h[4], h[5])
@@ -961,7 +989,9 @@ function Parser:parse(asm)
     self:tokenize()
     self:advance()
     while true do
-        if self.tt == 'EOL' then
+        if self.tt == 'EOF' then
+            break
+        elseif self.tt == 'EOL' then
             -- empty line
             self:advance()
         elseif self.tt == 'DEF' then
