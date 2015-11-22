@@ -871,14 +871,16 @@ function Parser:instruction()
         args.rt = self:register()
         self:optional_comma()
         local im = self:const()
-        local is_label = type(im[2]) ~= 'number'
+        local is_label = im[1] == 'LABELSYM'
         if h == 'LI' and is_label then
             self:error('use LA for addresses')
         end
         if h == 'LA' and not is_label then
             self:error('use LI for immediates')
         end
-        if h == 'LA' or im[2] >= 0x10000 then
+        -- FIXME: defines shouldn't need a special case,
+        --        we should know their values already.
+        if h == 'LA' or im[1] == 'DEFSYM' or im[2] >= 0x10000 then
             args.rs = args.rt
             args.immediate = {'UPPER', im}
             self:format_out(lui[3], lui[1], args, lui[4], lui[5])
