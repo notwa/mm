@@ -103,6 +103,7 @@ return {
     exit_value          = AL(0x02, 2),
     mask_worn           = AL(0x04, 1),
     intro_completed     = AL(0x05, 1),
+    anti_mash_timer     = AL(0x06, 1),
     cutscene_status     = AL(0x0A, 2),
     time                = AL(0x0C, 2),
     owl_id              = AL(0x0E, 2),

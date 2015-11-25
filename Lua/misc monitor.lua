@@ -14,44 +14,48 @@ unk:load('data/_unk.lua')
 local size = addrs.checksum.addr - addrs.exit_value.addr + 4
 local link = ByteMonitor('link', AL(0, size))
 local ignore_fields = mm and {
-    "exit_value",
-    "mask_worn",
-    "cutscene_status",
-    "time",
-    "transformation",
-    "hearts",
-    "magic",
-    "rupees",
-    "navi_timer",
-    "scene_flags_save",
-    "week_event_reg",
-    "event_inf",
-    "inventory_items",
-    "inventory_masks",
-    "inventory_quantities",
+    addrs.exit_value,
+    addrs.mask_worn,
+    addrs.anti_mash_timer,
+    addrs.cutscene_status,
+    addrs.time,
+    addrs.transformation,
+    addrs.hearts,
+    addrs.magic,
+    addrs.rupees,
+    addrs.navi_timer,
+    addrs.inventory.b_button_item,
+    addrs.inventory.c_left_item,
+    addrs.inventory.c_down_item,
+    addrs.inventory.c_right_item,
+    addrs.inventory.c_left_slot,
+    addrs.inventory.c_down_slot,
+    addrs.inventory.c_right_slot,
+    addrs.scene_flags_save,
+    addrs.week_event_reg,
+    addrs.event_inf,
+    addrs.inventory_items,
+    addrs.inventory_masks,
+    addrs.inventory_quantities,
 } or {
-    "exit_value",
-    "cutscene_status",
-    "time",
-    "hearts",
-    "magic",
-    "rupees",
-    "navi_timer",
-    "scene_flags_save",
-    "inventory_items",
-    "inventory_quantities",
-    "event_chk_inf",
-    "item_get_inf",
-    "inf_table",
-    "event_inf",
+    addrs.exit_value,
+    addrs.cutscene_status,
+    addrs.time,
+    addrs.hearts,
+    addrs.magic,
+    addrs.rupees,
+    addrs.navi_timer,
+    addrs.scene_flags_save,
+    addrs.inventory_items,
+    addrs.inventory_quantities,
+    addrs.event_chk_inf,
+    addrs.item_get_inf,
+    addrs.inf_table,
+    addrs.event_inf,
 }
 
 function link:ignore(i)
-    for _, k in ipairs(ignore_fields) do
-        local v = addrs[k]
-        if not v then
-            error('unknown addr: '..tostring(k), 1)
-        end
+    for _, v in pairs(ignore_fields) do
         local size = v.type
         if size == 'f' then size = 4 end
         local a = v.addr - self.begin
