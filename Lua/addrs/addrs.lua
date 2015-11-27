@@ -11,7 +11,7 @@ local same = {
 return function(hash)
     local version = versions[hash] or VERSION_OVERRIDE
     if version == nil then
-        print('ERROR: unknown rom')
+        error('unknown rom')
         return
     end
     local v = version:sub(1, 2)
