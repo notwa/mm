@@ -1,6 +1,9 @@
--- deprecated
--- (i say that, but i continue to use it myself)
-local hash = m64p.rom.settings.MD5
+local hash
+if bizstring then
+    hash = gameinfo.getromhash() 
+else
+    hash = m64p.rom.settings.MD5
+end
 local Game = require "addrs.addrs"
 local game = Game(hash)
 version = game.version

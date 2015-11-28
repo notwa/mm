@@ -2,26 +2,49 @@
 
 require "extra"
 
-local ram = 0x80000000
-R1 = function(addr) return m64p.memory:read(addr+ram, 'u8') end
-R2 = function(addr) return m64p.memory:read(addr+ram, 'u16') end
-R3 = function() error('unimplemented', 2) end
-R4 = function(addr) return m64p.memory:read(addr+ram, 'u32') end
-RF = function(addr) return m64p.memory.read(addr+ram, 'float') end
+if bizstring then
+    local mm = mainmemory
+    local m = memory
+    m.usememorydomain("ROM")
 
-W1 = function(addr, value) m64p.memory:write(addr+ram, 'u8', value) end
-W2 = function(addr, value) m64p.memory:write(addr+ram, 'u16', value) end
-W3 = function() error('unimplemented', 2) end
-W4 = function(addr, value) m64p.memory:write(addr+ram, 'u32', value) end
-WF = function(addr, value) m64p.memory.write(addr+ram, 'float', value) end
+    R1 = mm.readbyte
+    R2 = mm.read_u16_be
+    R3 = mm.read_u24_be
+    R4 = mm.read_u32_be
+    RF = function(addr) return mm.readfloat(addr, true) end
 
---[[
-X1 = m.readbyte
-X2 = m.read_u16_be
-X3 = m.read_u24_be
-X4 = m.read_u32_be
-XF = function(addr) return m.readfloat(addr, true) end
---]]
+    W1 = mm.writebyte
+    W2 = mm.write_u16_be
+    W3 = mm.write_u24_be
+    W4 = mm.write_u32_be
+    WF = function(addr, value) mm.writefloat(addr, value, true) end
+
+    X1 = m.readbyte
+    X2 = m.read_u16_be
+    X3 = m.read_u24_be
+    X4 = m.read_u32_be
+    XF = function(addr) return m.readfloat(addr, true) end
+else
+    local unimplemented = function() error('unimplemented', 2) end
+    local ram = 0x80000000
+    R1 = function(addr) return m64p.memory:read(addr+ram, 'u8') end
+    R2 = function(addr) return m64p.memory:read(addr+ram, 'u16') end
+    R3 = unimplemented
+    R4 = function(addr) return m64p.memory:read(addr+ram, 'u32') end
+    RF = function(addr) return m64p.memory.read(addr+ram, 'float') end
+
+    W1 = function(addr, value) m64p.memory:write(addr+ram, 'u8', value) end
+    W2 = function(addr, value) m64p.memory:write(addr+ram, 'u16', value) end
+    W3 = unimplemented
+    W4 = function(addr, value) m64p.memory:write(addr+ram, 'u32', value) end
+    WF = function(addr, value) m64p.memory.write(addr+ram, 'float', value) end
+
+    X1 = unimplemented
+    X2 = unimplemented
+    X3 = unimplemented
+    X4 = unimplemented
+    XF = unimplemented
+end
 
 local H1 = function(self, value)
     return value and W1(self.addr, value) or R1(self.addr)
