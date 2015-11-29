@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 # fixes the checksums in a Majora's Mask savefile for Bizhawk
 # note: copies are ignored and overwritten, so don't bother editing them.
 
