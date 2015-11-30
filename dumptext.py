@@ -58,58 +58,82 @@ def parse_jp_text(f):
         elif x == 0x8170:
             # end marker
             break
-        elif x == 0x81F0 or x == 0x819F:
-            if verbose:
-                bs += b'[event start]'
-        elif x == 0x81A5:
+        elif x == 0x81A5: # 0x04
             if verbose:
                 bs += b'[pause]'
             bs += b'\n\n'
-        elif x == 0x81A3:
+        elif x == 0x000B: # 0x05
+            if verbose:
+                bs += b'[color '+arg2()[2:]+b']'
+            else:
+                arg2()
+        elif x == 0x86C7: # 0x06
+            if verbose:
+                bs += b'[spaces '+arg2()+b']'
+            else:
+                arg2()
+        elif x == 0x81CB: # 0x07
+            bs += b'[goto '+arg2()+b']'
+        elif x == 0x8189: # 0x08
+            if verbose:
+                bs += b'[instant on]'
+        elif x == 0x818A: # 0x09
+            if verbose:
+                bs += b'[instant off]'
+        elif x == 0x86C8: # 0x0A
+            # shop-related? keeps dialog open?
+            if verbose:
+                bs += b'[keepalive]'
+        elif x == 0x819F: # 0x0B
+            if verbose:
+                bs += b'[event start]'
+        elif x == 0x81A3: # 0x0C
             if verbose:
                 bs += b'[wait '+arg2()+b']'
             else:
                 arg2()
             bs += b'\n\n'
-        elif x == 0x819E:
+        elif x == 0x819E: # 0x0E
             if verbose:
                 bs += b'[fade wait '+arg2()+b']'
             else:
                 arg2()
-        elif x == 0x000B:
-            if verbose:
-                bs += b'[color '+arg2()[2:]+b']'
-            else:
-                arg2()
-        elif x == 0x86C7:
-            if verbose:
-                bs += b'[spaces '+arg2()+b']'
-            else:
-                arg2()
-        elif x == 0x81CB:
-            bs += b'[goto '+arg2()+b']'
-        elif x == 0x8189:
-            if verbose:
-                bs += b'[instant on]'
-        elif x == 0x818A:
-            if verbose:
-                bs += b'[instant off]'
-        elif x == 0x874F:
+        elif x == 0x874F: # 0x0F
             bs += b'[Link]'
-        elif x == 0x81F3:
+        elif x == 0x81F0: # 0x10
+            if verbose:
+                bs += b'[Ocarina]'
+        elif x == 0x81F3: # 0x12
             bs += b'[sound '+arg2()+b']'
-        elif x == 0x819A:
+        elif x == 0x819A: # 0x13
             bs += b'[Item Icon '+arg2()[2:]+b']'
-        elif x == 0x8199:
+        elif x == 0x86C9: # 0x14
+            if verbose:
+                bs += b'[speed '+xs+b' '+arg2()+b']'
+            else:
+                arg2()
+        elif x == 0x86B3: # 0x15
+            bs += b'[background '+arg2()+arg2()+b']'
+        elif x == 0x8791: # 0x16
+            bs += b'[Marathon Time]'
+        elif x == 0x8792: # 0x17
+            bs += b'[Race Time]'
+        elif x == 0x879B: # 0x18
+            bs += b'[Points]'
+        elif x == 0x86A3: # 0x19
+            bs += b'[Gold Skulltulas]'
+        elif x == 0x8199: # 0x1A
             if verbose:
                 bs += b'[no skip]'
-        elif x == 0x86A3:
-            bs += b'[Gold Skulltulas]'
-        elif x == 0x86A4:
+        elif x == 0x81BC: # 0x1B
+            if verbose:
+                bs += b'[two-choice]'
+        elif x == 0x81B8: # 0x1C
+            if verbose:
+                bs += b'[three-choice]'
+        elif x == 0x86A4: # 0x1D
             bs += b'[weight]'
-        elif x == 0x879B:
-            bs += b'[points]'
-        elif x == 0x869F:
+        elif x == 0x869F: # 0x1E
             a = arg2()
             if a == b'0000':
                 bs += b'[Horseback Archery Score]'
@@ -125,58 +149,34 @@ def parse_jp_text(f):
                 bs += b'[Dampe Race time]'
             else:
                 bs += b'[time '+a+b']'
-        elif x == 0x8791:
-            bs += b'[Marathon Time]'
-        elif x == 0x81A1:
+        elif x == 0x81A1: # 0x1F
             bs += b'[World Time]'
-        elif x == 0x8792:
-            bs += b'[Race Time]'
-        elif x == 0x81BC:
-            if verbose:
-                bs += b'[two-choice]'
-        elif x == 0x81B8:
-            if verbose:
-                bs += b'[three-choice]'
-        elif x == 0x839F:
+        elif x == 0x839F: # 0x9F
             bs += b'[A]'
-        elif x == 0x83A0:
+        elif x == 0x83A0: # 0xA0
             bs += b'[B]'
-        elif x == 0x83A1:
+        elif x == 0x83A1: # 0xA1
             bs += b'[C]'
-        elif x == 0x83A2:
+        elif x == 0x83A2: # 0xA2
             bs += b'[L]'
-        elif x == 0x83A3:
+        elif x == 0x83A3: # 0xA3
             bs += b'[R]'
-        elif x == 0x83A4:
+        elif x == 0x83A4: # 0xA4
             bs += b'[Z]'
-        elif x == 0x83A5:
+        elif x == 0x83A5: # 0xA5
             bs += b'[C Up]'
-        elif x == 0x83A6:
+        elif x == 0x83A6: # 0xA6
             bs += b'[C Down]'
-        elif x == 0x83A7:
+        elif x == 0x83A7: # 0xA7
             bs += b'[C Left]'
-        elif x == 0x83A8:
+        elif x == 0x83A8: # 0xA8
             bs += b'[C Right]'
-        elif x == 0x83A9:
+        elif x == 0x83A9: # 0xA9
             bs += b'[Triangle]'
-        elif x == 0x83AA:
+        elif x == 0x83AA: # 0xAA
             bs += b'[Control Stick]'
-        elif x == 0x83AB:
-            # definitely unused
+        elif x == 0x83AB: # 0xAB
             bs += b'[DPad]'
-        elif x == 0x86C9:
-            if verbose:
-                bs += b'[speed '+xs+b' '+arg2()+b']'
-            else:
-                arg2()
-        elif x == 0x86C8:
-            # shop-related? keeps dialog open?
-            if verbose:
-                bs += b'[keepalive]'
-        elif x == 0x86B3:
-            a1 = arg2()
-            a2 = arg2()
-            bs += b'[background '+a1+a2+b']'
         elif x == 0x0000:
             lament(bs)
             lament('{:04X}'.format(lastx))
@@ -283,6 +283,11 @@ def parse_en_text(f):
             bs += b'[sound '+arg()+arg()+b']'
         elif x == 0x13:
             bs += b'[Item Icon '+arg()+b']'
+        elif x == 0x14:
+            if verbose:
+                bs += b'[speed '+arg()+b']'
+            else:
+                arg()
         elif x == 0x15:
             bs += b'[background '+arg()+arg()+arg()+b']'
         elif x == 0x16:
@@ -290,7 +295,7 @@ def parse_en_text(f):
         elif x == 0x17:
             bs += b'[Race Time]'
         elif x == 0x18:
-            bs += b'[unknown 18]'
+            bs += b'[Points]'
         elif x == 0x19:
             bs += b'[Gold Skulltulas]'
         elif x == 0x1A:
@@ -347,13 +352,7 @@ def parse_en_text(f):
         elif x == 0xAA:
             bs += b'[Control Stick]'
         elif x == 0xAB:
-            # definitely unused
             bs += b'[DPad]'
-        elif x == 0x14:
-            if verbose:
-                bs += b'[speed '+arg()+b']'
-            else:
-                arg()
         elif x == 0x00:
             lament(bs)
             lament('{:02X}'.format(lastx))
@@ -362,7 +361,7 @@ def parse_en_text(f):
             lament(bs)
             lament('unknown {:02X}'.format(x))
             raise Exception('unknown character')
-        lastx = x # DEBUG
+        lastx = x
 
     s = bs.decode('utf-8')
     return s
