@@ -84,7 +84,11 @@ else
     -- great spin attack
     -- this one's a bit odd; it goes off an event flag
     local addr = a.week_event_reg.addr + 23
-    W1(addr, bit.bor(R1(addr), 0x02))
+    if bit then
+        W1(addr, bit.bor(R1(addr), 0x02))
+    else
+        W1(addr, R1(addr) | 0x02)
+    end
 end
 
 set(a.magic_level, 2)

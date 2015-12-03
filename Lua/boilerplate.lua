@@ -27,23 +27,24 @@ if bizstring then
 else
     local unimplemented = function() error('unimplemented', 2) end
     local ram = 0x80000000
+    local rom = 0x90000000 -- might be wrong for upper 32MB of 64MB roms?
     R1 = function(addr) return m64p.memory:read(addr+ram, 'u8') end
     R2 = function(addr) return m64p.memory:read(addr+ram, 'u16') end
     R3 = unimplemented
     R4 = function(addr) return m64p.memory:read(addr+ram, 'u32') end
-    RF = function(addr) return m64p.memory.read(addr+ram, 'float') end
+    RF = function(addr) return m64p.memory:read(addr+ram, 'float') end
 
     W1 = function(addr, value) m64p.memory:write(addr+ram, 'u8', value) end
     W2 = function(addr, value) m64p.memory:write(addr+ram, 'u16', value) end
     W3 = unimplemented
     W4 = function(addr, value) m64p.memory:write(addr+ram, 'u32', value) end
-    WF = function(addr, value) m64p.memory.write(addr+ram, 'float', value) end
+    WF = function(addr, value) m64p.memory:write(addr+ram, 'float', value) end
 
-    X1 = unimplemented
-    X2 = unimplemented
+    X1 = function(addr) return m64p.memory:read(addr+rom, 'u8') end
+    X2 = function(addr) return m64p.memory:read(addr+rom, 'u16') end
     X3 = unimplemented
-    X4 = unimplemented
-    XF = unimplemented
+    X4 = function(addr) return m64p.memory:read(addr+rom, 'u32') end
+    XF = function(addr) return m64p.memory:read(addr+rom, 'float') end
 end
 
 local H1 = function(self, value)
@@ -129,6 +130,10 @@ end
 
 function hex(i)
     -- convenience function for use in console
+    if i == nil then
+        print('nil')
+        return
+    end
     if i > 0xFFFFFFFF then
         print('warning: truncated')
     end
