@@ -169,9 +169,19 @@ return {
         AL(0xFEB, 1),
     },
     lottery_numbers = {
-        AL(0xFEC, 3),
-        AL(0xFEF, 3),
-        AL(0xFF2, 3),
+        {
+            AL(0xFEC, 1),
+            AL(0xFED, 1),
+            AL(0xFEE, 1),
+        }, {
+            AL(0xFEF, 1),
+            AL(0xFF0, 1),
+            AL(0xFF1, 1),
+        }, {
+            AL(0xFF2, 1),
+            AL(0xFF3, 1),
+            AL(0xFF4, 1),
+        },
     },
     spider_mask_order = {
         AL(0xFF5, 1), -- 0: red; 1: blue; 2: green; 3: yellow

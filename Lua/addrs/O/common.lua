@@ -62,7 +62,7 @@ return {
     --magic_beans_avail   = AL(0x9B, 1),
     tunic_boots         = AL(0x9C, 1),
     sword_shield        = AL(0x9D, 1),
-    upgrades            = AL(0xA1, 3),
+    upgrades            = AL(0xA0, 4),
     quest_items         = AL(0xA4, 4),
     doubled_hearts      = AL(0xCF, 1), -- set to 20 by the game
     scene_flags_save    = AL(0xD4, 0xB0C), -- 0x1C each
