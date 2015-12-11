@@ -135,8 +135,8 @@ function ActorLister:run(now)
         end
 
         if focus_this then
+            W4(addrs.camera_target.addr, addr)
             W1(addrs.camera_target.addr, 0x80)
-            W3(addrs.camera_target.addr + 1, addr)
         end
 
         -- make all actors z-targetable

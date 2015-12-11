@@ -11,7 +11,7 @@ local damage_names = require("data.damage names"..suffix)
 local validate = false
 
 -- for figuring out actor variables
-local debug_mode = true
+local debug_mode = false
 
 local debug_watch = mm and {
     {'room_number', '%02X'},
