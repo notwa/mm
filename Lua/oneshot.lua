@@ -93,7 +93,7 @@ else
     if bit then
         W1(addr, bit.bor(R1(addr), 0x02))
     else
-        W1(addr, R1(addr) | 0x02)
+        --W1(addr, R1(addr) | 0x02) -- FIXME
     end
 end
 
