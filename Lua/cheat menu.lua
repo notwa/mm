@@ -296,6 +296,8 @@ input = JoyWrapper(input)
 
 local handle = MenuHandler(main_menu, T_TL)
 
+local was_paused = false
+
 while mm or oot do
     local ctrl, pressed = input:update()
 
@@ -304,7 +306,13 @@ while mm or oot do
         handle_eat_input(handle, ctrl, pressed)
         if alt_input and handle.menu ~= old_menu then
             run_while_paused = true
-            if handle.menu then client.pause() else client.unpause() end
+            if old_menu == nil then
+                was_paused = client.ispaused()
+                client.pause()
+            end
+            if handle.menu == nil and not was_paused then
+                client.unpause()
+            end
         end
     elseif alt_input then
         handle_alt_input(handle, ctrl, pressed)
