@@ -24,13 +24,10 @@
 [cosf]: 0x80091F40
 
 main:
-        subi    sp, sp, 20
-        sw      ra, 0(sp)
-        sw      a0, 4(sp)
-        sw      s1, 8(sp) // current actor ptr
-        sw      s3, 12(sp) // current actor type ptr
-        sw      s4, 16(sp) // current actor type index
-
+        push    ra, a0, s1, s3, s4
+        // s1: current actor ptr
+        // s3: current actor type ptr
+        // s4: current actor type index
         li      t0, @global_context
         addi    s3, t0, @actorlist_offset
         li      s4, 0
@@ -73,21 +70,14 @@ continue:
         bne     s4, t0, typeloop
         addi    s3, s3, @actorlist_dead_space
 
-        lw      ra, 0(sp)
-        lw      a0, 4(sp)
-        lw      s1, 8(sp)
-        lw      s3, 12(sp)
-        lw      s4, 16(sp)
-        jr
-        addi    sp, sp, 20
+        jpop    ra, a0, s1, s3, s4
 
 process_actor: // args: a0. returns nothing.
         // TODO: ignore bomb explosions, they share the same type
-        subi    sp, sp, 16
+        push    r0, ra, s0, s1
         // 0(sp) reserved for sinf/cosf
-        sw      ra, 4(sp)
-        sw      s0, 8(sp) // result of sin
-        sw      s1, 12(sp) // result of cos
+        // s0: result of sin
+        // s1: result of cos
         lh      t0, 0(a0)
         subiu   t0, t0, @at_bomb
         bne     t0, r0, process_actor_return
@@ -138,11 +128,7 @@ process_actor: // args: a0. returns nothing.
         sw      t5, current_rotation
 
 process_actor_return:
-        lw      ra, 4(sp)
-        lw      s0, 8(sp)
-        lw      s1, 12(sp)
-        jr
-        addi    sp, sp, 16
+        jpop    r0, ra, s0, s1
 
 rotations:
         .word 0x00000000 // pi*0/6
