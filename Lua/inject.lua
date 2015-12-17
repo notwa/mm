@@ -49,14 +49,15 @@ start:
 ]]
 
 local inject = {}
+local length = 0
 local add_inject = function(line)
-    --print(line)
+    length = length + #line/2
     table.insert(inject, tonumber(line, 16))
 end
 local true_offset = 0x80000000 + inject_addr
 assemble(header, add_inject, {unsafe=true, offset=true_offset})
--- warning: assumes each line is 4 bytes long
-assemble(asm_path, add_inject, {unsafe=true, offset=true_offset + #inject*4})
+assemble(asm_path, add_inject, {unsafe=true, offset=true_offset + length})
+printf("length: %i words", length/4)
 
 if #inject > inject_maxlen then
     print("Assembly too large!")
