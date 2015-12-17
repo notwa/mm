@@ -1350,12 +1350,18 @@ function Dumper:desym(tok)
     elseif all_registers[tok] then
         return registers[tok] or fpu_registers[tok]
     elseif tok[1] == 'LABELSYM' then
+        local label = self.labels[tok[2]]
+        if label == nil then
+            self:error('undefined label')
+        end
         local offset = self.options.offset or 0
-        return self.labels[tok[2]] + offset
+        return label + offset
     elseif tok[1] == 'LABELREL' then
-        -- TODO: ensure label exists
-        local rel = floor(self.labels[tok[2]]/4)
-        rel = rel - 1 - floor(self.pos/4)
+        local label = self.labels[tok[2]]
+        if label == nil then
+            self:error('undefined label')
+        end
+        local rel = floor(label/4) - 1 - floor(self.pos/4)
         if rel > 0x8000 or rel <= -0x8000 then
             self:error('branch too far')
         end
