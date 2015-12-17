@@ -388,6 +388,11 @@ local instructions = {
     LI      = 'LI', -- only one instruction for values < 0x10000
     LA      = 'LA',
 
+    -- variable arguments
+    PUSH    = 'PUSH',
+    POP     = 'POP',
+    JPOP    = 'JPOP',
+
     ABS     = {}, -- BGEZ NOP SUB?
     MUL     = {}, -- MULT MFLO
     --DIV     = {}, -- 3 arguments
@@ -1025,6 +1030,49 @@ function Parser:instruction()
         self:format_out(lui[3], lui[1], args, lui[4], lui[5])
         args.immediate = {'LOWER', im}
         self:format_out(addiu[3], addiu[1], args, addiu[4], addiu[5])
+    elseif h == 'PUSH' or h == 'POP' or h == 'JPOP' then
+        local addi = instructions['ADDI']
+        local w = instructions[h == 'PUSH' and 'SW' or 'LW']
+        local jr = instructions['JR']
+        local registers = {}
+        while not self:is_EOL() do
+            local r = self:register()
+            table.insert(registers, r)
+            if not self:is_EOL() then
+                self:optional_comma()
+            end
+        end
+        if #registers == 0 then
+            self:error(h..' requires at least one argument')
+        end
+        if #registers >= 0x8000/4 then
+            self:error("that's way too many registers bub")
+        end
+        local args = {}
+        if h == 'PUSH' then
+            args.rt = 'SP'
+            args.rs = 'SP'
+            args.immediate = {'NEGATE', {'NUM', #registers*4}}
+            self:format_out(addi[3], addi[1], args, addi[4], addi[5])
+        end
+        args.base = 'SP'
+        for i, r in ipairs(registers) do
+            args.rt = r
+            if r ~= 'R0' then
+                args.offset = {'NUM', (i - 1)*4}
+                self:format_out(w[3], w[1], args, w[4], w[5])
+            end
+        end
+        if h == 'JPOP' then
+            args.rs = 'RA'
+            self:format_out(jr[3], jr[1], args, jr[4], jr[5])
+        end
+        if h == 'POP' or h == 'JPOP' then
+            args.rt = 'SP'
+            args.rs = 'SP'
+            args.immediate = {'NUM', #registers*4}
+            self:format_out(addi[3], addi[1], args, addi[4], addi[5])
+        end
     elseif h == 'NAND' then
         local and_ = instructions['AND']
         local nor = instructions['NOR']
