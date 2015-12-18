@@ -12,11 +12,6 @@ Note that some scripts lack full support for Ocarina of Time.
 
 ## Scripts
 
-#### main.lua
-Ignore this for now.
-This is a rough interfacing script for passing to mupen64plus,
-and serves no purpose on Bizhawk.
-
 #### actor listor.lua
 Lists actor data onscreen,
 and focuses the camera on them.
@@ -60,6 +55,11 @@ and some other details.
 
 #### room debug.lua
 Parses and dumps the currently loaded room headers.
+
+#### m64p entry.lua
+Ignore this for now.
+This is a rough interfacing script for passing to mupen64plus,
+and serves no purpose on Bizhawk.
 
 ### Monitors
 

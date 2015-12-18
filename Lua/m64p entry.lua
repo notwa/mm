@@ -21,7 +21,7 @@ local oldbutts = 0
 local function main()
     local butts = addrs.buttons()
     if butts & 0x0020 > oldbutts & 0x0020 then -- L button
-        local ok, err = pcall(dofile, 'mm/Lua/test.lua')
+        local ok, err = pcall(dofile, 'mm/Lua/inject.lua')
         if not ok then print(err) end
     end
     oldbutts = butts
