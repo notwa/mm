@@ -9,6 +9,7 @@
 [actor_x]: 0x24
 [actor_y]: 0x28
 [actor_z]: 0x2C
+[actor_horiz_angle]: 0x32
 
 [link_save]: 0x801EF670
 [rupees_offset]: 0x3A
@@ -20,8 +21,11 @@
 [button_D_left]: 0x0200
 [button_D_down]: 0x0400
 [button_D_up]: 0x0800
+[button_any]: 0x0F20
 
-        push    4, ra
+[hold_delay_amount]: 3
+
+        push    4, s1, ra
         li      t0, @link_save
         li      t1, @global_context
 // give max rupee upgrade (set bit 13, clear bit 12 of lower halfword)
@@ -32,6 +36,19 @@
 //
         lhu     t2, @buttons_offset(t1)
         lh      t9, @rupees_offset(t0)
+        lw      s1, hold_delay
+        andi    t4, t2, @button_any
+        bne     t4, r0, no_reset
+        addi    s1, s1, 1
+        li      s1, 0
+no_reset:
+        subi    t4, s1, 1
+        beq     t4, r0, first_time
+        nop
+        subi    t4, s1, @hold_delay_amount
+        bltz    t4, return
+        nop
+first_time:
         andi    t3, t2, @button_D_up
         beq     t3, r0, no_D_up
         nop
@@ -70,7 +87,8 @@ no_max:
         bal     simple_spawn
         nop
 return:
-        jpop    4, ra
+        sw      s1, hold_delay
+        jpop    4, s1, ra
 
 simple_spawn: // args: a0 (actor to spawn)
         push    4, 9, ra
@@ -84,16 +102,26 @@ simple_spawn: // args: a0 (actor to spawn)
         mov     a3, t1 // X position
         sw      t2, 0x10(sp) // Y position
         sw      t3, 0x14(sp) // Z position
-        sw      r0, 0x18(sp) // rotation?
-        sw      r0, 0x1C(sp) // rotation?
-        sw      r0, 0x20(sp) // rotation?
-        sw      r0, 0x24(sp) // object number?
+
+        li      t9, 0x0
+        sw      t9, 0x18(sp) // rotation?
+        li      t9, 0x5080
+        sw      t9, 0x1C(sp) // horizontal rotation
+        li      t9, 0x0
+        sw      t9, 0x20(sp) // rotation?
+
+        lh      t7, @actor_horiz_angle(t0)
+        sw      t7, 0x24(sp) // actor variable
+
         li      t9, 0x0000007F
         sw      t9, 0x28(sp) // unknown
         li      t9, 0x000003FF
         sw      t9, 0x2C(sp) // unknown
-        sw      r0, 0x30(sp) // unknown
-        // and finally..
+        li      t9, 0x00000000
+        sw      t9, 0x30(sp) // unknown
         jal     @actor_spawn
         nop
         jpop    4, 9, ra
+
+hold_delay:
+        .word 0
