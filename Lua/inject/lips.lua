@@ -800,6 +800,7 @@ end
 
 function Parser:number()
     if self.tt ~= 'NUM' then
+        -- FIXME: self.line can be nil in DEFINEs
         self:error('expected number')
     end
     local value = self.tok
