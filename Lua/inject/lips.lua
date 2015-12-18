@@ -1034,31 +1034,37 @@ function Parser:instruction()
         local addi = instructions['ADDI']
         local w = instructions[h == 'PUSH' and 'SW' or 'LW']
         local jr = instructions['JR']
-        local registers = {}
+        local stack = {}
         while not self:is_EOL() do
-            local r = self:register()
-            table.insert(registers, r)
+            if self.tt == 'NUM' then
+                if self.tok < 0 then
+                    self:error("can't push a negative number of spaces")
+                end
+                for i=1,self.tok do
+                    table.insert(stack, '')
+                end
+                self:advance()
+            else
+                table.insert(stack, self:register())
+            end
             if not self:is_EOL() then
                 self:optional_comma()
             end
         end
-        if #registers == 0 then
+        if #stack == 0 then
             self:error(h..' requires at least one argument')
-        end
-        if #registers >= 0x8000/4 then
-            self:error("that's way too many registers bub")
         end
         local args = {}
         if h == 'PUSH' then
             args.rt = 'SP'
             args.rs = 'SP'
-            args.immediate = {'NEGATE', {'NUM', #registers*4}}
+            args.immediate = {'NEGATE', {'NUM', #stack*4}}
             self:format_out(addi[3], addi[1], args, addi[4], addi[5])
         end
         args.base = 'SP'
-        for i, r in ipairs(registers) do
+        for i, r in ipairs(stack) do
             args.rt = r
-            if r ~= 'R0' then
+            if r ~= '' then
                 args.offset = {'NUM', (i - 1)*4}
                 self:format_out(w[3], w[1], args, w[4], w[5])
             end
@@ -1070,7 +1076,7 @@ function Parser:instruction()
         if h == 'POP' or h == 'JPOP' then
             args.rt = 'SP'
             args.rs = 'SP'
-            args.immediate = {'NUM', #registers*4}
+            args.immediate = {'NUM', #stack*4}
             self:format_out(addi[3], addi[1], args, addi[4], addi[5])
         end
     elseif h == 'NAND' then

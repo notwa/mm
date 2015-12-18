@@ -40,6 +40,9 @@ which produces [a large csv file.][csv]
 Tests the fastest form of basic movement in Majora's Mask.
 Run it in the Clock Town Great Fairy's Fountain.
 
+#### inject.lua
+Assembles and injects an assembly subroutine into the game.
+
 #### oneshot.lua
 Instantly gives you all the items in the game, etc.
 

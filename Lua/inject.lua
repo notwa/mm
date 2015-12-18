@@ -37,14 +37,16 @@ local ow_before_addr = (ow_before % 0x4000000)*4
 
 local header = ("[overwritten]: 0x%08X\n"):format(ow_before_addr)
 header = header..[[
-        sw      ra, -4(sp)
+        // TODO: optimize for size
+        // TODO: fix case where overwritten function takes 5+ args
+        push    ra
+        push    a0, a1, a2, a3
         bal     start
-        subi    sp, sp, 4
+        nop
+        pop     a0, a1, a2, a3
         jal     @overwritten
         nop
-        lw      ra, 0(sp)
-        jr
-        addi    sp, sp, 4
+        jpop    ra
 start:
 ]]
 

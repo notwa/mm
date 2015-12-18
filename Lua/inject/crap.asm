@@ -24,7 +24,7 @@
 [cosf]: 0x80091F40
 
 main:
-        push    ra, a0, s1, s3, s4
+        push    4, s1, s3, s4, ra
         // s1: current actor ptr
         // s3: current actor type ptr
         // s4: current actor type index
@@ -70,12 +70,11 @@ continue:
         bne     s4, t0, typeloop
         addi    s3, s3, @actorlist_dead_space
 
-        jpop    ra, a0, s1, s3, s4
+        jpop    4, s1, s3, s4, ra
 
 process_actor: // args: a0. returns nothing.
         // TODO: ignore bomb explosions, they share the same type
-        push    r0, ra, s0, s1
-        // 0(sp) reserved for sinf/cosf
+        push    4, s0, s1, ra
         // s0: result of sin
         // s1: result of cos
         lh      t0, 0(a0)
@@ -128,7 +127,7 @@ process_actor: // args: a0. returns nothing.
         sw      t5, current_rotation
 
 process_actor_return:
-        jpop    r0, ra, s0, s1
+        jpop    4, s0, s1, ra
 
 rotations:
         .word 0x00000000 // pi*0/6
