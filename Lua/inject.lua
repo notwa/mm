@@ -10,9 +10,9 @@ end
 
 local asm_path
 if bizstring then
-    asm_path = "inject/crap.asm"
+    asm_path = "inject/spawn.asm"
 else
-    asm_path = "./mm/Lua/inject/crap.asm"
+    asm_path = "./mm/Lua/inject/spawn.asm"
 end
 
 local inject_addr, inject_maxlen, ow_addr, ow_before
