@@ -107,5 +107,5 @@ end
 if oot then
     inject('spawn oot.asm')
 else
-    inject('spawn.asm')
+    inject('spawn mm.asm')
 end

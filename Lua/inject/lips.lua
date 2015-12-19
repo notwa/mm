@@ -33,6 +33,16 @@ local function bitrange(x, lower, upper)
     return floor(x/2^lower) % 2^(upper - lower + 1)
 end
 
+local function readfile(fn)
+    local f = io.open(fn, 'r')
+    if not f then
+        error('could not open assembly file for reading: '..tostring(fn), 2)
+    end
+    local asm = f:read('*a')
+    f:close()
+    return asm
+end
+
 local registers = {
     [0]=
     'R0', 'AT', 'V0', 'V1', 'A0', 'A1', 'A2', 'A3',
@@ -446,9 +456,10 @@ end
 revtable(all_instructions)
 
 local Lexer = Class()
-function Lexer:init(asm, fn)
+function Lexer:init(asm, fn, options)
     self.asm = asm
     self.fn = fn or '(string)'
+    self.options = options or {}
     self.pos = 1
     self.line = 1
     self.EOF = -1
@@ -459,21 +470,22 @@ local Dumper = Class()
 function Dumper:init(writer, fn, options)
     self.writer = writer
     self.fn = fn or '(string)'
+    self.options = options or {}
     self.labels = {}
     self.commands = {}
     self.buff = ''
     self.pos = 0
     self.size = 0
     self.lastcommand = nil
-    self.options = options or {}
 end
 
 local Parser = Class()
 function Parser:init(writer, fn, options)
     self.fn = fn or '(string)'
+    self.main_fn = self.fn
+    self.options = options or {}
     self.dumper = Dumper(writer, fn, options)
     self.defines = {}
-    self.options = options or {}
 end
 
 function Lexer:error(msg)
@@ -655,7 +667,39 @@ function Lexer:lex_block_comment(yield)
     end
 end
 
-function Lexer:lex(yield)
+function Lexer:lex_string(yield)
+    -- TODO: support escaping
+    if self.chr ~= '"' then
+        print(self.chr, self.ord)
+        self:error("expected opening double quote")
+    end
+    self:nextc()
+    local buff = self:read_chars('[^"\n]')
+    if self.chr ~= '"' then
+        print(self.chr)
+        self:error("expected closing double quote")
+    end
+    self:nextc()
+    yield('STRING', buff)
+end
+
+function Lexer:lex_include(_yield)
+    self:read_chars('%s')
+    local fn
+    self:lex_string(function(tt, tok)
+        fn = tok
+    end)
+    if self.options.path then
+        fn = self.options.path..fn
+    end
+    local sublexer = Lexer(readfile(fn), fn, self.options)
+    sublexer:lex(_yield)
+end
+
+function Lexer:lex(_yield)
+    local function yield(tt, tok)
+        return _yield(tt, tok, self.fn)
+    end
     while true do
         if self.chr == '\n' then
             self:nextc()
@@ -709,6 +753,7 @@ function Lexer:lex(yield)
             end
             if up == 'INC' or up == 'INCASM' or up == 'INCLUDE' then
                 yield('DIR', 'INC')
+                self:lex_include(_yield)
             else
                 yield('DIR', up)
             end
@@ -769,13 +814,8 @@ function Parser:advance()
     local t = self.tokens[self.i]
     self.tt = t.tt
     self.tok = t.tok
+    self.fn = t.fn
     self.line = t.line
-    return t.tt, t.tok
-end
-
-function Parser:lookahead()
-    local t = self.tokens[self.i] + 1
-    if t == nil then return end
     return t.tt, t.tok
 end
 
@@ -837,7 +877,9 @@ function Parser:directive()
         self:expect_EOL()
     elseif name == 'HEX' then
         self:error('unimplemented')
-    elseif name == 'INC' or name == 'INCBIN' then
+    elseif name == 'INC' then
+        -- noop
+    elseif name == 'INCBIN' then
         self:error('unimplemented')
     elseif name == 'FLOAT' or name == 'ASCII' or name == 'ASCIIZ' then
         self:error('unimplemented')
@@ -1211,27 +1253,28 @@ function Parser:instruction()
     self:expect_EOL()
 end
 
-function Parser:tokenize()
+function Parser:tokenize(asm)
     self.tokens = {}
     self.i = 0
     local line = 1
 
     local routine = coroutine.create(function()
-        local lexer = Lexer(self.asm, self.fn)
+        local lexer = Lexer(asm, self.main_fn, self.options)
         lexer:lex(coroutine.yield)
     end)
 
-    local lex = function()
+    local function lex()
         local t = {line=line}
-        local ok, a, b = coroutine.resume(routine)
+        local ok, a, b, c = coroutine.resume(routine)
         if not ok then
             a = a or 'Internal Error: lexer coroutine has stopped'
             error(a)
         end
         t.tt = a
         t.tok = b
+        t.fn = c
         table.insert(self.tokens, t)
-        return t.tt, t.tok
+        return t.tt, t.tok, t.fn
     end
 
     -- first pass: collect tokens and constants.
@@ -1241,7 +1284,7 @@ function Parser:tokenize()
     -- this would cause a recursive problem to solve,
     -- which is too much for our simple assembler.
     while true do
-        local tt, tok = lex()
+        local tt, tok, fn = lex()
         if tt == 'DEF' then
             local tt2, tok2 = lex()
             if tt2 ~= 'NUM' then
@@ -1251,8 +1294,11 @@ function Parser:tokenize()
         elseif tt == 'EOL' then
             line = line + 1
         elseif tt == 'EOF' then
-            break
+            if fn == self.main_fn then
+                break
+            end
         elseif tt == nil then
+            --require("pt"){self.tokens, writer=print}
             error('Internal Error: missing token', 1)
         end
     end
@@ -1271,12 +1317,14 @@ function Parser:tokenize()
 end
 
 function Parser:parse(asm)
-    self.asm = asm
-    self:tokenize()
+    self:tokenize(asm)
     self:advance()
     while true do
         if self.tt == 'EOF' then
-            break
+            if self.fn == self.main_fn then
+                break
+            end
+            self:advance()
         elseif self.tt == 'EOL' then
             -- empty line
             self:advance()
@@ -1354,7 +1402,6 @@ function Dumper:add_bytes(line, ...)
 end
 
 function Dumper:add_directive(line, name, a, b)
-    -- ORG ALIGN SKIP BYTE HALFWORD WORD
     local t = {}
     t.line = line
     if name == 'BYTE' then
@@ -1585,17 +1632,13 @@ function assembler.assemble(fn_or_asm, writer, options)
 
     function main()
         local fn = nil
-        local asm = ''
+        local asm
         if fn_or_asm:find('[\r\n]') then
             asm = fn_or_asm
         else
             fn = fn_or_asm
-            local f = io.open(fn, 'r')
-            if not f then
-                error('could not read assembly file', 1)
-            end
-            asm = f:read('*a')
-            f:close()
+            asm = readfile(fn)
+            options.path = fn:match(".*/")
         end
 
         local parser = Parser(writer, fn, options)
