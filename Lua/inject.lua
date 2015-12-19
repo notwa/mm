@@ -3,23 +3,56 @@ require "boilerplate"
 require "addrs.init"
 local assemble = require "inject.lips"
 
+local injection_points = {
+    ['M US10'] = {
+        inject_addr = 0x780000,
+        inject_maxlen = 0x5A800,
+        ow_addr = 0x1749D0,
+        ow_before = 0x0C05CEC6,
+    },
+    ['O US10'] = {
+        inject_addr = 0x3BC000,
+        inject_maxlen = 0x1E800,
+        ow_addr = 0x0A19C8,
+        ow_before = 0x0C0283EE,
+    },
+}
+
+local header = [[
+[overwritten]: 0x%08X
+        // TODO: optimize for size
+        // TODO: fix case where overwritten function takes 5+ args
+        push    ra
+        push    a0, a1, a2, a3
+        bal     start
+        nop
+        pop     a0, a1, a2, a3
+        jal     @overwritten
+        nop
+        jpop    ra
+start:
+]]
+
+injection_points['O JP10'] = injection_points['O US10']
+
 function inject(fn)
     local asm_dir = bizstring and 'inject/' or './mm/Lua/inject/'
     local asm_path = asm_dir..fn
 
-    local inject_addr -- seemingly unused region of memory
-    local inject_maxlen -- how much room we have to work with
-    local ow_addr -- the jal instruction to overwrite with our hook
-    local ow_before -- what its value is normally supposed to be
-    if version == 'M US10' then
-        inject_addr = 0x780000
-        inject_maxlen = 0x5A800
-        ow_addr = 0x1749D0
-        ow_before = 0x0C05CEC6
-    else
+    local point = injection_points[version]
+    if point == nil then
         print("Sorry, inject.lua is unimplemented for your game version.")
         return
     end
+
+    -- seemingly unused region of memory
+    local inject_addr = point.inject_addr
+    -- how much room we have to work with
+    local inject_maxlen = point.inject_maxlen
+    -- the jal instruction to overwrite with our hook
+    local ow_addr = point.ow_addr
+    -- what its value is normally supposed to be
+    local ow_before = point.ow_before
 
     -- encode our jal instruction
     local ow_after = 0x0C000000 + math.floor(inject_addr/4)
@@ -32,20 +65,7 @@ function inject(fn)
     local ow_before_addr = (ow_before % 0x4000000)*4
 
     -- set up a header to handle calling our function and the original
-    local header = ("[overwritten]: 0x%08X\n"):format(ow_before_addr)
-    header = header..[[
-            // TODO: optimize for size
-            // TODO: fix case where overwritten function takes 5+ args
-            push    ra
-            push    a0, a1, a2, a3
-            bal     start
-            nop
-            pop     a0, a1, a2, a3
-            jal     @overwritten
-            nop
-            jpop    ra
-    start:
-    ]]
+    local header = header:format(ow_before_addr)
 
     local inject_words = {}
     local length = 0
@@ -84,4 +104,8 @@ function inject(fn)
     end
 end
 
-inject('spawn.asm')
+if oot then
+    inject('spawn oot.asm')
+else
+    inject('spawn.asm')
+end
