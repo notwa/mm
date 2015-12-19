@@ -698,7 +698,7 @@ end
 
 function Lexer:lex(_yield)
     local function yield(tt, tok)
-        return _yield(tt, tok, self.fn)
+        return _yield(tt, tok, self.fn, self.line)
     end
     while true do
         if self.chr == '\n' then
@@ -840,7 +840,6 @@ end
 
 function Parser:number()
     if self.tt ~= 'NUM' then
-        -- FIXME: self.line can be nil in DEFINEs
         self:error('expected number')
     end
     local value = self.tok
@@ -1256,7 +1255,6 @@ end
 function Parser:tokenize(asm)
     self.tokens = {}
     self.i = 0
-    local line = 1
 
     local routine = coroutine.create(function()
         local lexer = Lexer(asm, self.main_fn, self.options)
@@ -1264,8 +1262,8 @@ function Parser:tokenize(asm)
     end)
 
     local function lex()
-        local t = {line=line}
-        local ok, a, b, c = coroutine.resume(routine)
+        local t = {}
+        local ok, a, b, c, d = coroutine.resume(routine)
         if not ok then
             a = a or 'Internal Error: lexer coroutine has stopped'
             error(a)
@@ -1273,8 +1271,9 @@ function Parser:tokenize(asm)
         t.tt = a
         t.tok = b
         t.fn = c
+        t.line = d
         table.insert(self.tokens, t)
-        return t.tt, t.tok, t.fn
+        return t.tt, t.tok, t.fn, t.line
     end
 
     -- first pass: collect tokens and constants.
@@ -1284,21 +1283,22 @@ function Parser:tokenize(asm)
     -- this would cause a recursive problem to solve,
     -- which is too much for our simple assembler.
     while true do
-        local tt, tok, fn = lex()
+        local tt, tok, fn, line = lex()
         if tt == 'DEF' then
             local tt2, tok2 = lex()
             if tt2 ~= 'NUM' then
-                self:error('expected number')
+                self.fn = fn
+                self.line = line
+                self:error('expected number for define')
             end
             self.defines[tok] = tok2
         elseif tt == 'EOL' then
-            line = line + 1
+            -- noop
         elseif tt == 'EOF' then
             if fn == self.main_fn then
                 break
             end
         elseif tt == nil then
-            --require("pt"){self.tokens, writer=print}
             error('Internal Error: missing token', 1)
         end
     end
