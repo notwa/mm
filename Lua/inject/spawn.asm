@@ -11,13 +11,13 @@
         li      t0, @link_save
         li      t1, @global_context
 // give max rupee upgrade (set bit 13, clear bit 12 of lower halfword)
-        lh      t2, @upgrades_2_offset(t0)
+        lhu     t2, @upgrades_2_offset(t0)
         ori     t2, t2, 0x2000
         andi    t2, t2, 0xEFFF
         sh      t2, @upgrades_2_offset(t0)
 //
         lhu     t2, @buttons_offset(t1)
-        lh      t9, @rupees_offset(t0)
+        lhu     t9, @rupees_offset(t0)
         lw      s1, hold_delay
         andi    t4, t2, @button_any
         bne     t4, r0, no_reset
@@ -87,12 +87,12 @@ simple_spawn: // args: a0 (actor to spawn)
 
         li      t9, 0x0
         sw      t9, 0x18(sp) // rotation?
-        lh      t7, @actor_horiz_angle(t0)
+        lhu     t7, @actor_horiz_angle(t0)
         sw      t7, 0x1C(sp) // horizontal rotation
         li      t9, 0x0
         sw      t9, 0x20(sp) // rotation?
 
-        lh      t7, @actor_horiz_angle(t0)
+        lhu     t7, @actor_horiz_angle(t0)
         sw      t7, 0x24(sp) // actor variable
 
         li      t9, 0x0000007F
