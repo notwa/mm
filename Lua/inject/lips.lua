@@ -1284,11 +1284,11 @@ function Parser:tokenize(asm)
     -- which is too much for our simple assembler.
     while true do
         local tt, tok, fn, line = lex()
+        self.fn = fn
+        self.line = line
         if tt == 'DEF' then
             local tt2, tok2 = lex()
             if tt2 ~= 'NUM' then
-                self.fn = fn
-                self.line = line
                 self:error('expected number for define')
             end
             self.defines[tok] = tok2
@@ -1305,11 +1305,12 @@ function Parser:tokenize(asm)
 
     -- resolve defines
     for i, t in ipairs(self.tokens) do
+        self.fn = t.fn
+        self.line = t.line
         if t.tt == 'DEFSYM' then
             t.tt = 'NUM'
             t.tok = self.defines[t.tok]
             if t.tok == nil then
-                self.line = t.line
                 self:error('undefined define') -- uhhh nice wording
             end
         end
