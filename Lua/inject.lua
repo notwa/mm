@@ -70,7 +70,7 @@ function inject(fn)
 
     local inject_bytes = {}
     local length = 0
-    local function add_word(pos, line)
+    local function write(pos, line)
         length = length + #line/2
         dprint(("%08X"):format(pos), line)
         pos = pos % 0x80000000
@@ -79,11 +79,11 @@ function inject(fn)
 
     -- offset assembly labels so they work properly, and assemble!
     local true_offset = 0x80000000 + inject_addr
-    assemble(header, add_word, {unsafe=true, offset=true_offset})
-    assemble(asm_path, add_word, {unsafe=true, offset=true_offset + length})
+    assemble(header, write, {unsafe=true, offset=true_offset})
+    assemble(asm_path, write, {unsafe=true, offset=true_offset + length})
 
     printf("length: %i words", length/4)
-    if #inject_bytes > inject_maxlen then
+    if length > inject_maxlen then
         print("Assembly too large!")
         return
     end

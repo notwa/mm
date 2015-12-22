@@ -1015,6 +1015,8 @@ function Parser:instruction()
     local h = instructions[name]
     self:advance()
 
+    -- FIXME: errors thrown here probably have the wrong line number (+1)
+
     if h == nil then
         self:error('undefined instruction')
     elseif h == 'LI' then
