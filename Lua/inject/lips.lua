@@ -473,9 +473,7 @@ function Dumper:init(writer, fn, options)
     self.options = options or {}
     self.labels = {}
     self.commands = {}
-    self.buff = ''
-    self.pos = 0
-    self.size = 0
+    self.pos = options.offset or 0
     self.lastcommand = nil
 end
 
@@ -586,7 +584,7 @@ function Lexer:read_number()
             return self:read_hex()
         elseif self.chr == '0' and self.chr2:find('%d') then
             self:nextc()
-            return self:read_octal_number()
+            return self:read_octal()
         else
             return self:read_decimal()
         end
@@ -670,13 +668,11 @@ end
 function Lexer:lex_string(yield)
     -- TODO: support escaping
     if self.chr ~= '"' then
-        print(self.chr, self.ord)
         self:error("expected opening double quote")
     end
     self:nextc()
     local buff = self:read_chars('[^"\n]')
     if self.chr ~= '"' then
-        print(self.chr)
         self:error("expected closing double quote")
     end
     self:nextc()
@@ -1347,15 +1343,11 @@ function Parser:parse(asm)
 end
 
 function Dumper:error(msg)
-    --error(string.format('%s:%d: Dumper Error: %s', '(code)', self.pos, msg), 2)
     error(string.format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
 function Dumper:advance(by)
     self.pos = self.pos + by
-    if self.pos > self.size then
-        self.size = self.pos
-    end
 end
 
 function Dumper:push_instruction(t)
@@ -1457,8 +1449,7 @@ function Dumper:desym(tok)
         if label == nil then
             self:error('undefined label')
         end
-        local offset = self.options.offset or 0
-        return label + offset
+        return label
     elseif tok[1] == 'LABELREL' then
         local label = self.labels[tok[2]]
         if label == nil then
@@ -1540,16 +1531,9 @@ function Dumper:valvar(tok, bits)
 end
 
 function Dumper:write(t)
-    -- this is gonna be really slow, but eh, optimization comes last
-    -- should really use a sparse table and fill in the string later
     for _, b in ipairs(t) do
-        if self.pos >= self.size then
-            error('Internal Error: pos out of range; size too small', 1)
-        end
         local s = ('%02X'):format(b)
-        local left = self.buff:sub(1, self.pos*2)
-        local right = self.buff:sub(self.pos*2 + 3)
-        self.buff = left..s..right
+        self.writer(self.pos, s)
         self.pos = self.pos + 1
     end
 end
@@ -1583,12 +1567,7 @@ function Dumper:dump_instruction(t)
 end
 
 function Dumper:dump()
-    self.pos = 0
-    self.buff = ''
-    for i=1,self.size do
-        self.buff = self.buff..'00'
-    end
-
+    self.pos = self.options.offset or 0
     for i, t in ipairs(self.commands) do
         if t.line == nil then
             error('Internal Error: no line number available')
@@ -1616,10 +1595,6 @@ function Dumper:dump()
         else
             error('Internal Error: unknown command', 1)
         end
-    end
-
-    for i=1, self.size*2 - 1, 8 do
-        self.writer(self.buff:sub(i, i + 7))
     end
 end
 

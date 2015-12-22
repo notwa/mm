@@ -1,6 +1,7 @@
 require = require "depend"
 require "boilerplate"
 require "addrs.init"
+require "messages"
 local assemble = require "inject.lips"
 
 local injection_points = {
@@ -67,12 +68,13 @@ function inject(fn)
     -- set up a header to handle calling our function and the original
     local header = header:format(ow_before_addr)
 
-    local inject_words = {}
+    local inject_bytes = {}
     local length = 0
-    local function add_word(line)
-        -- takes assembled code, up to 4 bytes at a time, as hex strings
+    local function add_word(pos, line)
         length = length + #line/2
-        table.insert(inject_words, tonumber(line, 16))
+        dprint(("%08X"):format(pos), line)
+        pos = pos % 0x80000000
+        inject_bytes[pos] = tonumber(line, 16)
     end
 
     -- offset assembly labels so they work properly, and assemble!
@@ -81,14 +83,15 @@ function inject(fn)
     assemble(asm_path, add_word, {unsafe=true, offset=true_offset + length})
 
     printf("length: %i words", length/4)
-    if #inject_words > inject_maxlen then
+    if #inject_bytes > inject_maxlen then
         print("Assembly too large!")
         return
     end
 
-    for i, v in ipairs(inject_words) do
-        W4(inject_addr + (i - 1)*4, v)
+    for pos, val in pairs(inject_bytes) do
+        W1(pos, val)
     end
+    print_deferred()
 
     -- finally, write our new jump over the original
     printf('%08X: %08X', ow_addr, ow_after)
