@@ -74,7 +74,10 @@ return:
 
 simple_spawn: // args: a0 (actor to spawn)
         push    4, 9, ra
-        mov     a2, a0
+        jal     load_object
+        sw      a0, 56(sp) // keep me updated!
+        bne     v0, r0, simple_spawn_return
+        lw      a2, 56(sp) // keep me updated!
         li      a1, @global_context
         addi    a0, a1, @actor_spawn_offset
         li      t0, @link_actor
@@ -103,6 +106,7 @@ simple_spawn: // args: a0 (actor to spawn)
         sw      t9, 0x30(sp) // unknown
         jal     @actor_spawn
         nop
+simple_spawn_return:
         jpop    4, 9, ra
 
 hold_delay:
