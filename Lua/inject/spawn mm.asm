@@ -1,4 +1,5 @@
 [actor_spawn]: 0x800BAE14
+[object_spawn]: 0x8012F2E0
 [max_actor_no]: 0x2B1
 
 [global_context]: 0x803E6B20
@@ -19,7 +20,5 @@
 
 .include "spawn.asm"
 
-load_object:
-// unimplemented for now, just return 0
-    jr
-    cl      v0
+actor_object_table:
+.include "actor object table mm.asm"
