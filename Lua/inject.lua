@@ -11,6 +11,12 @@ local injection_points = {
         ow_addr = 0x1749D0,
         ow_before = 0x0C05CEC6,
     },
+    ['M JP10'] = {
+        inject_addr = 0x780000,
+        inject_maxlen = 0x5A800,
+        ow_addr = 0x1701A8,
+        ow_before = 0x0C05BCD4,
+    },
     ['O US10'] = {
         inject_addr = 0x3BC000,
         inject_maxlen = 0x1E800,
@@ -110,5 +116,9 @@ end
 if oot then
     inject('spawn oot.asm')
 else
-    inject('spawn mm.asm')
+    if version == 'M JP10' or version == 'M JP11' then
+        inject('spawn mm early.asm')
+    else
+        inject('spawn mm.asm')
+    end
 end
