@@ -27,16 +27,16 @@ local injection_points = {
 
 local header = [[
 [overwritten]: 0x%08X
-        // TODO: optimize for size
-        // TODO: fix case where overwritten function takes 5+ args
-        push    ra
-        push    a0, a1, a2, a3
-        bal     start
-        nop
-        pop     a0, a1, a2, a3
-        jal     @overwritten
-        nop
-        jpop    ra
+    // TODO: optimize for size
+    // TODO: fix case where overwritten function takes 5+ args
+    push    ra
+    push    a0, a1, a2, a3
+    bal     start
+    nop
+    pop     a0, a1, a2, a3
+    jal     @overwritten
+    nop
+    jpop    ra
 start:
 ]]
 
