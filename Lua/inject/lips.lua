@@ -386,8 +386,8 @@ local instructions = {
     B       = {4, 'r', '00o'},          -- BEQ R0, R0, offset
     BAL     = {1, 'r', '0Co', 17},      -- BGEZAL R0, offset
     CL      = {0, 'd', '00d0C', 32},    -- ADD RD, R0, R0
-    MOV     = {0, 'dt', '0td0C', 32},   -- ADD RD, R0, RT
-    MOVE    = {0, 'dt', '0td0C', 32},   -- ADD RD, R0, RT
+    MOV     = {0, 'ds', 's0d0C', 32},   -- ADD RD, RT, R0
+    MOVU    = {0, 'ds', 's0d0C', 37},   -- OR RD, RS, R0
     NEG     = {0, 'dt', '0td0C', 34},   -- SUB RD, R0, RT
     NOP     = {0, '', '0'},             -- SLL R0, R0, 0
     NOT     = {0, 'ds', 's0d0C', 39},   -- NOR RD, RS, R0
@@ -1060,10 +1060,10 @@ function Parser:instruction()
 
         -- for us, this is just semantics. for a "real" assembler,
         -- LA could add appropriate RELO LUI/ADDIU directives.
-        -- for that reason, we should always use the respective instructions.
-        if im[1] ~= 'LABELSYM' then
-            self:error('use LI for immediates')
-        end
+        -- for that reason, we should always use LA for addresses.
+        --if im[1] ~= 'LABELSYM' then
+        --    self:error('use LI for immediates')
+        --end
 
         args.rs = args.rt
         args.immediate = {'UPPEROFF', im}
