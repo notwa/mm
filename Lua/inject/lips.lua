@@ -385,9 +385,8 @@ local instructions = {
     -- pseudo-instructions
     B       = {4, 'r', '00o'},          -- BEQ R0, R0, offset
     BAL     = {1, 'r', '0Co', 17},      -- BGEZAL R0, offset
-    CL      = {0, 'd', '00d0C', 32},    -- ADD RD, R0, R0
-    MOV     = {0, 'ds', 's0d0C', 32},   -- ADD RD, RT, R0
-    MOVU    = {0, 'ds', 's0d0C', 37},   -- OR RD, RS, R0
+    CL      = {0, 'd', '00d0C', 37},    -- OR RD, R0, R0
+    MOV     = {0, 'ds', 's0d0C', 37},   -- OR RD, RS, R0
     NEG     = {0, 'dt', '0td0C', 34},   -- SUB RD, R0, RT
     NOP     = {0, '', '0'},             -- SLL R0, R0, 0
     NOT     = {0, 'ds', 's0d0C', 39},   -- NOR RD, RS, R0
@@ -558,7 +557,7 @@ end
 
 function Lexer:read_octal()
     local buff = self:read_chars('[0-7]')
-    local num = tonumber(buff)
+    local num = tonumber(buff, 8)
     if not num then self:error('invalid octal number') end
     return num
 end
@@ -1028,6 +1027,8 @@ function Parser:instruction()
         self:optional_comma()
         local im = self:const()
 
+        -- for us, this is just semantics. for a "real" assembler,
+        -- LA could add appropriate RELO LUI/ADDIU directives.
         if im[1] == 'LABELSYM' then
             self:error('use LA for labels')
         end
@@ -1057,13 +1058,6 @@ function Parser:instruction()
         args.rt = self:register()
         self:optional_comma()
         local im = self:const()
-
-        -- for us, this is just semantics. for a "real" assembler,
-        -- LA could add appropriate RELO LUI/ADDIU directives.
-        -- for that reason, we should always use LA for addresses.
-        --if im[1] ~= 'LABELSYM' then
-        --    self:error('use LI for immediates')
-        --end
 
         args.rs = args.rt
         args.immediate = {'UPPEROFF', im}
@@ -1600,12 +1594,35 @@ function Dumper:dump()
     end
 end
 
+function assembler.word_writer()
+    local buff = {}
+    local max = -1
+    return function(pos, b)
+        if pos then
+            buff[pos] = b
+            if pos > max then
+                max = pos
+            end
+        else
+            if max == -1 then return end
+            for i=0, max, 4 do
+                local a = buff[i+0] or '00'
+                local b = buff[i+1] or '00'
+                local c = buff[i+2] or '00'
+                local d = buff[i+3] or '00'
+                print(a..b..c..d)
+            end
+        end
+    end
+end
+
 function assembler.assemble(fn_or_asm, writer, options)
     -- assemble MIPS R4300i assembly code.
     -- if fn_or_asm contains a newline; treat as assembly, otherwise load file.
     -- returns error message on error, or nil on success.
     fn_or_asm = tostring(fn_or_asm)
-    writer = writer or io.write
+    local default_writer = not writer
+    writer = writer or assembler.word_writer()
     options = options or {}
 
     function main()
@@ -1620,7 +1637,11 @@ function assembler.assemble(fn_or_asm, writer, options)
         end
 
         local parser = Parser(writer, fn, options)
-        return parser:parse(asm)
+        parser:parse(asm)
+
+        if default_writer then
+            writer()
+        end
     end
 
     if options.unsafe then
