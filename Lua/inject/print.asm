@@ -14,9 +14,7 @@
 buffer_pos:
     .word 0
 
-// set up 2048 bytes of text buffer
-// each line is 32 words, or 128 bytes
-// i don't think this is enough, actually
+// we'll just let this overflow
 .align 8
 buffer:
     .word 0
