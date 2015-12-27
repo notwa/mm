@@ -51,6 +51,18 @@ local registers = {
     'T8', 'T9', 'K0', 'K1', 'GP', 'SP', 'FP', 'RA',
 }
 
+local sys_registers = {
+    [0]=
+    "INDEX",     "RANDOM",    "ENTRYLO0",  "ENTRYLO1",
+    "CONTEXT",   "PAGEMASK",  "WIRED",     "RESERVED0",
+    "BADVADDR",  "COUNT",     "ENTRYHI",   "COMPARE",
+    "STATUS",    "CAUSE",     "EPC",       "PREVID",
+    "CONFIG",    "LLADDR",    "WATCHLO",   "WATCHHI",
+    "XCONTEXT",  "RESERVED1", "RESERVED2", "RESERVED3",
+    "RESERVED4", "RESERVED5", "PERR",      "CACHEERR",
+    "TAGLO",     "TAGHI",     "ERROREPC",  "RESERVED6",
+}
+
 local fpu_registers = {
     [0]=
     'F0',  'F1',  'F2',  'F3',  'F4',  'F5',  'F6',  'F7',
@@ -73,8 +85,11 @@ local all_registers = {}
 for k, v in pairs(registers) do
     all_registers[k] = v
 end
-for k, v in pairs(fpu_registers) do
+for k, v in pairs(sys_registers) do
     all_registers[k + 32] = v
+end
+for k, v in pairs(fpu_registers) do
+    all_registers[k + 64] = v
 end
 
 -- set up reverse table lookups
@@ -85,6 +100,7 @@ local function revtable(t)
 end
 
 revtable(registers)
+revtable(sys_registers)
 revtable(fpu_registers)
 revtable(all_registers)
 revtable(all_directives)
@@ -124,6 +140,9 @@ local instructions = {
         D:  floating point register for fd
         S:  floating point register for fs
         T:  floating point register for ft
+        X:  system register for rd
+        Y:  system register for rs (unused)
+        Z:  system register for rt (unused)
         o:  constant for offset
         b:  register to dereference for base
         r:  relative constant or label for offset
@@ -280,9 +299,9 @@ local instructions = {
     CTC1    = {17, 'tS', 'CtS00', 6},
     DMFC1   = {17, 'tS', 'CtS00', 1},
     DMTC1   = {17, 'tS', 'CtS00', 5},
-    MFC0    = {16, 'tS', 'CtS00', 0},
+    MFC0    = {16, 'tX', 'Ctd00', 0},
     MFC1    = {17, 'tS', 'CtS00', 0},
-    MTC0    = {16, 'tS', 'CtS00', 4},
+    MTC0    = {16, 'tX', 'Ctd00', 4},
     MTC1    = {17, 'tS', 'CtS00', 4},
 
     LDC1    = {53, 'Tob', 'bTo'},
@@ -941,6 +960,12 @@ function Parser:format_in(informat)
             args.fs = self:register(fpu_registers)
         elseif c == 'T' and not args.ft then
             args.ft = self:register(fpu_registers)
+        elseif c == 'X' and not args.rd then
+            args.rd = self:register(sys_registers)
+        elseif c == 'Y' and not args.rs then
+            args.rs = self:register(sys_registers)
+        elseif c == 'Z' and not args.rt then
+            args.rt = self:register(sys_registers)
         elseif c == 'o' and not args.offset then
             args.offset = {'SIGNED', self:const()}
         elseif c == 'r' and not args.offset then
@@ -958,7 +983,7 @@ function Parser:format_in(informat)
         else
             error('Internal Error: invalid input formatting string', 1)
         end
-        if c2:find('[dstDSTorIikK]') then
+        if c2:find('[dstDSTorIikKXYZ]') then
             self:optional_comma()
         end
     end
@@ -1438,8 +1463,6 @@ end
 function Dumper:desym(tok)
     if type(tok[2]) == 'number' then
         return tok[2]
-    elseif all_registers[tok] then
-        return registers[tok] or fpu_registers[tok]
     elseif tok[1] == 'LABELSYM' then
         local label = self.labels[tok[2]]
         if label == nil then
@@ -1451,7 +1474,9 @@ function Dumper:desym(tok)
         if label == nil then
             self:error('undefined label')
         end
-        local rel = floor(label/4) - 1 - floor(self.pos/4)
+        label = label % 0x80000000
+        local pos = self.pos % 0x80000000
+        local rel = floor(label/4) - 1 - floor(pos/4)
         if rel > 0x8000 or rel <= -0x8000 then
             self:error('branch too far')
         end
@@ -1466,7 +1491,7 @@ function Dumper:toval(tok)
     elseif type(tok) == 'number' then
         return tok
     elseif all_registers[tok] then
-        return registers[tok] or fpu_registers[tok]
+        return registers[tok] or fpu_registers[tok] or sys_registers[tok]
     end
     if type(tok) == 'table' then
         if #tok ~= 2 then
