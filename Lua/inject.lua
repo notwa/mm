@@ -23,6 +23,12 @@ local injection_points = {
         ow_addr = 0x0A19C8,
         ow_before = 0x0C0283EE,
     },
+    ['O EUDB MQ'] = {
+        inject_addr = 0x700000,
+        inject_maxlen = 0x100000,
+        ow_addr = 0x0C6940,
+        ow_before = 0x0C03151F,
+    },
 }
 
 local header = [[
@@ -89,10 +95,13 @@ function inject(fn)
     assemble(asm_path, write, {unsafe=true, offset=true_offset + length})
 
     printf("length: %i words", length/4)
+    --[[
+    -- FIXME: this only works properly when the asm doesn't use any .orgs
     if length > inject_maxlen then
         print("Assembly too large!")
         return
     end
+    --]]
 
     for pos, val in pairs(inject_bytes) do
         W1(pos, val)
@@ -114,7 +123,11 @@ function inject(fn)
 end
 
 if oot then
-    inject('spawn oot.asm')
+    if version == 'O EUDB MQ' then
+        inject('print.asm')
+    else
+        inject('spawn oot.asm')
+    end
 else
     if version == 'M JP10' or version == 'M JP11' then
         inject('spawn mm early.asm')
