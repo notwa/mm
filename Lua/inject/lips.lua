@@ -413,8 +413,8 @@ local instructions = {
     SUBIU   = {9, 'tsk', 'sti'},        -- ADDIU RT, RS, -immediate
 
     -- ...that expand to multiple instructions
-    LI      = 'LI', -- only one instruction for values < 0x10000
-    LA      = 'LA',
+    LI      = {}, -- only one instruction for values < 0x10000
+    LA      = {},
 
     -- variable arguments
     PUSH    = 'PUSH',
@@ -426,11 +426,11 @@ local instructions = {
     --DIV     = {}, -- 3 arguments
     REM     = {}, -- 3 arguments
 
-    NAND    = 'NAND', -- AND, NOT
-    NANDI   = 'NANDI', -- ANDI, NOT
-    NORI    = 'NORI', -- ORI, NOT
-    ROL     = 'ROL', -- SLL, SRL, OR
-    ROR     = 'ROR', -- SRL, SLL, OR
+    NAND    = {}, -- AND, NOT
+    NANDI   = {}, -- ANDI, NOT
+    NORI    = {}, -- ORI, NOT
+    ROL     = {}, -- SLL, SRL, OR
+    ROR     = {}, -- SRL, SLL, OR
 
     SEQ     = {},
     SEQI    = {},
@@ -1034,6 +1034,223 @@ function Parser:format_out(outformat, first, args, const, formatconst)
     f(self.dumper, self.line, first, out[1], out[2], out[3], out[4], out[5])
 end
 
+local overrides = {}
+
+function overrides.LI(self, name)
+    local lui = instructions['LUI']
+    local ori = instructions['ORI']
+    local addiu = instructions['ADDIU']
+    local args = {}
+    args.rt = self:register()
+    self:optional_comma()
+    local im = self:const()
+
+    -- for us, this is just semantics. for a "real" assembler,
+    -- LA could add appropriate RELO LUI/ADDIU directives.
+    if im[1] == 'LABELSYM' then
+        self:error('use LA for labels')
+    end
+
+    im[2] = im[2] % 0x100000000
+    if im[2] >= 0x10000 and im[2] <= 0xFFFF8000 then
+        args.rs = args.rt
+        args.immediate = {'UPPER', im}
+        self:format_out(lui[3], lui[1], args, lui[4], lui[5])
+        if im[2] % 0x10000 ~= 0 then
+            args.immediate = {'LOWER', im}
+            self:format_out(ori[3], ori[1], args, ori[4], ori[5])
+        end
+    elseif im[2] >= 0x8000 and im[2] < 0x10000 then
+        args.rs = 'R0'
+        args.immediate = {'LOWER', im}
+        self:format_out(ori[3], ori[1], args, ori[4], ori[5])
+    else
+        args.rs = 'R0'
+        args.immediate = {'LOWER', im}
+        self:format_out(addiu[3], addiu[1], args, addiu[4], addiu[5])
+    end
+end
+
+function overrides.LA(self, name)
+    local lui = instructions['LUI']
+    local addiu = instructions['ADDIU']
+    local args = {}
+    args.rt = self:register()
+    self:optional_comma()
+    local im = self:const()
+
+    args.rs = args.rt
+    args.immediate = {'UPPEROFF', im}
+    self:format_out(lui[3], lui[1], args, lui[4], lui[5])
+    args.immediate = {'LOWER', im}
+    self:format_out(addiu[3], addiu[1], args, addiu[4], addiu[5])
+end
+
+function overrides.PUSH(self, name)
+    local addi = instructions['ADDI']
+    local w = instructions[name == 'PUSH' and 'SW' or 'LW']
+    local jr = instructions['JR']
+    local stack = {}
+    while not self:is_EOL() do
+        if self.tt == 'NUM' then
+            if self.tok < 0 then
+                self:error("can't push a negative number of spaces")
+            end
+            for i=1,self.tok do
+                table.insert(stack, '')
+            end
+            self:advance()
+        else
+            table.insert(stack, self:register())
+        end
+        if not self:is_EOL() then
+            self:optional_comma()
+        end
+    end
+    if #stack == 0 then
+        self:error(name..' requires at least one argument')
+    end
+    local args = {}
+    if name == 'PUSH' then
+        args.rt = 'SP'
+        args.rs = 'SP'
+        args.immediate = {'NEGATE', {'NUM', #stack*4}}
+        self:format_out(addi[3], addi[1], args, addi[4], addi[5])
+    end
+    args.base = 'SP'
+    for i, r in ipairs(stack) do
+        args.rt = r
+        if r ~= '' then
+            args.offset = {'NUM', (i - 1)*4}
+            self:format_out(w[3], w[1], args, w[4], w[5])
+        end
+    end
+    if name == 'JPOP' then
+        args.rs = 'RA'
+        self:format_out(jr[3], jr[1], args, jr[4], jr[5])
+    end
+    if name == 'POP' or name == 'JPOP' then
+        args.rt = 'SP'
+        args.rs = 'SP'
+        args.immediate = {'NUM', #stack*4}
+        self:format_out(addi[3], addi[1], args, addi[4], addi[5])
+    end
+end
+overrides.POP = overrides.PUSH
+overrides.JPOP = overrides.PUSH
+
+function overrides.NAND(self, name)
+    local and_ = instructions['AND']
+    local nor = instructions['NOR']
+    local args = {}
+    args.rd = self:register()
+    self:optional_comma()
+    args.rs = self:register()
+    self:optional_comma()
+    args.rt = self:register()
+    self:format_out(and_[3], and_[1], args, and_[4], and_[5])
+    args.rs = args.rd
+    args.rt = 'R0'
+    self:format_out(nor[3], nor[1], args, nor[4], nor[5])
+end
+
+function overrides.NANDI(self, name)
+    local andi = instructions['ANDI']
+    local nor = instructions['NOR']
+    local args = {}
+    args.rt = self:register()
+    self:optional_comma()
+    args.rs = self:register()
+    self:optional_comma()
+    args.immediate = self:const()
+    self:format_out(andi[3], andi[1], args, andi[4], andi[5])
+    args.rd = args.rt
+    args.rs = args.rt
+    args.rt = 'R0'
+    self:format_out(nor[3], nor[1], args, nor[4], nor[5])
+end
+
+function overrides.NORI(self, name)
+    local ori = instructions['ORI']
+    local nor = instructions['NOR']
+    local args = {}
+    args.rt = self:register()
+    self:optional_comma()
+    args.rs = self:register()
+    self:optional_comma()
+    args.immediate = self:const()
+    self:format_out(ori[3], ori[1], args, ori[4], ori[5])
+    args.rd = args.rt
+    args.rs = args.rt
+    args.rt = 'R0'
+    self:format_out(nor[3], nor[1], args, nor[4], nor[5])
+end
+
+function overrides.ROL(self, name)
+    local sll = instructions['SLL']
+    local srl = instructions['SRL']
+    local or_ = instructions['OR']
+    local args = {}
+    local left = self:register()
+    self:optional_comma()
+    args.rt = self:register()
+    self:optional_comma()
+    args.immediate = self:const()
+    args.rd = left
+    if args.rd == 'AT' or args.rt == 'AT' then
+        self:error('registers cannot be AT in this pseudo-instruction')
+    end
+    if args.rd == args.rt and args.rd ~= 'R0' then
+        self:error('registers cannot be the same')
+    end
+    self:format_out(sll[3], sll[1], args, sll[4], sll[5])
+    args.rd = 'AT'
+    args.immediate = {'NUM', 32 - args.immediate[2]}
+    self:format_out(srl[3], srl[1], args, srl[4], srl[5])
+    args.rd = left
+    args.rs = left
+    args.rt = 'AT'
+    self:format_out(or_[3], or_[1], args, or_[4], or_[5])
+end
+
+function overrides.ROR(self, name)
+    local sll = instructions['SLL']
+    local srl = instructions['SRL']
+    local or_ = instructions['OR']
+    local args = {}
+    local right = self:register()
+    self:optional_comma()
+    args.rt = self:register()
+    self:optional_comma()
+    args.immediate = self:const()
+    args.rd = right
+    if args.rt == 'AT' or args.rd == 'AT' then
+        self:error('registers cannot be AT in a pseudo-instruction that uses AT')
+    end
+    if args.rd == args.rt and args.rd ~= 'R0' then
+        self:error('registers cannot be the same')
+    end
+    self:format_out(srl[3], srl[1], args, srl[4], srl[5])
+    args.rd = 'AT'
+    args.immediate = {'NUM', 32 - args.immediate[2]}
+    self:format_out(sll[3], sll[1], args, sll[4], sll[5])
+    args.rd = right
+    args.rs = right
+    args.rt = 'AT'
+    self:format_out(or_[3], or_[1], args, or_[4], or_[5])
+end
+
+function overrides.JR(self, name)
+    local jr = instructions['JR']
+    local args = {}
+    if self:is_EOL() then
+        args.rs = 'RA'
+    else
+        args.rs = self:register()
+    end
+    self:format_out(jr[3], jr[1], args, jr[4], jr[5])
+end
+
 function Parser:instruction()
     local name = self.tok
     local h = instructions[name]
@@ -1043,200 +1260,8 @@ function Parser:instruction()
 
     if h == nil then
         self:error('undefined instruction')
-    elseif h == 'LI' then
-        local lui = instructions['LUI']
-        local ori = instructions['ORI']
-        local addiu = instructions['ADDIU']
-        local args = {}
-        args.rt = self:register()
-        self:optional_comma()
-        local im = self:const()
-
-        -- for us, this is just semantics. for a "real" assembler,
-        -- LA could add appropriate RELO LUI/ADDIU directives.
-        if im[1] == 'LABELSYM' then
-            self:error('use LA for labels')
-        end
-
-        im[2] = im[2] % 0x100000000
-        if im[2] >= 0x10000 and im[2] <= 0xFFFF8000 then
-            args.rs = args.rt
-            args.immediate = {'UPPER', im}
-            self:format_out(lui[3], lui[1], args, lui[4], lui[5])
-            if im[2] % 0x10000 ~= 0 then
-                args.immediate = {'LOWER', im}
-                self:format_out(ori[3], ori[1], args, ori[4], ori[5])
-            end
-        elseif im[2] >= 0x8000 and im[2] < 0x10000 then
-            args.rs = 'R0'
-            args.immediate = {'LOWER', im}
-            self:format_out(ori[3], ori[1], args, ori[4], ori[5])
-        else
-            args.rs = 'R0'
-            args.immediate = {'LOWER', im}
-            self:format_out(addiu[3], addiu[1], args, addiu[4], addiu[5])
-        end
-    elseif h == 'LA' then
-        local lui = instructions['LUI']
-        local addiu = instructions['ADDIU']
-        local args = {}
-        args.rt = self:register()
-        self:optional_comma()
-        local im = self:const()
-
-        args.rs = args.rt
-        args.immediate = {'UPPEROFF', im}
-        self:format_out(lui[3], lui[1], args, lui[4], lui[5])
-        args.immediate = {'LOWER', im}
-        self:format_out(addiu[3], addiu[1], args, addiu[4], addiu[5])
-    elseif h == 'PUSH' or h == 'POP' or h == 'JPOP' then
-        local addi = instructions['ADDI']
-        local w = instructions[h == 'PUSH' and 'SW' or 'LW']
-        local jr = instructions['JR']
-        local stack = {}
-        while not self:is_EOL() do
-            if self.tt == 'NUM' then
-                if self.tok < 0 then
-                    self:error("can't push a negative number of spaces")
-                end
-                for i=1,self.tok do
-                    table.insert(stack, '')
-                end
-                self:advance()
-            else
-                table.insert(stack, self:register())
-            end
-            if not self:is_EOL() then
-                self:optional_comma()
-            end
-        end
-        if #stack == 0 then
-            self:error(h..' requires at least one argument')
-        end
-        local args = {}
-        if h == 'PUSH' then
-            args.rt = 'SP'
-            args.rs = 'SP'
-            args.immediate = {'NEGATE', {'NUM', #stack*4}}
-            self:format_out(addi[3], addi[1], args, addi[4], addi[5])
-        end
-        args.base = 'SP'
-        for i, r in ipairs(stack) do
-            args.rt = r
-            if r ~= '' then
-                args.offset = {'NUM', (i - 1)*4}
-                self:format_out(w[3], w[1], args, w[4], w[5])
-            end
-        end
-        if h == 'JPOP' then
-            args.rs = 'RA'
-            self:format_out(jr[3], jr[1], args, jr[4], jr[5])
-        end
-        if h == 'POP' or h == 'JPOP' then
-            args.rt = 'SP'
-            args.rs = 'SP'
-            args.immediate = {'NUM', #stack*4}
-            self:format_out(addi[3], addi[1], args, addi[4], addi[5])
-        end
-    elseif h == 'NAND' then
-        local and_ = instructions['AND']
-        local nor = instructions['NOR']
-        local args = {}
-        args.rd = self:register()
-        self:optional_comma()
-        args.rs = self:register()
-        self:optional_comma()
-        args.rt = self:register()
-        self:format_out(and_[3], and_[1], args, and_[4], and_[5])
-        args.rs = args.rd
-        args.rt = 'R0'
-        self:format_out(nor[3], nor[1], args, nor[4], nor[5])
-    elseif h == 'NANDI' then
-        local andi = instructions['ANDI']
-        local nor = instructions['NOR']
-        local args = {}
-        args.rt = self:register()
-        self:optional_comma()
-        args.rs = self:register()
-        self:optional_comma()
-        args.immediate = self:const()
-        self:format_out(andi[3], andi[1], args, andi[4], andi[5])
-        args.rd = args.rt
-        args.rs = args.rt
-        args.rt = 'R0'
-        self:format_out(nor[3], nor[1], args, nor[4], nor[5])
-    elseif h == 'NORI' then
-        local ori = instructions['ORI']
-        local nor = instructions['NOR']
-        local args = {}
-        args.rt = self:register()
-        self:optional_comma()
-        args.rs = self:register()
-        self:optional_comma()
-        args.immediate = self:const()
-        self:format_out(ori[3], ori[1], args, ori[4], ori[5])
-        args.rd = args.rt
-        args.rs = args.rt
-        args.rt = 'R0'
-        self:format_out(nor[3], nor[1], args, nor[4], nor[5])
-    elseif h == 'ROL' then
-        local sll = instructions['SLL']
-        local srl = instructions['SRL']
-        local or_ = instructions['OR']
-        local args = {}
-        local left = self:register()
-        self:optional_comma()
-        args.rt = self:register()
-        self:optional_comma()
-        args.immediate = self:const()
-        args.rd = left
-        if args.rd == 'AT' or args.rt == 'AT' then
-            self:error('registers cannot be AT in this pseudo-instruction')
-        end
-        if args.rd == args.rt and args.rd ~= 'R0' then
-            self:error('registers cannot be the same')
-        end
-        self:format_out(sll[3], sll[1], args, sll[4], sll[5])
-        args.rd = 'AT'
-        args.immediate = {'NUM', 32 - args.immediate[2]}
-        self:format_out(srl[3], srl[1], args, srl[4], srl[5])
-        args.rd = left
-        args.rs = left
-        args.rt = 'AT'
-        self:format_out(or_[3], or_[1], args, or_[4], or_[5])
-    elseif h == 'ROR' then
-        local sll = instructions['SLL']
-        local srl = instructions['SRL']
-        local or_ = instructions['OR']
-        local args = {}
-        local right = self:register()
-        self:optional_comma()
-        args.rt = self:register()
-        self:optional_comma()
-        args.immediate = self:const()
-        args.rd = right
-        if args.rt == 'AT' or args.rd == 'AT' then
-            self:error('registers cannot be AT in a pseudo-instruction that uses AT')
-        end
-        if args.rd == args.rt and args.rd ~= 'R0' then
-            self:error('registers cannot be the same')
-        end
-        self:format_out(srl[3], srl[1], args, srl[4], srl[5])
-        args.rd = 'AT'
-        args.immediate = {'NUM', 32 - args.immediate[2]}
-        self:format_out(sll[3], sll[1], args, sll[4], sll[5])
-        args.rd = right
-        args.rs = right
-        args.rt = 'AT'
-        self:format_out(or_[3], or_[1], args, or_[4], or_[5])
-    elseif name == 'JR' then
-        local args = {}
-        if self:is_EOL() then
-            args.rs = 'RA'
-        else
-            args.rs = self:register()
-        end
-        self:format_out(h[3], h[1], args, h[4], h[5])
+    elseif overrides[name] then
+        overrides[name](self, name)
     elseif h[2] == 'tob' then -- or h[2] == 'Tob' then
         local lui = instructions['LUI']
         local args = {}
