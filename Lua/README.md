@@ -12,7 +12,7 @@ Note that some scripts lack full support for Ocarina of Time.
 
 ## Scripts
 
-#### actor listor.lua
+#### actor lister.lua
 Lists actor data onscreen,
 and focuses the camera on them.
 Actors may be selected using the D-Pad.
@@ -69,6 +69,11 @@ and serves no purpose on Bizhawk.
 These scripts look for changes in RAM regions and print them in detail.
 
 These are mostly used for documenation.
+
+#### epona monitor.lua
+used to investigate [this glitch with unloading Epona.][eponaglitch]
+
+[eponaglitch]: https://www.youtube.com/watch?v=kX0ZcIS8P84
 
 #### event flag monitor.lua
 Monitors event flags,
