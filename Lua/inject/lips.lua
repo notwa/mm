@@ -12,7 +12,12 @@ local assembler = {
     ]],
 }
 
+local byte = string.byte
+local char = string.char
+local find = string.find
+local format = string.format
 local floor = math.floor
+local insert = table.insert
 
 local Class = function(inherit)
     local class = {}
@@ -171,7 +176,7 @@ local instructions = {
     J       = {2, 'I', 'I'},
     JAL     = {3, 'I', 'I'},
 
-    JALR    = {0, 'sd', 's0d0C', 9},
+    JALR    = {0, 'ds', 's0d0C', 9},
 
     MTHI    = {0, 's', 's000C', 17},
     MTLO    = {0, 's', 's000C', 19},
@@ -417,9 +422,9 @@ local instructions = {
     LA      = {},
 
     -- variable arguments
-    PUSH    = 'PUSH',
-    POP     = 'POP',
-    JPOP    = 'JPOP',
+    PUSH    = {},
+    POP     = {},
+    JPOP    = {},
 
     ABS     = {}, -- BGEZ NOP SUB?
     MUL     = {}, -- MULT MFLO
@@ -505,7 +510,7 @@ function Parser:init(writer, fn, options)
 end
 
 function Lexer:error(msg)
-    error(string.format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
+    error(format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
 function Lexer:nextc()
@@ -522,22 +527,22 @@ function Lexer:nextc()
         self.line = self.line + 1
     end
 
-    self.ord = string.byte(self.asm, self.pos)
+    self.ord = byte(self.asm, self.pos)
     self.pos = self.pos + 1
 
     -- handle newlines; translate CRLF to LF
     if self.ord == 13 then
-        if self.pos <= #self.asm and string.byte(self.asm, self.pos) == 10 then
+        if self.pos <= #self.asm and byte(self.asm, self.pos) == 10 then
             self.pos = self.pos + 1
         end
         self.ord = 10
     end
 
-    self.chr = string.char(self.ord)
+    self.chr = char(self.ord)
     if self.pos <= #self.asm then
-        self.ord2 = string.byte(self.asm, self.pos)
-        self.chr2 = string.char(self.ord2)
-        self.chrchr = string.char(self.ord, self.ord2)
+        self.ord2 = byte(self.asm, self.pos)
+        self.chr2 = char(self.ord2)
+        self.chrchr = char(self.ord, self.ord2)
     else
         self.ord2 = self.EOF
         self.chr2 = ''
@@ -553,7 +558,7 @@ end
 
 function Lexer:read_chars(pattern)
     local buff = ''
-    while string.find(self.chr, pattern) do
+    while find(self.chr, pattern) do
         buff = buff..self.chr
         self:nextc()
     end
@@ -820,7 +825,7 @@ function Lexer:lex(_yield)
 end
 
 function Parser:error(msg)
-    error(string.format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
+    error(format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
 function Parser:advance()
@@ -1097,11 +1102,11 @@ function overrides.PUSH(self, name)
                 self:error("can't push a negative number of spaces")
             end
             for i=1,self.tok do
-                table.insert(stack, '')
+                insert(stack, '')
             end
             self:advance()
         else
-            table.insert(stack, self:register())
+            insert(stack, self:register())
         end
         if not self:is_EOL() then
             self:optional_comma()
@@ -1314,7 +1319,7 @@ function Parser:tokenize(asm)
         t.tok = b
         t.fn = c
         t.line = d
-        table.insert(self.tokens, t)
+        insert(self.tokens, t)
         return t.tt, t.tok, t.fn, t.line
     end
 
@@ -1389,7 +1394,7 @@ function Parser:parse(asm)
 end
 
 function Dumper:error(msg)
-    error(string.format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
+    error(format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
 function Dumper:advance(by)
@@ -1398,7 +1403,7 @@ end
 
 function Dumper:push_instruction(t)
     t.kind = 'instruction'
-    table.insert(self.commands, t)
+    insert(self.commands, t)
     self:advance(4)
 end
 
@@ -1435,7 +1440,7 @@ function Dumper:add_bytes(line, ...)
         t[t.size] = b
     end
     if not use_last then
-        table.insert(self.commands, t)
+        insert(self.commands, t)
     end
     self:advance(t.size)
 end
@@ -1458,7 +1463,7 @@ function Dumper:add_directive(line, name, a, b)
     elseif name == 'ORG' then
         t.kind = 'goto'
         t.addr = a
-        table.insert(self.commands, t)
+        insert(self.commands, t)
         self.pos = a % 0x80000000
         self:advance(0)
     elseif name == 'ALIGN' then
@@ -1472,13 +1477,13 @@ function Dumper:add_directive(line, name, a, b)
         local temp = self.pos + align - 1
         t.skip = temp - (temp % align) - self.pos
         t.fill = t.fill or 0
-        table.insert(self.commands, t)
+        insert(self.commands, t)
         self:advance(t.skip)
     elseif name == 'SKIP' then
         t.kind = 'ahead'
         t.skip = a
         t.fill = b
-        table.insert(self.commands, t)
+        insert(self.commands, t)
         self:advance(t.skip)
     else
         self:error('unimplemented directive')
