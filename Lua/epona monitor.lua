@@ -13,7 +13,7 @@ while true do
 
     for at, ai, addr in iter_actors() do
         local actor_number = R2(addr)
-        local name = actor_names[actor_number]
+        local name = actor_names[actor_number] or "[error]"
         local size = R4(addr - 0xC) -- read linked list data above the actor
         if actor_number == 0x00D then
             epona_addr = addr
@@ -23,7 +23,7 @@ while true do
             local diff = addr - epona_addr
             if diff >= 0 and diff < offset then
                 offset = diff
-                nearest.name = name or "[error]"
+                nearest.name = name
                 nearest.addr = addr
                 nearest.at = at
                 nearest.ai = ai
@@ -41,6 +41,7 @@ while true do
         T_BR(0, 0, 'white', 'Type, Index: %2i, %2i', nearest.at, nearest.ai)
     else
         T_BR(0, 0, 'yellow', 'Epona not found')
+        epona_addr = nil
     end
 
     emu.frameadvance()
