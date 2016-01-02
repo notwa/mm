@@ -36,7 +36,7 @@ main:
     la      t0, rotations
     li      t2, @rotate_amount
     li      t9, 0
-rotate_loop:
+-:
     lw      t1, 0(t0)
     mtc1    t1, F0
     mtc1    t2, F1
@@ -46,7 +46,7 @@ rotate_loop:
     addi    t0, t0, 4
     addi    t9, t9, 1
     li      at, 6
-    bne     t9, at, rotate_loop
+    bne     t9, at, -
     nop
     la      t0, rotations
     sw      t0, current_rotation
@@ -79,7 +79,7 @@ process_actor: // args: a0. returns nothing.
     // s1: result of cos
     lh      t0, 0(a0)
     subiu   t0, t0, @at_bomb
-    bne     t0, r0, process_actor_return
+    bne     t0, r0, +
     nop
     li      t0, 0x45
     sb      t0, @actor_bomb_timer(a0)
@@ -126,7 +126,7 @@ process_actor: // args: a0. returns nothing.
     addi    t5, t5, 4
     sw      t5, current_rotation
 
-process_actor_return:
++:
     jpop    4, s0, s1, ra
 
 rotations:

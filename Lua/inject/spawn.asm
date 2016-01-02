@@ -164,11 +164,11 @@ is_object_loaded:
     li      v0, 1
 -:
     lh      t2, 12(t0) // item's object number
-    beq     a0, t2, is_object_loaded_return
+    beq     a0, t2, +
     subi    t1, t1, 1 // TODO: double check there's no off-by-one error
     addi    t0, t0, 68
     bne     t1, r0, -
     nop
     cl      v0
-is_object_loaded_return:
++:
     jpop    4
