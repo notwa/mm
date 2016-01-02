@@ -122,11 +122,11 @@ load_object:
     sll     t1, a0, 1
     addu    t0, t0, t1
     lhu     s0, 0(t0) // object number
-    beq     s0, r0, load_object_return
+    beq     s0, r0, +
     nop
     bal     is_object_loaded
     mov     a0, s0
-    bne     v0, r0, load_object_return
+    bne     v0, r0, +
     cl      v0
     li      t8, @global_context
     li      t9, @object_spawn_offset
@@ -134,7 +134,7 @@ load_object:
     mov     a1, s0
     jal     @object_spawn
     nop
-load_object_return:
++:
     jpop    4, s0, ra
 
 /*
