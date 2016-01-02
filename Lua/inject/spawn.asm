@@ -20,34 +20,33 @@
     lhu     t9, @rupees_offset(t0)
     lw      s1, hold_delay
     andi    t4, t2, @button_any
-    bne     t4, r0, +
+    bnez    t4, +
     addi    s1, s1, 1
     li      s1, 0
 +:
-    subi    t4, s1, 1
-    beq     t4, r0, +
+    beqi    s1, 1, +
     nop
     subi    t4, s1, @hold_delay_amount
     bltz    t4, return
     nop
 +:
     andi    t3, t2, @button_D_up
-    beq     t3, r0, +
+    beqz    t3, +
     nop
     addi    t9, t9, 1
 +:
     andi    t3, t2, @button_D_down
-    beq     t3, r0, +
+    beqz    t3, +
     nop
     subi    t9, t9, 1
 +:
     andi    t3, t2, @button_D_right
-    beq     t3, r0, +
+    beqz    t3, +
     nop
     addi    t9, t9, 10
 +:
     andi    t3, t2, @button_D_left
-    beq     t3, r0, +
+    beqz    t3, +
     nop
     subi    t9, t9, 10
 +:
@@ -63,7 +62,7 @@
 +:
     sh      t9, @rupees_offset(t0)
     andi    t3, t2, @button_L
-    beq     t3, r0, return
+    beqz    t3, return
     nop
     mov     a0, t9
     bal     simple_spawn
@@ -76,7 +75,7 @@ simple_spawn: // args: a0 (actor to spawn)
     push    4, 9, ra
     jal     load_object
     sw      a0, 56(sp) // keep me updated!
-    bne     v0, r0, simple_spawn_return
+    bnez    v0, simple_spawn_return
     lw      a2, 56(sp) // keep me updated!
     li      a1, @global_context
     addi    a0, a1, @actor_spawn_offset
@@ -122,11 +121,11 @@ load_object:
     sll     t1, a0, 1
     addu    t0, t0, t1
     lhu     s0, 0(t0) // object number
-    beq     s0, r0, +
+    beqz    s0, +
     nop
     bal     is_object_loaded
     mov     a0, s0
-    bne     v0, r0, +
+    bnez    v0, +
     cl      v0
     li      t8, @global_context
     li      t9, @object_spawn_offset
@@ -167,7 +166,7 @@ is_object_loaded:
     beq     a0, t2, +
     subi    t1, t1, 1 // TODO: double check there's no off-by-one error
     addi    t0, t0, 68
-    bne     t1, r0, -
+    bnez    t1, -
     nop
     cl      v0
 +:

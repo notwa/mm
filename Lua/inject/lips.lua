@@ -409,6 +409,8 @@ local instructions = {
     -- pseudo-instructions
     B       = {4, 'r', '00o'},          -- BEQ R0, R0, offset
     BAL     = {1, 'r', '0Co', 17},      -- BGEZAL R0, offset
+    BEQZ    = {4, 'sr', 's0o'},         -- BEQ RS, R0, offset
+    BNEZ    = {5, 'sr', 's0o'},         -- BNE RS, R0, offset
     CL      = {0, 'd', '00d0C', 37},    -- OR RD, R0, R0
     MOV     = {0, 'ds', 's0d0C', 37},   -- OR RD, RS, R0
     NEG     = {0, 'dt', '0td0C', 34},   -- SUB RD, R0, RT
@@ -437,37 +439,18 @@ local instructions = {
     ROL     = {}, -- SLL, SRL, OR
     ROR     = {}, -- SRL, SLL, OR
 
-    SEQ     = {},
-    SEQI    = {},
-    SEQIU   = {},
-    SEQU    = {},
-    SGE     = {},
-    SGEI    = {},
-    SGEIU   = {},
-    SGEU    = {},
-    SGT     = {},
-    SGTI    = {},
-    SGTIU   = {},
-    SGTU    = {},
-    SLE     = {},
-    SLEI    = {},
-    SLEIU   = {},
-    SLEU    = {},
-    SNE     = {},
-    SNEI    = {},
-    SNEIU   = {},
-    SNEU    = {},
+    SEQ     = {}, SEQI    = {}, SEQIU   = {}, SEQU    = {},
+    SGE     = {}, SGEI    = {}, SGEIU   = {}, SGEU    = {},
+    SGT     = {}, SGTI    = {}, SGTIU   = {}, SGTU    = {},
+    SLE     = {}, SLEI    = {}, SLEIU   = {}, SLEU    = {},
+    SNE     = {}, SNEI    = {}, SNEIU   = {}, SNEU    = {},
 
-    BEQI    = {},
-    BNEI    = {},
-    BGE     = {},
-    BGEI    = {},
-    BLE     = {},
-    BLEI    = {},
-    BLT     = {},
-    BLTI    = {},
-    BGT     = {},
-    BGTI    = {},
+                  BEQI    = {},
+                  BNEI    = {},
+    BGE     = {}, BGEI    = {},
+    BLE     = {}, BLEI    = {},
+    BLT     = {}, BLTI    = {},
+    BGT     = {}, BGTI    = {},
 }
 
 local all_instructions = {}
@@ -1262,6 +1245,34 @@ function overrides.JR(self, name)
     end
     self:format_out(jr[3], jr[1], args, jr[4], jr[5])
 end
+
+local branch_basics = {
+    BEQI = "BEQ",
+    BNEI = "BNE",
+}
+
+function overrides.BEQI(self, name)
+    local addiu = instructions['ADDIU']
+    local branch = instructions[branch_basics[name]]
+    local args = {}
+    local reg = self:register()
+    self:optional_comma()
+    args.immediate = self:const()
+    self:optional_comma()
+    args.offset = {'SIGNED', self:const('relative')}
+
+    if reg == 'AT' then
+        self:error('register cannot be AT in this pseudo-instruction')
+    end
+
+    args.rt = 'AT'
+    args.rs = 'R0'
+    self:format_out(addiu[3], addiu[1], args, addiu[4], addiu[5])
+
+    args.rs = reg
+    self:format_out(branch[3], branch[1], args, branch[4], branch[5])
+end
+overrides.BNEI = overrides.BEQI
 
 function Parser:instruction()
     local name = self.tok
