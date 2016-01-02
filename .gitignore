@@ -3,5 +3,4 @@ lua movement test
 * - Copy*
 cm oot save.lua
 cm mm save.lua
-*.csv
 __pycache__/*
