@@ -1350,9 +1350,9 @@ function Parser:tokenize(asm)
             self.defines[tok] = tok2
         elseif tt == 'RELLABEL' then
             if tok == '+' then
-                insert(plus_labels, line)
+                insert(plus_labels, #self.tokens)
             elseif tok == '-' then
-                insert(minus_labels, 1, line)
+                insert(minus_labels, 1, #self.tokens)
             else
                 error('Internal Error: unexpected token for relative label', 1)
             end
@@ -1380,29 +1380,28 @@ function Parser:tokenize(asm)
         elseif t.tt == 'RELLABEL' then
             t.tt = 'LABEL'
             -- exploits the fact that user labels can't begin with a number
-            -- FIXME: can produce bad results with includes, etc
-            t.tok = tostring(t.line)
+            t.tok = tostring(i)
         elseif t.tt == 'RELLABELSYM' then
             t.tt = 'LABELSYM'
             local rel = t.tok
             local seen = 0
             -- TODO: don't iterate over *every* label, just the ones nearby
             if rel > 0 then
-                for i, line in ipairs(plus_labels) do
-                    if line > t.line then
+                for _, label_i in ipairs(plus_labels) do
+                    if label_i > i then
                         seen = seen + 1
                         if seen == rel then
-                            t.tok = tostring(line)
+                            t.tok = tostring(label_i)
                             break
                         end
                     end
                 end
             else
-                for i, line in ipairs(minus_labels) do
-                    if line < t.line then
+                for _, label_i in ipairs(minus_labels) do
+                    if label_i < i then
                         seen = seen - 1
                         if seen == rel then
-                            t.tok = tostring(line)
+                            t.tok = tostring(label_i)
                             break
                         end
                     end
