@@ -20,47 +20,47 @@
     lhu     t9, @rupees_offset(t0)
     lw      s1, hold_delay
     andi    t4, t2, @button_any
-    bne     t4, r0, no_reset
+    bne     t4, r0, +
     addi    s1, s1, 1
     li      s1, 0
-no_reset:
++:
     subi    t4, s1, 1
-    beq     t4, r0, first_time
+    beq     t4, r0, +
     nop
     subi    t4, s1, @hold_delay_amount
     bltz    t4, return
     nop
-first_time:
++:
     andi    t3, t2, @button_D_up
-    beq     t3, r0, no_D_up
+    beq     t3, r0, +
     nop
     addi    t9, t9, 1
-no_D_up:
++:
     andi    t3, t2, @button_D_down
-    beq     t3, r0, no_D_down
+    beq     t3, r0, +
     nop
     subi    t9, t9, 1
-no_D_down:
++:
     andi    t3, t2, @button_D_right
-    beq     t3, r0, no_D_right
+    beq     t3, r0, +
     nop
     addi    t9, t9, 10
-no_D_right:
++:
     andi    t3, t2, @button_D_left
-    beq     t3, r0, no_D_left
+    beq     t3, r0, +
     nop
     subi    t9, t9, 10
-no_D_left:
++:
     subi    t4, t9, 1
-    bgez    t4, no_min
+    bgez    t4, +
     nop
     li      t9, @max_actor_no
-no_min:
++:
     subi    t4, t9, @max_actor_no
-    blez    t4, no_max
+    blez    t4, +
     nop
     li      t9, 1
-no_max:
++:
     sh      t9, @rupees_offset(t0)
     andi    t3, t2, @button_L
     beq     t3, r0, return
@@ -162,12 +162,12 @@ is_object_loaded:
     add     t0, t8, t9 // current item
     lb      t1, 8(t0) // remaining items
     li      v0, 1
-is_object_loaded_loop:
+-:
     lh      t2, 12(t0) // item's object number
     beq     a0, t2, is_object_loaded_return
     subi    t1, t1, 1 // TODO: double check there's no off-by-one error
     addi    t0, t0, 68
-    bne     t1, r0, is_object_loaded_loop
+    bne     t1, r0, -
     nop
     cl      v0
 is_object_loaded_return:

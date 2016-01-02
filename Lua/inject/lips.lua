@@ -805,13 +805,20 @@ function Lexer:lex(_yield)
             self:error('unmatched closing bracket')
         elseif self.chr == ')' then
             self:error('unmatched closing parenthesis')
-        elseif self.chr == '-' then
-            self:nextc()
-            local n = self:read_number()
-            if n then
-                yield('NUM', -n)
+        elseif self.chr == '+' or self.chr == '-' then
+            local sign_chr = self.chr
+            local sign = sign_chr == '+' and 1 or -1
+            local buff = self:read_chars('%'..self.chr)
+            if #buff == 1 and self.chr == ':' then
+                self:nextc()
+                yield('RELLABEL', sign_chr)
             else
-                self:error('expected number after minus sign')
+                local n = self:read_number()
+                if n then
+                    yield('NUM', sign*n)
+                else
+                    yield('RELLABELSYM', sign*#buff)
+                end
             end
         else
             local n = self:read_number()
@@ -1323,12 +1330,14 @@ function Parser:tokenize(asm)
         return t.tt, t.tok, t.fn, t.line
     end
 
-    -- first pass: collect tokens and constants.
+    -- first pass: collect tokens, constants, and relative labels.
     -- can't do more because instruction size can depend on a constant's size
     -- and labels depend on instruction size.
     -- note however, instruction size does not depend on label size.
     -- this would cause a recursive problem to solve,
     -- which is too much for our simple assembler.
+    local plus_labels = {} -- constructed forwards
+    local minus_labels = {} -- constructed backwards
     while true do
         local tt, tok, fn, line = lex()
         self.fn = fn
@@ -1339,6 +1348,14 @@ function Parser:tokenize(asm)
                 self:error('expected number for define')
             end
             self.defines[tok] = tok2
+        elseif tt == 'RELLABEL' then
+            if tok == '+' then
+                insert(plus_labels, line)
+            elseif tok == '-' then
+                insert(minus_labels, 1, line)
+            else
+                error('Internal Error: unexpected token for relative label', 1)
+            end
         elseif tt == 'EOL' then
             -- noop
         elseif tt == 'EOF' then
@@ -1350,7 +1367,7 @@ function Parser:tokenize(asm)
         end
     end
 
-    -- resolve defines
+    -- resolve defines and relative labels
     for i, t in ipairs(self.tokens) do
         self.fn = t.fn
         self.line = t.line
@@ -1359,6 +1376,40 @@ function Parser:tokenize(asm)
             t.tok = self.defines[t.tok]
             if t.tok == nil then
                 self:error('undefined define') -- uhhh nice wording
+            end
+        elseif t.tt == 'RELLABEL' then
+            t.tt = 'LABEL'
+            -- exploits the fact that user labels can't begin with a number
+            -- FIXME: can produce bad results with includes, etc
+            t.tok = tostring(t.line)
+        elseif t.tt == 'RELLABELSYM' then
+            t.tt = 'LABELSYM'
+            local rel = t.tok
+            local seen = 0
+            -- TODO: don't iterate over *every* label, just the ones nearby
+            if rel > 0 then
+                for i, line in ipairs(plus_labels) do
+                    if line > t.line then
+                        seen = seen + 1
+                        if seen == rel then
+                            t.tok = tostring(line)
+                            break
+                        end
+                    end
+                end
+            else
+                for i, line in ipairs(minus_labels) do
+                    if line < t.line then
+                        seen = seen - 1
+                        if seen == rel then
+                            t.tok = tostring(line)
+                            break
+                        end
+                    end
+                end
+            end
+            if seen ~= rel then
+                self:error('could not find appropriate relative label')
             end
         end
     end
