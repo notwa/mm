@@ -1248,6 +1248,10 @@ end
 
 local branch_basics = {
     BEQI = "BEQ",
+    BGEI = "BEQ",
+    BGTI = "BEQ",
+    BLEI = "BNE",
+    BLTI = "BNE",
     BNEI = "BNE",
 }
 
@@ -1273,6 +1277,68 @@ function overrides.BEQI(self, name)
     self:format_out(branch[3], branch[1], args, branch[4], branch[5])
 end
 overrides.BNEI = overrides.BEQI
+
+function overrides.BLTI(self, name)
+    local slti = instructions['SLTI']
+    local branch = instructions[branch_basics[name]]
+    local args = {}
+    args.rs = self:register()
+    self:optional_comma()
+    args.immediate = self:const()
+    self:optional_comma()
+    args.offset = {'SIGNED', self:const('relative')}
+
+    if reg == 'AT' then
+        self:error('register cannot be AT in this pseudo-instruction')
+    end
+
+    args.rt = 'AT'
+    self:format_out(slti[3], slti[1], args, slti[4], slti[5])
+
+    args.rs = 'AT'
+    args.rt = 'R0'
+    self:format_out(branch[3], branch[1], args, branch[4], branch[5])
+end
+overrides.BGEI = overrides.BLTI
+
+function overrides.BLEI(self, name)
+    -- TODO: this can probably be optimized
+    local addiu = instructions['ADDIU']
+    local slt = instructions['SLT']
+    local branch = instructions[branch_basics[name]]
+    local beq = instructions['BEQ']
+    local args = {}
+    local reg = self:register()
+    self:optional_comma()
+    args.immediate = self:const()
+    self:optional_comma()
+    local offset = {'SIGNED', self:const('relative')}
+
+    if reg == 'AT' then
+        self:error('register cannot be AT in this pseudo-instruction')
+    end
+
+    args.rt = 'AT'
+    args.rs = 'R0'
+    self:format_out(addiu[3], addiu[1], args, addiu[4], addiu[5])
+
+    if name == 'BLEI' then
+        args.offset = offset
+    else
+        args.offset = 2 -- branch to delay slot of the next branch
+    end
+    args.rs = reg
+    self:format_out(beq[3], beq[1], args, beq[4], beq[5])
+
+    args.rd = 'AT'
+    self:format_out(slt[3], slt[1], args, slt[4], slt[5])
+
+    args.rs = 'AT'
+    args.rt = 'R0'
+    args.offset = offset
+    self:format_out(branch[3], branch[1], args, branch[4], branch[5])
+end
+overrides.BGTI = overrides.BLEI
 
 function Parser:instruction()
     local name = self.tok
