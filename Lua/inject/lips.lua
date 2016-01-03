@@ -428,7 +428,7 @@ local instructions = {
     POP     = {},
     JPOP    = {},
 
-    ABS     = {}, -- BGEZ NOP SUB?
+    ABS     = {}, -- BGEZ NOP SUBU?
     MUL     = {}, -- MULT MFLO
     --DIV     = {}, -- 3 arguments
     REM     = {}, -- 3 arguments
@@ -1622,6 +1622,7 @@ function Dumper:add_directive(line, name, a, b)
 end
 
 function Dumper:desym(tok)
+    -- FIXME: errors can give wrong filename, also off by one
     if type(tok[2]) == 'number' then
         return tok[2]
     elseif tok[1] == 'LABELSYM' then

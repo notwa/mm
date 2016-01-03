@@ -10,6 +10,35 @@
     jr
     nop
 
+[ObjectSpawn]: 0x80097C00
+[ObjectIndex]: 0x8009812C
+
+ObjectSpawnWrap:
+    // keep track of which objects we're spawning
+    // TODO: reset count on scene change
+    push    4, ra, 1
+
+    // stuff for jump-only hook
+    //li      a0, 0x802237C4
+    //mov     a1, a3
+
+    //beqi    a1, 2, + // don't bother loading gameplay_field_keep
+    lwu     t0, spawn_count
+    sll     t2, t0, 1
+    la      t1, spawned
+    addu    t1, t1, t2
+    addiu   t0, t0, 1
+    sw      t0, spawn_count
+    sh      a1, 0(t1)
+    jal     @ObjectSpawn
+    nop
++:
+    jpop    4, ra, 1
+spawn_count:
+    .word 0
+spawned:
+    .halfword 0, 0, 0, 0, 0, 0, 0, 0
+
 // keep track of where we are in the buffer
 buffer_pos:
     .word 0
@@ -36,3 +65,39 @@ copy_loop:
     sw      t0, buffer_pos
     jr
     nop
+
+// force objects to load
+
+/* jump-only hook
+.org 0x80098180
+    j       ObjectSpawnWrap
+    nop
+*/
+
+.org @ObjectIndex
+    // we have space for 22 instructions
+    push    4, ra, 1
+    //sll     a1, a1, 0x10
+    //sra     a1, a1, 0x10
+    mov     t0, a0
+    lbu     t1, 8(a0) // remaining items
+    cl      v0
+-:
+    lh      t2, 12(t0) // item's object number
+    // t2 = abs(t2)
+    bgez    t2, +
+    nop
+    subu    t2, r0, t2
++:
+    beq     a1, t2, +
+    subi    t1, t1, 1
+    addiu   v0, v0, 1
+    addi    t0, t0, 68
+    bnez    t1, -
+    nop
+    jal     ObjectSpawnWrap
+    nop
+    //subiu   v0, r0, -1
++:
+    jpop    4, ra, 1
+    // 19 words

@@ -73,10 +73,7 @@ return:
 
 simple_spawn: // args: a0 (actor to spawn)
     push    4, 9, ra
-    jal     load_object
-    sw      a0, 56(sp) // keep me updated!
-    bnez    v0, simple_spawn_return
-    lw      a2, 56(sp) // keep me updated!
+    mov     a2, a0
     li      a1, @global_context
     addi    a0, a1, @actor_spawn_offset
     li      t0, @link_actor
@@ -106,68 +103,34 @@ simple_spawn: // args: a0 (actor to spawn)
     sw      t9, 0x30(sp) // unknown
     jal     @actor_spawn
     nop
-simple_spawn_return:
     jpop    4, 9, ra
 
 hold_delay:
     .word 0
 
-load_object:
-// args: a0 (actor number)
-// returns v0 (0 if ok, 1 on error)
-    push    4, s0, ra
-    li      v0, 1
-    la      t0, actor_object_table
-    sll     t1, a0, 1
-    addu    t0, t0, t1
-    lhu     s0, 0(t0) // object number
-    beqz    s0, +
-    nop
-    bal     is_object_loaded
-    mov     a0, s0
-    bnez    v0, +
+.org @object_index
+    // we have space for 22 instructions (on debug, 23 on 1.0?)
+    push    4, ra, 1
+    mov     t0, a0
+    lbu     t1, 8(a0) // remaining items
     cl      v0
-    li      t8, @global_context
-    li      t9, @object_spawn_offset
-    add     a0, t8, t9
-    mov     a1, s0
-    jal     @object_spawn
-    nop
-+:
-    jpop    4, s0, ra
-
-/*
-we'll be dealing with structs like
-typedef struct {
-    uint_ptr region_start; // ?
-    uint_ptr region_end;   // ?
-    byte loaded_count;     // only set in first item
-    byte loaded_count_alt; // usually fewer than the above
-    uint16 unknown;
-    uint16 object_number;
-    uint16 padding;
-    uint_ptr start;
-    uint32 size;
-    uint32 unknowns[11]; // more pointers and sizes
-} loaded_object; // total size: 68 bytes
-*/
-
-is_object_loaded:
-// args: a0 (object number)
-// returns v0 (1 if loaded, 0 if not)
-    push    4
-    li      t8, @global_context
-    li      t9, @object_spawn_offset
-    add     t0, t8, t9 // current item
-    lb      t1, 8(t0) // remaining items
-    li      v0, 1
 -:
     lh      t2, 12(t0) // item's object number
-    beq     a0, t2, +
-    subi    t1, t1, 1 // TODO: double check there's no off-by-one error
+// t2 = abs(t2)
+    bgez    t2, +
+    nop
+    subu    t2, r0, t2
++:
+    beq     a1, t2, +
+    subi    t1, t1, 1
+    addiu   v0, v0, 1
     addi    t0, t0, 68
     bnez    t1, -
     nop
-    cl      v0
+    // NOTE: this allows object 0002 to load in places it's not meant to.
+    // this can mess up door graphics (among other things?)
+    jal     object_spawn
+    nop
+    //subiu   v0, r0, -1 // original code
 +:
-    jpop    4
+    jpop    4, ra, 1
