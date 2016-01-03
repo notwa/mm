@@ -129,7 +129,7 @@ hold_delay:
     nop
     // NOTE: this allows object 0002 to load in places it's not meant to.
     // this can mess up door graphics (among other things?)
-    jal     object_spawn
+    jal     @object_spawn
     nop
     //subiu   v0, r0, -1 // original code
 +:

@@ -1,5 +1,6 @@
 [actor_spawn]: 0x800BAE14
 [object_spawn]: 0x8012F2E0
+[object_index]: 0x8012F608
 [max_actor_no]: 0x2B1
 
 [global_context]: 0x803E6B20
@@ -19,6 +20,3 @@
 [upgrades_2_offset]: 0xBA
 
 .include "spawn.asm"
-
-actor_object_table:
-.include "actor object table mm.asm"
