@@ -30,22 +30,22 @@
     bltz    t4, return
     nop
 +:
-    andi    t3, t2, @button_D_up
+    andi    t3, t2, @button_D_right
     beqz    t3, +
     nop
     addi    t9, t9, 1
 +:
-    andi    t3, t2, @button_D_down
+    andi    t3, t2, @button_D_left
     beqz    t3, +
     nop
     subi    t9, t9, 1
 +:
-    andi    t3, t2, @button_D_right
+    andi    t3, t2, @button_D_up
     beqz    t3, +
     nop
     addi    t9, t9, 10
 +:
-    andi    t3, t2, @button_D_left
+    andi    t3, t2, @button_D_down
     beqz    t3, +
     nop
     subi    t9, t9, 10
