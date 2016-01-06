@@ -899,12 +899,7 @@ end
 function Parser:register(t)
     t = t or registers
     if self.tt ~= 'REG' then
-        if self.tt == 'NUM' and self.tok == '0' then
-            self.tt = 'REG'
-            self.tok = 'R0'
-        else
-            self:error('expected register')
-        end
+        self:error('expected register')
     end
     local reg = self.tok
     if not t[reg] then
