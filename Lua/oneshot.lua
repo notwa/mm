@@ -46,6 +46,13 @@ if oot then
     a.tunic_boots  (0xFF) -- normally 0x77
     a.sword_shield (0xF7) -- normally 0x77?
 
+    -- get epona
+    local addr = a.event_chk_inf.addr + 2
+    if bit then
+        W2(addr, bit.bor(R2(addr), 0x0100))
+    else
+        --FIXME
+    end
 else
     a.sword_shield  (0x23)
     a.owls_hit      (0xFFFF)
