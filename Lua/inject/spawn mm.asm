@@ -20,3 +20,24 @@
 [upgrades_2_offset]: 0xBA
 
 .include "spawn.asm"
+
+[whatever]: 0x807D0000 // stupid hack since i can't store/restore PC (not yet!)
+.org @whatever
+    push    5, ra
+    lhu     t0, 0(a1)
+    andi    t0, t0, 0x07FF
+    bnei    t0, 0x0C5, + // skip if not title screen actor
+    nop
+    jal     0x800BB2D0 // original code
+    nop
++:
+    jpop    5, ra
+
+.org 0x800B9430 // part of scene actor loading routine
+    jal     @whatever
+
+.org 0x8012FC18 // scene command 0x0B (objects)
+    // don't load any objects manually,
+    // since spawn.asm handles that automatically
+    jr
+    nop

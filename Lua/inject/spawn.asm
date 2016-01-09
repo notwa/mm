@@ -98,7 +98,7 @@ simple_spawn: // args: a0 (actor to spawn)
     li      t9, 0x0000007F
     sw      t9, 0x28(sp) // unknown
     li      t9, 0x000003FF
-    sw      t9, 0x2C(sp) // unknown
+    sw      t9, 0x2C(sp) // spawn time? (probably MM only)
     li      t9, 0x00000000
     sw      t9, 0x30(sp) // unknown
     jal     @actor_spawn
