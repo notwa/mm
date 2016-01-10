@@ -30,23 +30,27 @@ local injection_points = {
         ow_before = 0x0C03151F,
     },
 }
+injection_points['O JP10'] = injection_points['O US10']
 
 local header = [[
 [overwritten]: 0x%08X
-    // TODO: optimize for size
-    // TODO: fix case where overwritten function takes 5+ args
-    push    ra
-    push    a0, a1, a2, a3
+    // note: this will fail when the overwritten function takes args on stack
+    sw      ra, -4(sp)
+    sw      a0,  0(sp)
+    sw      a1,  4(sp)
+    sw      a2,  8(sp)
+    sw      a3, 12(sp)
     bal     start
-    nop
-    pop     a0, a1, a2, a3
-    jal     @overwritten
-    nop
-    jpop    ra
+    subi    sp, sp, 20
+    lw      ra, 16(sp)
+    lw      a0, 20(sp)
+    lw      a1, 24(sp)
+    lw      a2, 28(sp)
+    lw      a3, 32(sp)
+    j       @overwritten
+    addi    sp, sp, 20
 start:
 ]]
-
-injection_points['O JP10'] = injection_points['O US10']
 
 function inject(fn)
     local asm_dir = bizstring and 'inject/' or './mm/Lua/inject/'
