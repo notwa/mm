@@ -32,9 +32,9 @@ local injection_points = {
 }
 injection_points['O JP10'] = injection_points['O US10']
 
-local header = [[
-[overwritten]: 0x%08X
-    // note: this will fail when the overwritten function takes args on stack
+local hook = [[
+[hooked]: 0x%08X
+    // note: this will fail when the hooked function takes args on stack
     sw      ra, -4(sp)
     sw      a0,  0(sp)
     sw      a1,  4(sp)
@@ -47,7 +47,7 @@ local header = [[
     lw      a1, 24(sp)
     lw      a2, 28(sp)
     lw      a3, 32(sp)
-    j       @overwritten
+    j       @hooked
     addi    sp, sp, 20
 start:
 ]]
@@ -71,6 +71,8 @@ function inject(fn)
     -- what its value is normally supposed to be
     local ow_before = point.ow_before
 
+    local inject_end = inject_addr + inject_maxlen
+
     -- encode our jal instruction
     local ow_after = 0x0C000000 + math.floor(inject_addr/4)
     if R4(ow_addr) ~= ow_before and R4(ow_addr) ~= ow_after then
@@ -81,36 +83,38 @@ function inject(fn)
     -- decode the original address
     local ow_before_addr = (ow_before % 0x4000000)*4
 
-    -- set up a header to handle calling our function and the original
-    local header = header:format(ow_before_addr)
+    -- set up a hook to handle calling our function and the original
+    local hook = hook:format(ow_before_addr)
 
     local inject_bytes = {}
-    local length = 0
+    local size = 0
+    local cons_pos = inject_addr
     local function write(pos, line)
-        length = length + #line/2
+        assert(#line == 2, "that ain't const")
         dprint(("%08X"):format(pos), line)
         pos = pos % 0x80000000
+        size = size + 1
+        if pos > cons_pos and (pos < inject_end or cons_pos == pos - 1) then
+            cons_pos = pos
+        end
         inject_bytes[pos] = tonumber(line, 16)
     end
 
     -- offset assembly labels so they work properly, and assemble!
     local true_offset = 0x80000000 + inject_addr
-    assemble(header, write, {unsafe=true, offset=true_offset})
-    assemble(asm_path, write, {unsafe=true, offset=true_offset + length})
+    assemble(hook, write, {unsafe=true, offset=true_offset})
+    assemble(asm_path, write, {unsafe=true, offset=true_offset + size})
 
-    printf("length: %i words", length/4)
-    --[[
-    -- FIXME: this only works properly when the asm doesn't use any .orgs
-    if length > inject_maxlen then
+    print_deferred()
+    printf("size: %i words", size/4)
+    if cons_pos >= inject_end then
         print("Assembly too large!")
-        return
+        print("The game will probably crash.")
     end
-    --]]
 
     for pos, val in pairs(inject_bytes) do
         W1(pos, val)
     end
-    print_deferred()
 
     -- finally, write our new jump over the original
     printf('%08X: %08X', ow_addr, ow_after)
