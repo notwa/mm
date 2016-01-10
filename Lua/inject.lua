@@ -130,16 +130,18 @@ function inject(fn)
     end
 end
 
-if oot then
-    if version == 'O EUDB MQ' then
-        inject('print.asm')
-    else
-        inject('spawn oot.asm')
-    end
+local asms = {
+    ['O US10'] = 'spawn oot.asm',
+    ['O JP10'] = 'spawn oot.asm',
+    ['O EUDB MQ'] = 'print.asm',
+
+    ['M US10'] = 'spawn mm.asm',
+    ['M JP10'] = 'spawn mm early.asm',
+}
+
+local asm = asms[version]
+if asm then
+    inject(asm)
 else
-    if version == 'M JP10' or version == 'M JP11' then
-        inject('spawn mm early.asm')
-    else
-        inject('spawn mm.asm')
-    end
+    print('no appropriate assembly found for this game')
 end
