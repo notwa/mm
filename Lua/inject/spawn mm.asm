@@ -19,6 +19,16 @@
 [upgrades_offset]: 0xB8
 [upgrades_2_offset]: 0xBA
 
+[dlist_offset]: 0x2C0
+
+[SetTextRGBA]:      0x800859BC
+[SetTextXY]:        0x80085A2C
+[SetTextString]:    0x800860D8
+[TxtPrinter]:       0x80085FE4
+[InitTxtStruct]:    0x80086010 // unused here; we set it up inline
+[DoTxtStruct]:      0x8008606C
+[UpdateTxtStruct]:  0x800860A0
+
 .include "spawn.asm"
 
 [whatever]: 0x807D0000 // stupid hack since i can't store/restore PC (not yet!)

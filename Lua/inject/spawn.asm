@@ -7,19 +7,13 @@
 
 [hold_delay_amount]: 3
 
-    push    4, s1, ra
+    push    4, s0, s1, s2, ra
     li      t0, @link_save
     li      t1, @global_context
-// give max rupee upgrade (set bit 13, clear bit 12 of lower halfword)
-    lhu     t2, @upgrades_2_offset(t0)
-    ori     t2, t2, 0x2000
-    andi    t2, t2, 0xEFFF
-    sh      t2, @upgrades_2_offset(t0)
-//
-    lhu     t2, @buttons_offset(t1)
-    lhu     t9, @rupees_offset(t0)
+    lhu     s2, @buttons_offset(t1)
+    lhu     s0, anum
     lw      s1, hold_delay
-    andi    t4, t2, @button_any
+    andi    t4, s2, @button_any
     bnez    t4, +
     addi    s1, s1, 1
     li      s1, 0
@@ -30,80 +24,59 @@
     bltz    t4, return
     nop
 +:
-    andi    t3, t2, @button_D_right
-    beqz    t3, +
-    nop
-    addi    t9, t9, 1
-+:
-    andi    t3, t2, @button_D_left
-    beqz    t3, +
-    nop
-    subi    t9, t9, 1
-+:
-    andi    t3, t2, @button_D_up
-    beqz    t3, +
-    nop
-    addi    t9, t9, 10
-+:
-    andi    t3, t2, @button_D_down
-    beqz    t3, +
-    nop
-    subi    t9, t9, 10
-+:
-    subi    t4, t9, 1
+    mov     a0, s0
+    jal     dpad_control
+    mov     a1, s2
+    mov     s0, v0
+
+    subi    t4, s0, 1
     bgez    t4, +
     nop
-    li      t9, @max_actor_no
+    li      s0, @max_actor_no
 +:
-    subi    t4, t9, @max_actor_no
+    subi    t4, s0, @max_actor_no
     blez    t4, +
     nop
-    li      t9, 1
+    li      s0, 1
 +:
-    sh      t9, @rupees_offset(t0)
-    andi    t3, t2, @button_L
+    sh      s0, anum
+    andi    t3, s2, @button_L
     beqz    t3, return
     nop
-    mov     a0, t9
+    mov     a0, s0
+    lhu     a1, avar
     bal     simple_spawn
     nop
 return:
     sw      s1, hold_delay
-    jpop    4, s1, ra
-
-simple_spawn: // args: a0 (actor to spawn)
-    push    4, 9, ra
-    mov     a2, a0
-    li      a1, @global_context
-    addi    a0, a1, @actor_spawn_offset
-    li      t0, @link_actor
-    lw      t1, @actor_x(t0)
-    lw      t2, @actor_y(t0)
-    lw      t3, @actor_z(t0)
-    mov     a3, t1 // X position
-    sw      t2, 0x10(sp) // Y position
-    sw      t3, 0x14(sp) // Z position
-
-    li      t9, 0x0
-    sw      t9, 0x18(sp) // rotation?
-    lhu     t7, @actor_horiz_angle(t0)
-    sw      t7, 0x1C(sp) // horizontal rotation
-    li      t9, 0x0
-    sw      t9, 0x20(sp) // rotation?
-
-//  lhu     t7, @actor_horiz_angle(t0)
-    li      t7, 0
-    sw      t7, 0x24(sp) // actor variable
-
-    li      t9, 0x0000007F
-    sw      t9, 0x28(sp) // unknown
-    li      t9, 0x000003FF
-    sw      t9, 0x2C(sp) // spawn time? (probably MM only)
-    li      t9, 0x00000000
-    sw      t9, 0x30(sp) // unknown
-    jal     @actor_spawn
+// render actor number
+    li      a0, 0x0001001C // xy
+    li      a1, 0x88CCFFFF // rgba
+    la      a2, fmt
+    mov     a3, s0
+    jal     simple_text
     nop
-    jpop    4, 9, ra
+// render actor variable
+    li      a0, 0x0006001C // xy
+    li      a1, 0xFFCC88FF // rgba
+    la      a2, fmt
+    lhu     a3, avar
+    jal     simple_text
+    nop
+    jpop    4, s0, s1, s2, ra
+
+anum:
+    .word 0
+avar:
+    .word 0
+
+fmt:
+    .byte 0x25,0x30,0x34,0x58,0x00 // %04X
+.align
+
+.include "dpad control.asm"
+.include "simple spawn.asm"
+.include "simple text.asm"
 
 hold_delay:
     .word 0

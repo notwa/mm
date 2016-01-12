@@ -8,8 +8,15 @@ local injection_points = {
     ['M US10'] = {
         inject_addr = 0x780000,
         inject_maxlen = 0x5A800,
-        ow_addr = 0x1749D0,
-        ow_before = 0x0C05CEC6,
+        -- main rendering loop:
+        -- the only other function (that literally just loads and returns)
+        --ow_addr = 0x1749D0,
+        --ow_before = 0x0C05CEC6,
+        -- just after the JALR in the actor(?) rendering loop
+        -- problem is we do processing AFTER it's all rendered
+        -- this causes an extra frame of delay for ingame changes
+        ow_addr = 0x1737C4,
+        ow_before = 0x0C05CD50,
     },
     ['M JP10'] = {
         inject_addr = 0x780000,
