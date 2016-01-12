@@ -27,8 +27,10 @@ local injection_points = {
     ['O US10'] = {
         inject_addr = 0x3BC000,
         inject_maxlen = 0x1E800,
-        ow_addr = 0x0A19C8,
-        ow_before = 0x0C0283EE,
+        --ow_addr = 0x0A19C8,
+        --ow_before = 0x0C0283EE,
+        ow_addr = 0x0A0C3C,
+        ow_before = 0x0C028231,
     },
     ['O EUDB MQ'] = {
         inject_addr = 0x700000,
