@@ -1,4 +1,4 @@
-require = require "depend"
+require "lib.setup"
 require "boilerplate"
 require "addrs.init"
 require "classes"
@@ -37,7 +37,7 @@ local run_while_paused = true
 local alt_input = true
 local eat_input = true
 
-local fn = oot and 'cm oot save.lua' or 'cm mm save.lua'
+local fn = oot and 'data/cm oot save.lua' or 'data/cm mm save.lua'
 local saved = deserialize(fn) or {}
 local function save()
     serialize(fn, saved)
@@ -258,7 +258,7 @@ local main_menu = Menu{
         Toggle("Infinite Items", infinite_items),
         Toggle("Use Any Item", any_item),
         Text(""),
-        Oneshot("Have Everything", Setter{[dofile]="oneshot.lua"}),
+        Oneshot("Have Everything", Setter{[dofile]="setup hundred.lua"}),
         LinkTo("Set Progress...", progress_menu),
         Text(""),
         Oneshot("Escape Cutscene", Setter{[addrs.cutscene_status_2]=3}),

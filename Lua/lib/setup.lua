@@ -1,11 +1,11 @@
-_require = _require or require
+if _require then return end
+_require = require
 
-local function dumbdepend(path)
+package.path = package.path..';./lib/?.lua'
+
+function depend(path)
     if package and package.loaded and package.loaded[path] then
         package.loaded[path] = nil
     end
-    -- TODO: pcall?
     return _require(path)
 end
-
-return dumbdepend

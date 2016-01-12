@@ -8,7 +8,7 @@ local versions = {
 local version = versions[hash]
 
 local index = 0
-local fn = 'lua chest test'
+local fn = 'data/lua chest test.State'
 
 local start, ours, text
 if version == 'US10' then

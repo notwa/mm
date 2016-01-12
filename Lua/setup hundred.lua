@@ -1,6 +1,8 @@
--- gimme gimme gimme
+require "lib.setup"
 require "boilerplate"
 local a = require "addrs.init"
+
+-- gimme gimme gimme
 
 local iv
 if version == "M JP10" or version == "M JP11" then

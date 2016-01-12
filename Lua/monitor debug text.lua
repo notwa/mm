@@ -1,5 +1,5 @@
 -- use with inject.lua on O EUDB MQ
-require = require "depend"
+require "lib.setup"
 require "boilerplate"
 
 local buffer = 0x700070

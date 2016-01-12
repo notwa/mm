@@ -1,4 +1,5 @@
-﻿require "boilerplate"
+﻿require "lib.setup"
+require "boilerplate"
 require "addrs.init"
 require "classes"
 

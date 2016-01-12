@@ -1,3 +1,4 @@
+require "lib.setup"
 require "boilerplate"
 local a = require "addrs.init"
 local inv = a.inventory
@@ -91,9 +92,15 @@ a.spider_mask_order[3](0) -- red
 a.spider_mask_order[4](1) -- blue
 a.spider_mask_order[5](0) -- red
 a.spider_mask_order[6](1) -- blue
-a.lottery_numbers[1](0x010203)
-a.lottery_numbers[2](0x040506)
-a.lottery_numbers[3](0x070809)
+a.lottery_numbers[1][1](1)
+a.lottery_numbers[1][2](2)
+a.lottery_numbers[1][3](3)
+a.lottery_numbers[2][1](4)
+a.lottery_numbers[2][2](5)
+a.lottery_numbers[2][3](6)
+a.lottery_numbers[3][1](7)
+a.lottery_numbers[3][2](8)
+a.lottery_numbers[3][3](9)
 a.epona_scene(53)
 a.epona_x(-1420)
 a.epona_y(257)

@@ -1,4 +1,4 @@
-require = require "depend"
+require "lib.setup"
 require "boilerplate"
 require "addrs.init"
 

@@ -1,6 +1,5 @@
-lua chest test
-lua movement test
 * - Copy*
 cm oot save.lua
 cm mm save.lua
 __pycache__/*
+*.State

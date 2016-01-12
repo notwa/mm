@@ -1,3 +1,4 @@
+require "lib.setup"
 require "boilerplate"
 require "addrs.init"
 require "messages"
@@ -43,7 +44,7 @@ function dump_room(start, addr)
 
         local dumpy = function()
             local bank = R1(addr+4)
-            local offset = R3(addr+5)
+            local offset = bit.band(R4(addr+4), 0xFFFFFF)
             if bank ~= 3 then
                 printf(" in bank %i at %06X", bank, offset)
                 return
@@ -165,7 +166,7 @@ function dump_room(start, addr)
         local addr = alt_header_list
         while R1(addr) == 0x03 do
             printf("# setup: %02X", setups)
-            dump_room(start, start + R3(addr+1))
+            dump_room(start, start + bit.band(R4(addr), 0xFFFFFF))
             addr = addr + 4
             setups = setups + 1
         end

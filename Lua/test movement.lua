@@ -64,7 +64,7 @@ local link = addrs.link_actor
 local pos = mm and {2400, 20, 375} or {-200, -40, 2330}
 local angle = 180
 
-local fn = 'lua movement test'
+local fn = 'data/lua movement test.State'
 
 function pythag(x, y)
     return math.sqrt(x*x + y*y)
