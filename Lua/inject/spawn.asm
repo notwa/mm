@@ -38,7 +38,7 @@
 +:
     jal     dpad_control
     mov     a0, s3
-    mov     s3, v0
+    andi    s3, v0, 0xFFFF
 +: // set min/max on actor number
     subi    t4, s0, 1
     bgez    t4, +
@@ -54,11 +54,10 @@
     beqz    t3, return
     nop
     mov     a0, s0
-    lhu     a1, avar
+    mov     a1, s3
     bal     simple_spawn
     nop
 return:
-    andi    s3, s3, 0xFFFF
 // render actor number
     li      a0, 0x0001001C // xy
     li      a1, 0x88CCFFFF // rgba
