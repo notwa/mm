@@ -26,8 +26,13 @@ local injection_points = {
     ['O EUDB MQ'] = {
         inject_addr = 0x700000,
         inject_maxlen = 0x100000,
-        ow_addr = 0x0C6940,
-        ow_before = 0x0C03151F,
+        -- main rendering loop:
+        -- the only other function (that literally just loads and returns)
+        --ow_addr = 0x0C6940,
+        --ow_before = 0x0C03151F,
+        -- first (high-level) function after iterating over actors
+        ow_addr = 0x0C62B8,
+        ow_before = 0x0C031AB1,
     },
 }
 injection_points['O JP10'] = injection_points['O US10']
