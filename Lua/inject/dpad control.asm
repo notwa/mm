@@ -13,7 +13,7 @@ dpad_control:
 dpad_values:
     // use table of values for branchless operation
     .byte 0,    1,    -1,   0
-    .byte -10,  -9,   -11,  -10
-    .byte +10,  +11,  +9,   +10
+    .byte -16,  -8,   -32,  -16
+    .byte +16,  +32,  +8,   +16
     .byte 0,    1,    -1,   0
 .align
