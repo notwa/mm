@@ -102,10 +102,10 @@ where:
 * DE: Debug
 * MQ: Master Quest
 
-## menus/\*
+### menus/\*
 Contains various submenus for `cheat menu.lua`.
 
-## classes/\*
+### classes/\*
 Contains various classes.
 Note that the base `Class` function is defined in `boilerplate.lua`.
 
