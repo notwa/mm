@@ -1,12 +1,9 @@
 # Zelda 64 Lua Scripts
 
 These are written for
-[the latest revision of Bizhawk,][biz]
-but some compatiblity is provided for
-[a fork of mupen64plus with Lua support.][m64p-lua]
+[the latest revision of Bizhawk.][biz]
 
 [biz]: https://github.com/TASVideos/bizhawk/
-[m64p-lua]: https://github.com/notwa/mupen64plus-core
 
 Note that some scripts lack full support for Ocarina of Time.
 
