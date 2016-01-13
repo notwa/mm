@@ -14,7 +14,7 @@ local blocknames = {
     'Rb',
 }
 
-function distribute_index(ih)
+local function distribute_index(ih)
     local block = math.floor(ih/16/6)
     local ir = ih - block*16*6
     local page = math.floor(ir/16)
@@ -22,7 +22,7 @@ function distribute_index(ih)
     return block, page, row
 end
 
-ShortMonitor = Class(Monitor)
+local ShortMonitor = Class(Monitor)
 
 function ShortMonitor:mark(i, x, x1)
     local ih = math.floor(i/2)
@@ -51,7 +51,7 @@ end
 
 -- 2 bytes each, 16 values per page, 6 pages per block, 29 blocks
 -- = 5568 bytes (0x15C0)
-me = ShortMonitor('me', A(0x210A24, 0x15C0))
+local me = ShortMonitor('me', A(0x210A24, 0x15C0))
 me:load('data/_ootmemod.lua')
 while version == "O EUDB MQ" do
     me:diff()

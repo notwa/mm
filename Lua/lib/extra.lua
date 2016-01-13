@@ -1,13 +1,13 @@
-function strpad(num, count, pad)
+local function strpad(num, count, pad)
     num = tostring(num)
     return (pad:rep(count)..num):sub(#num)
 end
 
-function add_zeros(num, count)
+local function add_zeros(num, count)
     return strpad(num, count - 1, '0')
 end
 
-function mixed_sorter(a, b)
+local function mixed_sorter(a, b)
     a = type(a) == 'number' and add_zeros(a, 16) or tostring(a)
     b = type(b) == 'number' and add_zeros(b, 16) or tostring(b)
     return a < b
@@ -15,7 +15,7 @@ end
 
 -- loosely based on http://lua-users.org/wiki/SortedIteration
 -- the original didn't make use of closures for who knows why
-function order_keys(t)
+local function order_keys(t)
     local oi = {}
     for key in pairs(t) do
         table.insert(oi, key)
@@ -24,7 +24,7 @@ function order_keys(t)
     return oi
 end
 
-function opairs(t, cache)
+local function opairs(t, cache)
     local oi = cache and cache[t] or order_keys(t)
     if cache then
         cache[t] = oi
@@ -36,3 +36,11 @@ function opairs(t, cache)
         if key then return key, t[key] end
     end
 end
+
+return {
+    strpad = strpad,
+    add_zeros = add_zeros,
+    mixed_sorter = mixed_sorter,
+    order_keys = order_keys,
+    opairs = opairs,
+}

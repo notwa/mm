@@ -6,8 +6,12 @@ else
 end
 local Game = require "addrs.addrs"
 local game = Game(hash)
-version = game.version
-oot = game.oot
-mm = game.mm
-addrs = game
+
+-- TODO: return globalize instead
+globalize{
+    version = game.version,
+    oot = game.oot,
+    mm = game.mm,
+    addrs = game,
+}
 return game

@@ -4,6 +4,7 @@
 -- for Ocarina of Time:
 --   go to the Temple of Time as a child and run this script.
 
+require "setup.lib"
 require "addrs"
 
 local length = 70 -- in frames

@@ -1,28 +1,28 @@
 -- gui.addmessage sucks so we're doing this our way
 
-function T(x, y, color, pos, s, ...)
+local function T(x, y, color, pos, s, ...)
     if #{...} > 0 then
         s = s:format(...)
     end
     gui.text(10*x + 2, 16*y + 4, s, color or "white", nil, pos or "bottomright")
 end
 
-function T_BR(x, y, color, ...) T(x, y, color, "bottomright", ...) end
-function T_BL(x, y, color, ...) T(x, y, color, "bottomleft",  ...) end
-function T_TL(x, y, color, ...) T(x, y, color, "topleft",     ...) end
-function T_TR(x, y, color, ...) T(x, y, color, "topright",    ...) end
+local function T_BR(x, y, color, ...) T(x, y, color, "bottomright", ...) end
+local function T_BL(x, y, color, ...) T(x, y, color, "bottomleft",  ...) end
+local function T_TL(x, y, color, ...) T(x, y, color, "topleft",     ...) end
+local function T_TR(x, y, color, ...) T(x, y, color, "topright",    ...) end
 
-messages = {}
-__messages_then = 0
+local messages = {}
+local __messages_then = 0
 
-function message(text, frames)
+local function message(text, frames)
     local now = emu.framecount()
     frames = frames or 60
     local when = now + frames
     table.insert(messages, {text=text, when=when})
 end
 
-function draw_messages()
+local function draw_messages()
     local now = emu.framecount()
     if now == __messages_then then
         -- already drawn this frame
@@ -47,18 +47,18 @@ function draw_messages()
     __messages_then = now
 end
 
-__dprinted = {}
+local __dprinted = {}
 
-function dprint(...) -- defer print
+local function dprint(...) -- defer print
     -- helps with lag from printing directly to Bizhawk's console
     table.insert(__dprinted, {...})
 end
 
-function dprintf(fmt, ...)
+local function dprintf(fmt, ...)
     table.insert(__dprinted, fmt:format(...))
 end
 
-function print_deferred()
+local function print_deferred()
     local buff = ''
     for i, t in ipairs(__dprinted) do
         if type(t) == 'string' then
@@ -77,3 +77,16 @@ function print_deferred()
     end
     __dprinted = {}
 end
+
+return globalize{
+    T = T,
+    T_BR = T_BR,
+    T_BL = T_BL,
+    T_TL = T_TL,
+    T_TR = T_TR,
+    dprint = dprint,
+    dprintf = dprintf,
+    print_deferred = print_deferred,
+    message = message,
+    draw_messages = draw_messages,
+}

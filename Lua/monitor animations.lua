@@ -1,3 +1,5 @@
+require "lib.setup"
+require "boilerplate"
 require "addrs"
 require "serialize"
 

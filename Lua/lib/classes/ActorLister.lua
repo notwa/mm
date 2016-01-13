@@ -1,4 +1,4 @@
-local print = dprint or print
+local print = rawget(_G, 'dprint') or print
 
 -- hack to avoid N64 logo spitting errors
 local stupid = addrs.actor_counts[0].addr - 0x8

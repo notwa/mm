@@ -1,4 +1,4 @@
-function handle_alt_input(handle, ctrl, pressed)
+local function handle_alt_input(handle, ctrl, pressed)
     for _, v in ipairs{'left', 'right', 'up', 'down'} do
         ctrl[v] = ctrl['d_'..v]
         pressed[v] = pressed['d_'..v]
@@ -27,7 +27,7 @@ function handle_alt_input(handle, ctrl, pressed)
     handle:update(ctrl, pressed)
 end
 
-function handle_eat_input(handle, ctrl, pressed)
+local function handle_eat_input(handle, ctrl, pressed)
     for _, v in ipairs{'left', 'right', 'up', 'down'} do
         ctrl[v] = ctrl['d_'..v] or ctrl['j_'..v] or ctrl['c_'..v]
         pressed[v] = pressed['d_'..v] or pressed['j_'..v] or pressed['c_'..v]
@@ -51,3 +51,8 @@ function handle_eat_input(handle, ctrl, pressed)
     end
     handle:update(ctrl, pressed)
 end
+
+return globalize{
+    handle_eat_input = handle_eat_input,
+    handle_alt_input = handle_alt_input,
+}

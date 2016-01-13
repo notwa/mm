@@ -8,6 +8,8 @@ local same = {
     --["O JPGC MQ"] = "O USGC", -- maybe?
 }
 
+rawset(_G, 'Actor', function() end)
+
 return function(hash)
     local version = versions[hash] or VERSION_OVERRIDE
     if version == nil then
@@ -18,8 +20,8 @@ return function(hash)
     local rv = same[version] or version
 
     local b = basics[rv]
-    function AL(a, s) return A(b.link + a, s) end
-    function AG(a, s)
+    local function AL(a, s) return A(b.link + a, s) end
+    local function AG(a, s)
         if rv == 'M JP10' or rv == 'M JP11' then
             if a >= 0x17000 then -- approximate
                 a = a - 0x20
@@ -27,7 +29,7 @@ return function(hash)
         end
         return A(b.global + a, s)
     end
-    function AA(a, s)
+    local function AA(a, s)
         if rv == 'O EUDB MQ' then
             if a >= 0x130 then -- approximate
                 a = a + 0x10
@@ -38,6 +40,10 @@ return function(hash)
 
     local subdir = version:sub(1, 1)
     local rvs = rv:sub(3)
+
+    rawset(_G, 'AL', AL)
+    rawset(_G, 'AG', AG)
+    rawset(_G, 'AA', AA)
 
     local addrs = require("addrs."..subdir.."."..rvs)
     addrs.version = version

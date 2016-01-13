@@ -1,8 +1,7 @@
 require "lib.setup"
 require "boilerplate"
-require "addrs"
+local addrs = require "addrs"
 require "messages"
-require = depend
 local assemble = require "lips"
 
 local injection_points = {
@@ -67,7 +66,7 @@ local hook = [[
 start:
 ]]
 
-function inject(fn)
+local function inject(fn)
     local asm_dir = bizstring and 'inject/' or './mm/Lua/inject/'
     local asm_path = asm_dir..fn
 

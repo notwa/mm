@@ -1,4 +1,4 @@
-local printf = dprintf or printf
+local printf = rawget(_G, 'dprintf') or printf
 
 local Monitor = require "classes.Monitor"
 local FlagMonitor = Class(Monitor)

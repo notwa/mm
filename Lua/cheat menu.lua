@@ -43,7 +43,14 @@ local function save()
     serialize(fn, saved)
 end
 
-function Setter(t)
+local fades_killed = false
+
+local function set(f, v)
+    -- wrapper for addresses that *might* be undefined
+    if f then f(v) end
+end
+
+local function Setter(t)
     return function()
         for func, value in pairs(t) do
             func(value)
@@ -53,7 +60,7 @@ end
 
 local passives = {}
 
-Passive = Class(Callbacks)
+local Passive = Class(Callbacks)
 function Passive:init(...)
     Callbacks.init(self, ...)
     table.insert(passives, self)
@@ -208,7 +215,7 @@ end
 
 local function timestop()
     -- doesn't set it up quite like the glitch, but this is the main effect
-    set(timestop, 4) -- normally -1
+    set(addrs.timestop, 4) -- normally -1
 end
 
 local time_menu = oot and Menu{
@@ -246,6 +253,11 @@ local time_menu = oot and Menu{
     },
 }
 
+globalize{
+    Setter = Setter,
+    Passive = Passive,
+    reload_scene = reload_scene,
+}
 local warp_menu = require "menus.warp"
 local progress_menu = require "menus.progress"
 local playas_menu = require "menus.playas"

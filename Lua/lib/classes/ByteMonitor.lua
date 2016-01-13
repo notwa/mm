@@ -1,7 +1,7 @@
 local Monitor = require "classes.Monitor"
 local ByteMonitor = Class(Monitor)
 
-local printf = dprintf or printf
+local printf = rawget(_G, 'dprintf') or printf
 
 function ByteMonitor:mark(i, x, x1)
     if self.ignore and self:ignore(i) then return end

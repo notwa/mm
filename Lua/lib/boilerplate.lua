@@ -2,6 +2,8 @@
 
 require "extra"
 
+local R1, R2, R4, RF, W1, W2, W4, WF, X1, X2, X4, XF
+
 if bizstring then
     local mm = mainmemory
     local m = memory
@@ -61,7 +63,7 @@ local mts = {
     ['f'] = {__call = HF},
 }
 
-function A(addr, atype)
+local function A(addr, atype)
     local mt = mts[atype]
     return setmetatable({
         addr=addr,
@@ -69,7 +71,7 @@ function A(addr, atype)
     }, mt)
 end
 
-Class = function(inherit)
+local function Class(inherit)
     local class = {}
     local mt_obj = {__index = class}
     local mt_class = {
@@ -84,25 +86,25 @@ Class = function(inherit)
     return setmetatable(class, mt_class)
 end
 
-function getindex(obj)
+local function getindex(obj)
     local gm = getmetatable(obj)
     if not gm then return end
     return gm.__index
 end
 
-function printf(fmt, ...)
+local function printf(fmt, ...)
     print(fmt:format(...))
 end
 
-function is_ptr(ptr)
+local function is_ptr(ptr)
     return bit.band(0xFF800000, ptr) == 0x80000000
 end
 
-function deref(ptr)
+local function deref(ptr)
     return is_ptr(ptr) and ptr - 0x80000000
 end
 
-function asciize(bytes)
+local function asciize(bytes)
     local str = ""
     local seq = false
     for i, v in ipairs(bytes) do
@@ -118,7 +120,7 @@ function asciize(bytes)
     return str
 end
 
-function hex(i)
+local function hex(i)
     -- convenience function for use in console
     if i == nil then
         print('nil')
@@ -146,4 +148,22 @@ A(handle.addr + 1, handle.type)(0x00) -- set the byte after our address
 A(handle.addr, 2)(0x1234) -- set 2 bytes as opposed to our original 1
 --]]
 
+-- TODO: return globalize instead
+globalize{
+    Class = Class,
+
+    R1 = R1, R2 = R2, R4 = R4,
+    W1 = W1, W2 = W2, W4 = W4,
+    X1 = X1, X2 = X2, X4 = X4,
+    A = A,
+
+    printf = printf,
+    hex = hex,
+
+    is_ptr = is_ptr,
+    deref = deref,
+    asciize = asciize,
+
+    getindex = getindex,
+}
 return A

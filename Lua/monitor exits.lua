@@ -7,20 +7,20 @@ local entrance_names = require "data.entrance names"
 
 local open = io.open
 
-function sdata(i)
+local function sdata(i)
     local a = addrs.scene_table.addr + i*4*3
     -- entrance count, entrance table (ptr), name (ptr)
     return {R4(a), R4(a + 4), R4(a + 8)}
 end
 
-function mirror(scene_id)
+local function mirror(scene_id)
     if scene_id > 0x80 then
         return 0x100 - scene_id
     end
     return scene_id
 end
 
-function calc_dump(a, writer)
+local function calc_dump(a, writer)
     if type(a) ~= "number" then
         writer('[crash]')
         return
@@ -41,11 +41,11 @@ function calc_dump(a, writer)
     end
 end
 
-function split_exit(exit)
+local function split_exit(exit)
     return bit.rshift(exit, 9), bit.band(bit.rshift(exit, 4), 0x1F), bit.band(exit, 0xF)
 end
 
-function calc(exit)
+local function calc(exit)
     console.clear()
     local scene, entrance, offset = split_exit(exit)
     printf("%i, %i, %i", scene, entrance, offset)
@@ -73,7 +73,7 @@ function calc(exit)
     --print(asciize(mainmemory.readbyterange(deref(sd[3]), 8)))
 end
 
-function dump_all_exits(fn)
+local function dump_all_exits(fn)
     local f = open(fn or 'data/_exits.csv', 'w')
     if f == nil then
         print("couldn't open file for writing")

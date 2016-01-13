@@ -15,5 +15,5 @@ local classes = {
 }
 
 for _, class in ipairs(classes) do
-    _G[class] = require("classes."..class)
+    rawset(_G, class, require("classes."..class))
 end

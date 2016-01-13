@@ -5,7 +5,7 @@ local validate = false
 -- using a template to offset from will do for now.
 local actor_t = Actor(0)
 
-function sort_by_key(t)
+local function sort_by_key(t)
     local sorted = {}
     local i = 1
     for k, v in pairs(t) do
@@ -16,23 +16,23 @@ function sort_by_key(t)
     return sorted
 end
 
-function get_actor_count(i)
+local function get_actor_count(i)
     return R4(addrs.actor_counts[i].addr)
 end
 
-function get_first_actor(i)
+local function get_first_actor(i)
     return deref(R4(addrs.actor_firsts[i].addr))
 end
 
-function get_next_actor(addr)
+local function get_next_actor(addr)
     return deref(R4(addr + actor_t.next.addr))
 end
 
-function get_prev_actor(addr)
+local function get_prev_actor(addr)
     return deref(R4(addr + actor_t.prev.addr))
 end
 
-function count_actors()
+local function count_actors()
     local counts = {}
     for i = 0, 11 do
         counts[i] = get_actor_count(i)
@@ -40,7 +40,7 @@ function count_actors()
     return counts
 end
 
-function iter_actors(counts)
+local function iter_actors(counts)
     local at, ai = 0, 0
     local addr
 
@@ -92,7 +92,7 @@ function iter_actors(counts)
     return iterate
 end
 
-function collect_actors()
+local function collect_actors()
     local game_counts = count_actors()
     local any = 0
     for i = 0, 11 do
@@ -113,3 +113,14 @@ function collect_actors()
     end
     return any > 0, actors_by_type, new_counts
 end
+
+return globalize{
+    sort_by_key = sort_by_key,
+    get_actor_count = get_actor_count,
+    get_first_actor = get_first_actor,
+    get_next_actor = get_next_actor,
+    get_prev_actor = get_prev_actor,
+    count_actors = count_actors,
+    iter_actors = iter_actors,
+    collect_actors = collect_actors,
+}

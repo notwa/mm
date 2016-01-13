@@ -1,7 +1,9 @@
+require "lib.setup"
+require "boilerplate"
 require "addrs"
 
 -- precalculate hamming weights of bytes
-hamming_weight = {}
+local hamming_weight = {}
 for i = 0, 255 do
     local w = 0
     for b = 0, 7 do
@@ -10,9 +12,9 @@ for i = 0, 255 do
     hamming_weight[i] = w
 end
 
-function hamming_of(addr, size)
-    weight = 0
-    bytes = mainmemory.readbyterange(addr, size)
+local function hamming_of(addr, size)
+    local weight = 0
+    local bytes = mainmemory.readbyterange(addr, size)
     for k,v in pairs(bytes) do
         if v ~= 0 then
             weight = weight + hamming_weight[tonumber(v, 16)]
@@ -21,7 +23,7 @@ function hamming_of(addr, size)
     return weight
 end
 
-function hamming_of_A(a)
+local function hamming_of_A(a)
     return hamming_of(a.addr, a.type)
 end
 

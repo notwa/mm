@@ -38,11 +38,11 @@ local debug_watch = mm and {
     {'unk_78', '%9.3f'},
 } or {}
 
-function longbinary(x)
+local function longbinary(x)
     return ('%032s'):format(bizstring.binary(x))
 end
 
-function focus(actor, dump)
+local function focus(actor, dump)
     local color = actor.name:sub(1,1) == "?" and "red" or "orange"
     local flags = longbinary(actor.flags)
     local y = debug_mode and #debug_watch + 9 or 9
@@ -98,7 +98,7 @@ function focus(actor, dump)
 
     if dump then
         console.clear()
-        s = ("%04X\t%02X\t%02X"):format(actor.num, actor.at, actor.hp)
+        local s = ("%04X\t%02X\t%02X"):format(actor.num, actor.at, actor.hp)
         if dmg then
             for i = 0, 31 do
                 s = s..("\t%02X"):format(R1(dmg + i))
@@ -114,6 +114,10 @@ local input_handler = InputHandler{
     down  = "P1 DPad D",
     left  = "P1 DPad L",
     right = "P1 DPad R",
+}
+
+globalize{
+    focus = focus,
 }
 
 local al = ActorLister(input_handler, debug_mode)

@@ -1,4 +1,5 @@
-require 'extra'
+local extra = require 'extra'
+local opairs = extra.opairs
 
 local pt = {}
 pt.__index = pt

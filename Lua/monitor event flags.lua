@@ -25,6 +25,8 @@ local mm_ignore = {
     ['28,2=1 (weg)'] = true,
 }
 
+local weg,inf,eci,igi,it_,ei_
+local fms
 if mm then
     weg = FlagMonitor('weg', addrs.week_event_reg, mm_ignore)
     inf = FlagMonitor('inf', addrs.event_inf, mm_ignore)
@@ -45,11 +47,11 @@ elseif oot then
     for i, fm in ipairs(fms) do fm.oot = true end
 end
 
-function ef_wipe()
+local function ef_wipe()
     for _, fm in ipairs(fms) do fm:wipe() end
 end
 
-function ef_unk()
+local function ef_unk()
     for _, fm in ipairs(fms) do fm:set_unknowns() end
 end
 

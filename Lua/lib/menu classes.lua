@@ -1,23 +1,25 @@
-function wrap(x, around)
+local function wrap(x, around)
     return (x - 1) % around + 1
 end
 
-MenuItem = Class()
-Text = Class(MenuItem)
-Back = Class(Text)
-Close = Class(Text)
-LinkTo = Class(Text)
+local MenuItem = Class()
+local Text = Class(MenuItem)
+local Back = Class(Text)
+local Close = Class(Text)
+local LinkTo = Class(Text)
 
-Active = Class(Text)
-Toggle = Class(Active)
-Radio = Class(Active)
-Hold = Class(Active)
-Oneshot = Class(Active)
+local Active = Class(Text)
+local Toggle = Class(Active)
+local Radio = Class(Active)
+local Hold = Class(Active)
+local Oneshot = Class(Active)
 
-Screen = Class()
-Menu = Class()
+local Screen = Class()
+local Menu = Class()
 
-Callbacks = Class()
+local Callbacks = Class()
+
+local MenuHandler = Class()
 
 function Callbacks:init()
     self.state = false
@@ -277,7 +279,6 @@ function Menu:draw(brush, y)
     self.screens[self.screen_sel]:draw(brush, y)
 end
 
-MenuHandler = Class()
 function MenuHandler:init(main_menu, brush)
     self.main_menu = main_menu
     self.backstack = {}
@@ -332,3 +333,21 @@ function MenuHandler:update(ctrl, pressed)
     end
     if self.menu then self.menu:draw(self.brush, 0) end
 end
+
+return globalize{
+    MenuItem = MenuItem,
+    Text = Text,
+    Back = Back,
+    Close = Close,
+    LinkTo = LinkTo,
+    Active = Active,
+    Toggle = Toggle,
+    Radio = Radio,
+    Hold = Hold,
+    Oneshot = Oneshot,
+    Screen = Screen,
+    Menu = Menu,
+    Callbacks = Callbacks,
+    MenuHandler = MenuHandler,
+    dummy = dummy,
+}

@@ -10,16 +10,16 @@ local object_names = require("data.object names"..suffix)
 local print = dprint
 local printf = dprintf
 
-function gs2(addr, value)
+local function gs2(addr, value)
     printf("81%06X %04X", addr, value)
     W2(addr, value)
 end
 
-function dump_half_row(addr)
+local function dump_half_row(addr)
     printf("%04X %04X  %04X %04X", R2(addr), R2(addr+2), R2(addr+4), R2(addr+6))
 end
 
-function dump_room(start, addr)
+local function dump_room(start, addr)
     local addr = addr or start
     printf("start:  %06X", start)
 

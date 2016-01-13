@@ -9,7 +9,7 @@ function SceneFlagMonitor:mark(i, x, x1)
         if bit.band(diff, 2^which) ~= 0 then
             local state = bit.band(x, 2^which) ~= 0 and 1 or 0
             local col = (3 - i)*8 + which
-            str = ('%s: %02i=%i'):format(self.name, col, state)
+            local str = ('%s: %02i=%i'):format(self.name, col, state)
             printf('%s  @%i', str, now)
             message(str, 180)
         end
