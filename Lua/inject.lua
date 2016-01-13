@@ -108,6 +108,7 @@ local function inject(fn)
         dprint(("%08X"):format(pos), line)
         pos = pos % 0x80000000
         size = size + 1
+        -- FIXME: doesn't detect .skip/.space directives
         if pos > cons_pos and (pos < inject_end or cons_pos == pos - 1) then
             cons_pos = pos
         end

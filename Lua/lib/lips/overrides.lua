@@ -1,6 +1,8 @@
 local insert = table.insert
 
 local data = require "lips.data"
+local util = require "lips.util"
+
 local instructions = data.instructions
 
 local overrides = {}
@@ -17,26 +19,33 @@ function overrides.LI(self, name)
 
     -- for us, this is just semantics. for a "real" assembler,
     -- LA could add appropriate RELO LUI/ADDIU directives.
-    if im[1] == 'LABELSYM' then
+    if im.tt == 'LABELSYM' then
         self:error('use LA for labels')
     end
 
-    im[2] = im[2] % 0x100000000
-    if im[2] >= 0x10000 and im[2] <= 0xFFFF8000 then
+    if im.portion then
+        args.rs = 'R0'
+        args.immediate = im
+        self:format_out(addiu, args)
+        return
+    end
+
+    im.tok = im.tok % 0x100000000
+    if im.tok >= 0x10000 and im.tok <= 0xFFFF8000 then
         args.rs = args.rt
-        args.immediate = {'UPPER', im}
+        args.immediate = self:token(im):set('portion', 'upper')
         self:format_out(lui, args)
-        if im[2] % 0x10000 ~= 0 then
-            args.immediate = {'LOWER', im}
+        if im.tok % 0x10000 ~= 0 then
+            args.immediate = self:token(im):set('portion', 'lower')
             self:format_out(ori, args)
         end
-    elseif im[2] >= 0x8000 and im[2] < 0x10000 then
+    elseif im.tok >= 0x8000 and im.tok < 0x10000 then
         args.rs = 'R0'
-        args.immediate = {'LOWER', im}
+        args.immediate = self:token(im):set('portion', 'lower')
         self:format_out(ori, args)
     else
         args.rs = 'R0'
-        args.immediate = {'LOWER', im}
+        args.immediate = self:token(im):set('portion', 'lower')
         self:format_out(addiu, args)
     end
 end
@@ -50,9 +59,9 @@ function overrides.LA(self, name)
     local im = self:const()
 
     args.rs = args.rt
-    args.immediate = {'UPPEROFF', im}
+    args.immediate = self:token(im):set('portion', 'upperoff')
     self:format_out(lui, args)
-    args.immediate = {'LOWER', im}
+    args.immediate = self:token(im):set('portion', 'lower')
     self:format_out(addiu, args)
 end
 
@@ -84,14 +93,14 @@ function overrides.PUSH(self, name)
     if name == 'PUSH' then
         args.rt = 'SP'
         args.rs = 'SP'
-        args.immediate = {'NEGATE', {'NUM', #stack*4}}
+        args.immediate = self:token(#stack*4):set('negate')
         self:format_out(addi, args)
     end
     args.base = 'SP'
     for i, r in ipairs(stack) do
         args.rt = r
         if r ~= '' then
-            args.offset = {'NUM', (i - 1)*4}
+            args.offset = (i - 1)*4
             self:format_out(w, args)
         end
     end
@@ -102,7 +111,7 @@ function overrides.PUSH(self, name)
     if name == 'POP' or name == 'JPOP' then
         args.rt = 'SP'
         args.rs = 'SP'
-        args.immediate = {'NUM', #stack*4}
+        args.immediate = #stack*4
         self:format_out(addi, args)
     end
 end
@@ -175,7 +184,7 @@ function overrides.ROL(self, name)
     end
     self:format_out(sll, args)
     args.rd = 'AT'
-    args.immediate = {'NUM', 32 - args.immediate[2]}
+    args.immediate = 32 - args.immediate[2]
     self:format_out(srl, args)
     args.rd = left
     args.rs = left
@@ -202,7 +211,7 @@ function overrides.ROR(self, name)
     end
     self:format_out(srl, args)
     args.rd = 'AT'
-    args.immediate = {'NUM', 32 - args.immediate[2]}
+    args.immediate = 32 - args.immediate[2]
     self:format_out(sll, args)
     args.rd = right
     args.rs = right
@@ -238,7 +247,7 @@ function overrides.BEQI(self, name)
     self:optional_comma()
     args.immediate = self:const()
     self:optional_comma()
-    args.offset = {'SIGNED', self:const('relative')}
+    args.offset = self:token(self:const('relative')):set('signed')
 
     if reg == 'AT' then
         self:error('register cannot be AT in this pseudo-instruction')
@@ -261,7 +270,7 @@ function overrides.BLTI(self, name)
     self:optional_comma()
     args.immediate = self:const()
     self:optional_comma()
-    args.offset = {'SIGNED', self:const('relative')}
+    args.offset = self:token(self:const('relative')):set('signed')
 
     if args.rs == 'AT' then
         self:error('register cannot be AT in this pseudo-instruction')
@@ -287,7 +296,7 @@ function overrides.BLEI(self, name)
     self:optional_comma()
     args.immediate = self:const()
     self:optional_comma()
-    local offset = {'SIGNED', self:const('relative')}
+    local offset = self:token(self:const('relative')):set('signed')
 
     if reg == 'AT' then
         self:error('register cannot be AT in this pseudo-instruction')

@@ -29,13 +29,19 @@ data.fpu_registers = {
 }
 
 data.all_directives = {
-    'ALIGN', 'SKIP',
+    'ORG', 'ALIGN', 'SKIP',
     'ASCII', 'ASCIIZ',
-    'BYTE', 'HALFWORD', 'WORD', 'FLOAT',
+    'BYTE', 'HALFWORD', 'WORD',
     --'HEX', -- excluded here due to different syntax
     'INC', 'INCASM', 'INCLUDE',
     'INCBIN',
-    'ORG',
+    -- these are unlikely to be implemented
+    'FLOAT', 'DOUBLE',
+}
+
+data.directive_aliases = {
+    SPACE = 'SKIP',
+    HALF = 'HALFWORD',
 }
 
 data.all_registers = {}

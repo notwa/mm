@@ -1,21 +1,26 @@
 local byte = string.byte
 local char = string.char
 local find = string.find
-local open = io.open
+local format = string.format
+local insert = table.insert
 
 local data = require "lips.data"
+local util = require "lips.util"
 
-local function readfile(fn)
-    local f = open(fn, 'r')
-    if not f then
-        error('could not open assembly file for reading: '..tostring(fn), 2)
-    end
-    local asm = f:read('*a')
-    f:close()
-    return asm
-end
+local simple_escapes = {
+    ['0']   = 0x00,
+    ['\\']  = 0x5C,
+    ['"']   = 0x22,
+    ['a']   = 0x07,
+    ['b']   = 0x08,
+    ['f']   = 0x0C,
+    ['n']   = 0x0A,
+    ['r']   = 0x0D,
+    ['t']   = 0x09,
+    ['v']   = 0x0B,
+}
 
-local Lexer = require("lips.Class")()
+local Lexer = util.Class()
 function Lexer:init(asm, fn, options)
     self.asm = asm
     self.fn = fn or '(string)'
@@ -139,8 +144,8 @@ function Lexer:lex_hex(yield)
     local entered = false
     while true do
         if self.chr == '\n' then
-            self:nextc()
             yield('EOL', '\n')
+            self:nextc()
         elseif self.ord == self.EOF then
             self:error('unexpected EOF; incomplete hex directive')
         elseif self.chr == ';' then
@@ -191,8 +196,8 @@ end
 function Lexer:lex_block_comment(yield)
     while true do
         if self.chr == '\n' then
-            self:nextc()
             yield('EOL', '\n')
+            self:nextc()
         elseif self.ord == self.EOF then
             self:error('unexpected EOF; incomplete block comment')
         elseif self.chrchr == '*/' then
@@ -206,14 +211,49 @@ function Lexer:lex_block_comment(yield)
 end
 
 function Lexer:lex_string(yield)
-    -- TODO: support escaping
     if self.chr ~= '"' then
-        self:error("expected opening double quote")
+        self:error('expected opening double quote')
+    end
+    self:nextc()
+
+    local bytes = {}
+    while true do
+        if self.chr == '\n' then
+            self:error('unimplemented')
+            yield('EOL', '\n')
+            self:nextc()
+        elseif self.ord == self.EOF then
+            self:nextc()
+            self:error('unexpected EOF; incomplete string')
+        elseif self.chr == '"' then
+            self:nextc()
+            break
+        elseif self.chr == '\\' then
+            self:nextc()
+            local simple = simple_escapes[self.chr]
+            if simple then
+                insert(bytes, simple)
+            else
+                self:error('unknown escape sequence')
+            end
+            self:nextc()
+        else
+            insert(bytes, byte(self.chr))
+            self:nextc()
+        end
+    end
+
+    yield('STRING', bytes)
+end
+
+function Lexer:lex_string_naive(yield) -- no escape sequences
+    if self.chr ~= '"' then
+        self:error('expected opening double quote')
     end
     self:nextc()
     local buff = self:read_chars('[^"\n]')
     if self.chr ~= '"' then
-        self:error("expected closing double quote")
+        self:error('expected closing double quote')
     end
     self:nextc()
     yield('STRING', buff)
@@ -222,13 +262,13 @@ end
 function Lexer:lex_include(_yield)
     self:read_chars('%s')
     local fn
-    self:lex_string(function(tt, tok)
+    self:lex_string_naive(function(tt, tok)
         fn = tok
     end)
     if self.options.path then
         fn = self.options.path..fn
     end
-    local sublexer = Lexer(readfile(fn), fn, self.options)
+    local sublexer = Lexer(util.readfile(fn), fn, self.options)
     sublexer:lex(_yield)
 end
 
@@ -238,8 +278,8 @@ function Lexer:lex(_yield)
     end
     while true do
         if self.chr == '\n' then
-            self:nextc()
             yield('EOL', '\n')
+            self:nextc()
         elseif self.ord == self.EOF then
             yield('EOF', self.EOF)
             break
@@ -268,24 +308,23 @@ function Lexer:lex(_yield)
             end
             self:nextc()
             yield('DEF', buff)
+        elseif self.chr == ']' then
+            self:error('unmatched closing bracket')
         elseif self.chr == '(' then
             self:nextc()
-            local buff = self:read_chars('[%w_]')
-            if self.chr ~= ')' then
-                self:error('invalid register name')
-            end
+            yield('OPEN', '(')
+        elseif self.chr == ')' then
             self:nextc()
-            local up = buff:upper()
-            if not data.all_registers[up] then
-                self:error('not a register')
-            end
-            yield('DEREF', up)
+            yield('CLOSE', ')')
         elseif self.chr == '.' then
             self:nextc()
             local buff = self:read_chars('[%w]')
             local up = buff:upper()
+            if data.directive_aliases[up] then
+                up = data.directive_aliases[up]
+            end
             if not data.all_directives[up] then
-                self:error('not a directive')
+                self:error('unknown directive')
             end
             if up == 'INC' or up == 'INCASM' or up == 'INCLUDE' then
                 yield('DIR', 'INC')
@@ -293,10 +332,16 @@ function Lexer:lex(_yield)
             else
                 yield('DIR', up)
             end
+        elseif self.chr == '"' then
+            self:lex_string(yield)
         elseif self.chr == '@' then
             self:nextc()
             local buff = self:read_chars('[%w_]')
             yield('DEFSYM', buff)
+        elseif self.chr == '%' then
+            self:nextc()
+            local call = self:read_chars('[%w_]')
+            yield('SPECIAL', call)
         elseif self.chr:find('[%a_]') then
             local buff = self:read_chars('[%w_.]')
             local up = buff:upper()
@@ -318,10 +363,6 @@ function Lexer:lex(_yield)
                 end
                 yield('LABELSYM', buff)
             end
-        elseif self.chr == ']' then
-            self:error('unmatched closing bracket')
-        elseif self.chr == ')' then
-            self:error('unmatched closing parenthesis')
         elseif self.chr == '+' or self.chr == '-' then
             local sign_chr = self.chr
             local sign = sign_chr == '+' and 1 or -1

@@ -34,10 +34,10 @@
     jpop    4, 1, ra
 
 fmt:
-    .byte 0x25,0x73,0x00 // %s
+    .asciiz "%s"
 .align
 str:
-    .byte 0x68,0x65,0x79,0x00 // hey
+    .asciiz "hey"
 .align
 
 .include "simple text.asm"
@@ -72,10 +72,9 @@ spawned:
 buffer_pos:
     .word 0
 
-// we'll just let this overflow
-.align 8
+.align 4
 buffer:
-    .word 0
+    .skip 0x3000
 
 // overwrite (not hook) the debug printing function
 .org 0x800021B0

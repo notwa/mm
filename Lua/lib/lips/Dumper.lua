@@ -1,13 +1,13 @@
-local insert = table.insert
 local floor = math.floor
+local format = string.format
+local insert = table.insert
 
 local data = require "lips.data"
+local util = require "lips.util"
 
-local function bitrange(x, lower, upper)
-    return floor(x/2^lower) % 2^(upper - lower + 1)
-end
+local bitrange = util.bitrange
 
-local Dumper = require("lips.Class")()
+local Dumper = util.Class()
 function Dumper:init(writer, fn, options)
     self.writer = writer
     self.fn = fn or '(string)'
@@ -32,16 +32,16 @@ function Dumper:push_instruction(t)
     self:advance(4)
 end
 
-function Dumper:add_instruction_j(line, o, T)
-    self:push_instruction{line=line, o, T}
+function Dumper:add_instruction_j(fn, line, o, T)
+    self:push_instruction{fn=fn, line=line, o, T}
 end
 
-function Dumper:add_instruction_i(line, o, s, t, i)
-    self:push_instruction{line=line, o, s, t, i}
+function Dumper:add_instruction_i(fn, line, o, s, t, i)
+    self:push_instruction{fn=fn, line=line, o, s, t, i}
 end
 
-function Dumper:add_instruction_r(line, o, s, t, d, f, c)
-    self:push_instruction{line=line, o, s, t, d, f, c}
+function Dumper:add_instruction_r(fn, line, o, s, t, d, f, c)
+    self:push_instruction{fn=fn, line=line, o, s, t, d, f, c}
 end
 
 function Dumper:add_label(name)
@@ -57,6 +57,8 @@ function Dumper:add_bytes(line, ...)
         t = {}
         t.kind = 'bytes'
         t.size = 0
+        t.fn = self.fn
+        t.line = self.line
     end
     t.line = line
     for _, b in ipairs{...} do
@@ -69,9 +71,12 @@ function Dumper:add_bytes(line, ...)
     self:advance(t.size)
 end
 
-function Dumper:add_directive(line, name, a, b)
+function Dumper:add_directive(fn, line, name, a, b)
+    self.fn = fn
+    self.line = line
     local t = {}
-    t.line = line
+    t.fn = self.fn
+    t.line = self.line
     if name == 'BYTE' then
         self:add_bytes(line, a % 0x100)
     elseif name == 'HALFWORD' then
@@ -79,11 +84,17 @@ function Dumper:add_directive(line, name, a, b)
         local b1 = bitrange(a, 8, 15)
         self:add_bytes(line, b1, b0)
     elseif name == 'WORD' then
-        local b0 = bitrange(a, 0, 7)
-        local b1 = bitrange(a, 8, 15)
-        local b2 = bitrange(a, 16, 23)
-        local b3 = bitrange(a, 24, 31)
-        self:add_bytes(line, b3, b2, b1, b0)
+        if type(a) == 'string' then
+            local t = {line=line, kind='label', name=a}
+            insert(self.commands, t)
+            self:advance(4)
+        else
+            local b0 = bitrange(a, 0, 7)
+            local b1 = bitrange(a, 8, 15)
+            local b2 = bitrange(a, 16, 23)
+            local b3 = bitrange(a, 24, 31)
+            self:add_bytes(line, b3, b2, b1, b0)
+        end
     elseif name == 'ORG' then
         t.kind = 'goto'
         t.addr = a
@@ -92,11 +103,13 @@ function Dumper:add_directive(line, name, a, b)
         self:advance(0)
     elseif name == 'ALIGN' then
         t.kind = 'ahead'
-        local align = a*2
-        if align == 0 then
+        local align
+        if a == 0 then
             align = 4
-        elseif align < 0 then
+        elseif a < 0 then
             self:error('negative alignment')
+        else
+            align = 2^a
         end
         local temp = self.pos + align - 1
         t.skip = temp - (temp % align) - self.pos
@@ -114,18 +127,20 @@ function Dumper:add_directive(line, name, a, b)
     end
 end
 
-function Dumper:desym(tok)
-    -- FIXME: errors can give wrong filename, also off by one
-    if type(tok[2]) == 'number' then
-        return tok[2]
-    elseif tok[1] == 'LABELSYM' then
-        local label = self.labels[tok[2]]
+function Dumper:desym(t)
+    if type(t.tok) == 'number' then
+        return t.tok
+    elseif t.tt == 'REG' then
+        assert(data.all_registers[t.tok], 'Internal Error: unknown register')
+        return data.registers[t.tok] or data.fpu_registers[t.tok] or data.sys_registers[t.tok]
+    elseif t.tt == 'LABELSYM' then
+        local label = self.labels[t.tok]
         if label == nil then
             self:error('undefined label')
         end
         return label
-    elseif tok[1] == 'LABELREL' then
-        local label = self.labels[tok[2]]
+    elseif t.tt == 'LABELREL' then
+        local label = self.labels[t.tok]
         if label == nil then
             self:error('undefined label')
         end
@@ -137,57 +152,43 @@ function Dumper:desym(tok)
         end
         return rel % 0x10000
     end
-    self:error('failed to desym') -- internal error?
+    error('Internal Error: failed to desym')
 end
 
-function Dumper:toval(tok)
-    if tok == nil then
-        self:error('nil value')
-    elseif type(tok) == 'number' then
-        return tok
-    elseif data.all_registers[tok] then
-        return data.registers[tok] or data.fpu_registers[tok] or data.sys_registers[tok]
+function Dumper:toval(t)
+    assert(type(t) == 'table', 'Internal Error: invalid value')
+
+    local val = self:desym(t)
+
+    if t.index then
+        val = val % 0x80000000
+        val = floor(val/4)
     end
-    if type(tok) == 'table' then
-        if #tok ~= 2 then
-            self:error('invalid token')
-        end
-        if tok[1] == 'UPPER' then
-            local val = self:desym(tok[2])
-            return bitrange(val, 16, 31)
-        elseif tok[1] == 'LOWER' then
-            local val = self:desym(tok[2])
-            return bitrange(val, 0, 15)
-        elseif tok[1] == 'UPPEROFF' then
-            local val = self:desym(tok[2])
-            local upper = bitrange(val, 16, 31)
-            local lower = bitrange(val, 0, 15)
-            if lower >= 0x8000 then
-                -- accommodate for offsets being signed
-                upper = (upper + 1) % 0x10000
-            end
-            return upper
-        elseif tok[1] == 'SIGNED' then
-            local val = self:desym(tok[2])
-            if val >= 0x10000 or val < -0x8000 then
-                self:error('value out of range')
-            end
-            return val % 0x10000
-        elseif tok[1] == 'NEGATE' then
-            local val = -self:desym(tok[2])
-            if val >= 0x10000 or val < -0x8000 then
-                self:error('value out of range')
-            end
-            return val % 0x10000
-        elseif tok[1] == 'INDEX' then
-            local val = self:desym(tok[2]) % 0x80000000
-            val = floor(val/4)
-            return val
-        else
-            return self:desym(tok)
-        end
+    if t.negate then
+        val = -val
     end
-    self:error('invalid value') -- internal error?
+    if t.negate or t.signed then
+        if val >= 0x10000 or val < -0x8000 then
+            self:error('value out of range')
+        end
+        val = val % 0x10000
+    end
+
+    if t.portion == 'upper' then
+        val = bitrange(val, 16, 31)
+    elseif t.portion == 'lower' then
+        val = bitrange(val, 0, 15)
+    elseif t.portion == 'upperoff' then
+        local upper = bitrange(val, 16, 31)
+        local lower = bitrange(val, 0, 15)
+        if lower >= 0x8000 then
+            -- accommodate for offsets being signed
+            upper = (upper + 1) % 0x10000
+        end
+        val = upper
+    end
+
+    return val
 end
 
 function Dumper:validate(n, bits)
@@ -200,8 +201,8 @@ function Dumper:validate(n, bits)
     end
 end
 
-function Dumper:valvar(tok, bits)
-    local val = self:toval(tok)
+function Dumper:valvar(t, bits)
+    local val = self:toval(t)
     self:validate(val, bits)
     return val
 end
@@ -236,7 +237,7 @@ function Dumper:dump_instruction(t)
         lw = lw + self:valvar(t[5], 5)*0x40
         lw = lw + self:valvar(t[6], 6)
     else
-        error('Internal Error: unknown n-size', 1)
+        error('Internal Error: unknown n-size')
     end
 
     return uw, lw
@@ -245,9 +246,9 @@ end
 function Dumper:dump()
     self.pos = self.options.offset or 0
     for i, t in ipairs(self.commands) do
-        if t.line == nil then
-            error('Internal Error: no line number available')
-        end
+        assert(t.fn, 'Internal Error: no file name available')
+        assert(t.line, 'Internal Error: no line number available')
+        self.fn = t.fn
         self.line = t.line
         if t.kind == 'instruction' then
             local uw, lw = self:dump_instruction(t)
@@ -268,8 +269,16 @@ function Dumper:dump()
             else
                 self.pos = self.pos + t.skip
             end
+        elseif t.kind == 'label' then
+            local val = self:desym{'LABELSYM', t.name}
+            val = (val % 0x80000000) + 0x80000000
+            local b0 = bitrange(val, 0, 7)
+            local b1 = bitrange(val, 8, 15)
+            local b2 = bitrange(val, 16, 23)
+            local b3 = bitrange(val, 24, 31)
+            self:write{b3, b2, b1, b0}
         else
-            error('Internal Error: unknown command', 1)
+            error('Internal Error: unknown command')
         end
     end
 end

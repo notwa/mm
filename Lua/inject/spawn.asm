@@ -2,6 +2,8 @@
 [button_R]: 0x0010
 [button_any]: 0x0F20
 
+[min_actor_no]: 0
+
 [hold_delay_amount]: 3
 
     push    4, s0, s1, s2, s3, s4, ra,
@@ -40,7 +42,7 @@
     mov     a0, s3
     andi    s3, v0, 0xFFFF
 +: // set min/max on actor number
-    subi    t4, s0, 1
+    subi    t4, s0, @min_actor_no
     bgez    t4, +
     nop
     li      s0, @max_actor_no
@@ -48,7 +50,7 @@
     subi    t4, s0, @max_actor_no
     blez    t4, +
     nop
-    li      s0, 1
+    li      s0, @min_actor_no
 +: // spawn
     andi    t3, s2, @button_L
     beqz    t3, return
@@ -87,7 +89,7 @@ selected:
     .word 0
 
 fmt:
-    .byte 0x25,0x30,0x34,0x58,0x00 // %04X
+    .asciiz "%04X"
 .align
 
 .include "dpad control.asm"
@@ -97,7 +99,24 @@ fmt:
 hold_delay:
     .word 0
 
+object_spawn_wrap:
+    // a0: object table
+    // a1: object number
+    beqz    a0, +
+    nop
+    beqi    a0, 1, +
+    nop
+    beqi    a0, 2, +
+    nop
+    jal     @object_spawn
+    nop
++:
+    jr
+    nop
+
 .org @object_index
+    // a0: object table
+    // a1: object number
     // we have space for 22 instructions (on debug, 23 on 1.0?)
     push    4, ra, 1
     mov     t0, a0
@@ -116,8 +135,6 @@ hold_delay:
     addi    t0, t0, 68
     bnez    t1, -
     nop
-    // NOTE: this allows object 0002 to load in places it's not meant to.
-    // this can mess up door graphics (among other things?)
     jal     @object_spawn
     nop
     //subiu   v0, r0, -1 // original code
