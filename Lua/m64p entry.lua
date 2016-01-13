@@ -4,7 +4,7 @@ require = require "depend"
 require "boilerplate"
 
 local function once()
-    require "addrs.init"
+    require "addrs"
     print(m64p.rom.settings.MD5, version)
 end
 

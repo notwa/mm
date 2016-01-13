@@ -1,6 +1,6 @@
 require "lib.setup"
 require "boilerplate"
-local a = require "addrs.init"
+local a = require "addrs"
 
 -- gimme gimme gimme
 

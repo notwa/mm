@@ -1,4 +1,4 @@
-require "addrs.init"
+require "addrs"
 
 -- precalculate hamming weights of bytes
 hamming_weight = {}

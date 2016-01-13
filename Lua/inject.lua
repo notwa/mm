@@ -1,7 +1,8 @@
 require "lib.setup"
 require "boilerplate"
-require "addrs.init"
+require "addrs"
 require "messages"
+require = depend
 local assemble = require "lips"
 
 local injection_points = {

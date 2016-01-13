@@ -1,6 +1,6 @@
 require "lib.setup"
 require "boilerplate"
-require "addrs.init"
+require "addrs"
 require "classes"
 require "messages"
 

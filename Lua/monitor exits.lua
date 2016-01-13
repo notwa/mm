@@ -1,6 +1,6 @@
 require "lib.setup"
 require "boilerplate"
-require "addrs.init"
+require "addrs"
 
 local scene_names = require "data.scene names"
 local entrance_names = require "data.entrance names"

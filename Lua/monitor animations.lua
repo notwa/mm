@@ -1,4 +1,4 @@
-require "addrs.init"
+require "addrs"
 require "serialize"
 
 local anim_addr = addrs.link_actor.animation_id.addr
