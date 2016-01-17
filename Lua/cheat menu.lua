@@ -258,7 +258,7 @@ globalize{
     Passive = Passive,
     reload_scene = reload_scene,
 }
-local warp_menu = require "menus.warp"
+local warp_menu = require(mm and "menus.warp" or "menus.warp oot")
 local progress_menu = require "menus.progress"
 local playas_menu = require "menus.playas"
 
@@ -276,7 +276,7 @@ local main_menu = Menu{
         Oneshot("Escape Cutscene", Setter{[addrs.cutscene_status_2]=3}),
         Text(""),
         LinkTo("Play as...", playas_menu),
-        Oneshot("Store Epona", Setter{[addrs.stored_epona]=1}),
+      --Oneshot("Store Epona", Setter{[addrs.stored_epona]=1}),
         Oneshot("Kill Link", Setter{[addrs.hearts]=0}),
         Text(""),
         Back(),
