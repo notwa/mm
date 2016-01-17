@@ -1,8 +1,8 @@
--- same order as scene names.lua
-return {
-    [0]=
-    {[0]=
-        "from road",
+-- entrance order, not scene order. i know it's confusing.
+local bad="[crash]"
+return {[0]=
+    {name="Southern Swamp (Clean)",
+    [0]="from road",
         "from Tourists'",
         "from Woodfall",
         "from Deku Palace",
@@ -16,20 +16,20 @@ return {
     --  "from road (no cutscene)",
     },
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {[0]=
-        "Great Bay Gossip Stones",
+    {name="Grottos",
+    [0]="Great Bay Gossip Stones",
         "Woodfall Gossip Stones",
         "Stone Tower Gossip Stones",
         "Snowhead Gossip Stones",
@@ -48,8 +48,8 @@ return {
         "Lens of Truth",
     },
 
-    {[0]=
-        "from start file",
+    {name="Intro Map",
+    [0]="from start file",
         "Skull Kid cutscene",
         "(crash?)",
         "(crash?)",
@@ -61,51 +61,51 @@ return {
         "(crash?)",
     },
 
-    {},
+    {name=bad},
 
-    {[0]=
-        "main door",
+    {name="Magic Hags' Potion Shop",
+    [0]="main door",
     },
 
-    {[0]=
-        "from Moon",
+    {name="Majora",
+    [0]="from Moon",
     --  "from Moon (duplicate)",
     },
 
-    {[0]=
-        "Iron Knuckle grave",
+    {name="Beneath the Graveyard",
+    [0]="Iron Knuckle grave",
         "Flat's grave",
     },
 
-    {[0]=
-        "main door",
+    {name="Curiosity Shop",
+    [0]="main door",
         "Kafei's room",
         "peeking into shop",
         "after peeking",
     },
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {[0]=
-        "Barn",
+    {name="Mama's House / Barn",
+    [0]="Barn",
         "Mama's House",
     },
 
-    {[0]=
-        "main door",
+    {name="Honey & Darling's Shop",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Mayor's Residence",
+    [0]="main door",
         "Mayor's room",
     --  "(crash)",
     },
 
-    {[0]=
-        "from road",
+    {name="Ikana Canyon",
+    [0]="from road",
         "from Spirit House",
         "from Music Box House",
         "from Stone Tower",
@@ -123,8 +123,8 @@ return {
         "from road?",
     },
 
-    {[0]=
-        "main door",
+    {name="Pirates' Fortress (Outside)",
+    [0]="main door",
         "from Hookshot room",
         "from above Hookshot room",
         "from 100 Rupee room",
@@ -141,35 +141,35 @@ return {
     --  "(crash)",
     },
 
-    {[0]=
-        "main door",
+    {name="Milk Bar",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Stone Tower Temple",
+    [0]="main door",
     --  "main door (no cutscene)",
     },
 
-    {[0]=
-        "main door",
+    {name="Treasure Chest Shop",
+    [0]="main door",
         "after beating minigame",
     },
 
-    {[0]=
-        "main door",
+    {name="Inverted Stone Tower Temple",
+    [0]="main door",
         "to boss room",
     --  "(crash)",
     },
 
-    {[0]=
-        "main door",
+    {name="Atop Clock Tower",
+    [0]="main door",
         "from Ocarina cutscene",
         "(crash?)",
     },
 
-    {[0]=
-        "main door",
+    {name="(Deku Intro Area before Clock Tower)",
+    [0]="main door",
         "from Clock Tower (unused)",
         "after being turned into Deku",
         "after voiding out?",
@@ -177,20 +177,20 @@ return {
     --  "main door (no cutscene) (unused)",
     },
 
-    {[0]=
-        "main door",
+    {name="Woodfall Temple",
+    [0]="main door",
         "Deku Princess after Odolwa",
         "Deku Princess room",
     --  "main door with wrong room loaded (unused?)",
     },
 
-    {[0]=
-        "from Termina Field",
+    {name="Snowhead Passage",
+    [0]="from Termina Field",
         "from Mountain Village",
     },
 
-    {[0]=
-        "from Beneath the Well",
+    {name="Ikana Castle",
+    [0]="from Beneath the Well",
         "from Ikana Canyon",
         "from Castle Main Door",
         "inside Castle Main Door",
@@ -200,30 +200,30 @@ return {
     --  "from Beneath the Well (duplicate)",
     },
 
-    {[0]=
-        "from Clock Town",
+    {name="Deku Flower Minigame",
+    [0]="from Clock Town",
         "after beating minigame",
     --  "(crash)",
     --  "from Clock Town (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Woodfall Temple - Odolwa",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Town Shooting Gallery",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Snowhead Temple",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from Termina Field",
+    {name="Milk Road",
+    [0]="from Termina Field",
         "from Romani's Ranch",
         "from Gorman track behind fence",
         "from Gorman track",
@@ -233,8 +233,8 @@ return {
     --  "from Termina Field (duplicate)",
     },
 
-    {[0]=
-        "Hookshot room",
+    {name="Pirates' Fortress (Inside)",
+    [0]="Hookshot room",
         "Hookshot room from above",
         "100 Rupee room",
         "100 Rupee room (egg)",
@@ -252,18 +252,18 @@ return {
         "(crash)",
     },
 
-    {[0]=
-        "main door",
+    {name="Swamp Shooting Gallery",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from Great Bay",
+    {name="Pinnacle Rock",
+    [0]="from Great Bay",
     --  "from Great Bay (duplicate)",
     },
 
-    {[0]=
-        "from Clock Town",
+    {name="Fairy's Fountain",
+    [0]="from Clock Town",
         "from Woodfall",
         "from Snowhead",
         "from Great Bay",
@@ -275,30 +275,30 @@ return {
         "getting Great Fairy's sword",
     },
 
-    {[0]=
-        "main door",
+    {name="Swamp Spider House",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Oceanside Spider House",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from Clock Town",
+    {name="Astral Observatory (Bomber's Hideout)",
+    [0]="from Clock Town",
         "from Termina Field",
         "after telescope",
     --  "from Clock Town (duplicate?)",
     },
 
-    {[0]=
-        "from Moon",
+    {name="Woodfall Trial",
+    [0]="from Moon",
     --  "from Moon?",
     },
 
-    {[0]=
-        "from Swamp",
+    {name="Deku Palace",
+    [0]="from Swamp",
         "being kicked out",
         "from Deku king's chamber",
         "from Monkey's cell",
@@ -312,15 +312,15 @@ return {
     --  "from Swamp (no cutscene)",
     },
 
-    {[0]=
-        "main door",
+    {name="Mountain Smithy",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from West Clock Town",
+    {name="Termina Field",
+    [0]="from West Clock Town",
         "from road to Swamp",
         "from Great Bay",
         "from Snowhead passage",
@@ -338,34 +338,34 @@ return {
     --  "from West Clock Town (no cutscene)",
     },
 
-    {[0]=
-        "main door",
+    {name="Post Office",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Marine Research Lab",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from grave",
+    {name="Beneath the Graveyard (Dampe)",
+    [0]="from grave",
         "from Graveyard door",
     },
 
-    {},
+    {name=bad},
 
-    {[0]=
-        "main door",
+    {name="Goron Shrine",
+    [0]="main door",
         "from shop",
         "after Lullaby",
     --  "main door (no cutscene)",
     },
 
-    {[0]=
-        "from center",
+    {name="Zora Hall",
+    [0]="from center",
         "from turtle",
         "from shop",
         "from Mikau's room",
@@ -377,15 +377,15 @@ return {
     --  "main door (no cutscene)",
     },
 
-    {[0]=
-        "main door",
+    {name="Trading Post",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from milk road",
+    {name="Romani Ranch",
+    [0]="from milk road",
         "after minigame",
         "from Barn",
         "from mama's house",
@@ -402,16 +402,16 @@ return {
     --  "in front of Barn (e)",
     },
 
-    {[0]=
-        "main door",
+    {name="Stone Tower Temple - Twinmold",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "(crash)",
     --  "(crash)",
     },
 
-    {[0]=
-        "from Termina Field",
+    {name="Great Bay Coast (Lab Area)",
+    [0]="from Termina Field",
         "from Zora area",
         "from swimming too far",
         "from pinnacle rock",
@@ -427,8 +427,8 @@ return {
         "after beating minigame",
     },
 
-    {[0]=
-        "from lab area",
+    {name="Great Bay Coast (Zora Area)",
+    [0]="from lab area",
         "from Zora Hall",
         "from Zora Hall (turtle)",
         "from swimming too far",
@@ -440,17 +440,17 @@ return {
         "really high up?",
     },
 
-    {[0]=
-        "main door",
+    {name="Lottery Shop",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {},
+    {name=bad},
 
-    {[0]=
-        "from Great Bay",
+    {name="Pirates' Fortress (Outside)",
+    [0]="from Great Bay",
         "from outside Pirates'",
         "from underwater passage",
         "from one-way underwater",
@@ -460,55 +460,55 @@ return {
     --  "from Great Bay (no cutscene)",
     },
 
-    {[0]=
-        "main door",
+    {name="Fisherman's Hut",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Goron Shop",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from main door",
+    {name="Deku King's Chamber",
+    [0]="from main door",
         "to Monkey",
         "Princess thanks Monkey cutscene",
         "in front of King",
     },
 
-    {[0]=
-        "from Moon",
+    {name="Snowhead Trial",
+    [0]="from Moon",
     --  "from Moon?",
     --  "(crash)",
     --  "from Moon??",
     },
 
-    {[0]=
-        "from Termina Field",
+    {name="(Road to Swamp)",
+    [0]="from Termina Field",
         "from Swamp",
         "from Shooting Gallery",
     --  "from Termina Field (duplicate)",
     },
 
-    {[0]=
-        "from Ranch",
+    {name="Doggy Racetrack",
+    [0]="from Ranch",
         "after beating minigame",
     --  "(crash)",
     --  "from Ranch (duplicate)",
     },
 
-    {[0]=
-        "from Ranch",
+    {name="Cucco Shack",
+    [0]="from Ranch",
         "getting Bunny Hood",
     },
 
-    {[0]=
-        "from road",
+    {name="Ikana Graveyard",
+    [0]="from road",
         "from grave 1",
         "from grave 2",
         "from grave 3",
@@ -516,13 +516,13 @@ return {
         "getting Captain's Hat",
     },
 
-    {[0]=
-        "main door",
+    {name="Snowhead Temple - Goht",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from road",
+    {name="Southern Swamp (Poisoned)",
+    [0]="from road",
         "from Tourists'",
         "from Woodfall",
         "from Deku Palace",
@@ -536,8 +536,8 @@ return {
     --  "from road (no cutscene)",
     },
 
-    {[0]=
-        "from Swamp",
+    {name="Woodfall Temple (Outside)",
+    [0]="from Swamp",
         "from Temple",
         "from Great Fairy's fountain",
         "from Deku princess",
@@ -545,13 +545,13 @@ return {
     --  "from Swamp (no cutscene)",
     },
 
-    {[0]=
-        "from Moon",
+    {name="Great Bay Trial",
+    [0]="from Moon",
     --  "from Moon?",
     },
 
-    {[0]=
-        "from road",
+    {name="Goron Village (Thawed)",
+    [0]="from road",
         "from above (unused?)",
         "from shrine",
         "from lens of truth cave",
@@ -559,26 +559,26 @@ return {
     --  "from road (duplicate)",
     },
 
-    {[0]=
-        "from turtle",
+    {name="Great Bay Temple",
+    [0]="from turtle",
         "from turtle (first time)",
     },
 
-    {[0]=
-        "from Great Bay",
+    {name="Waterfall Rapids",
+    [0]="from Great Bay",
         "minigame",
         "minigame 2?",
         "after beating minigame?",
     --  "from Great Bay (no cutscene)",
     },
 
-    {[0]=
-        "from Ikana canyon",
+    {name="Beneath the Well",
+    [0]="from Ikana canyon",
         "from Ikana castle",
     },
 
-    {[0]=
-        "Tijo's room",
+    {name="(Zora Band Member Rooms)",
+    [0]="Tijo's room",
         "Japas' room",
         "from Mikau's room",
         "from Evan's room",
@@ -588,8 +588,8 @@ return {
     --  "Tijo's room (duplicate)",
     },
 
-    {[0]=
-        "from road",
+    {name="Goron Village (Frozen)",
+    [0]="from road",
         "from flower?",
         "from Shrine",
         "from Lens of Truth cave",
@@ -597,22 +597,22 @@ return {
     --  "from road (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Goron Graveyard",
+    [0]="main door",
         "getting Goron mask",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Sakon's Hideout",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "after beating Snowhead",
+    {name="Mountain Village (Frozen)",
+    [0]="after beating Snowhead",
         "from Smithy's",
         "from road to Village",
         "from Graveyard",
@@ -624,69 +624,69 @@ return {
     --  "after being Snowhead (duplicate)",
     },
 
-    {[0]=
-        "from Ikana canyon",
+    {name="Ghost Hut",
+    [0]="from Ikana canyon",
         "from minigame",
         "after beating minigame",
     --  "from Ikana canyon (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Deku Shrine",
+    [0]="main door",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from Termina Field",
+    {name="(Road to Ikana)",
+    [0]="from Termina Field",
         "from Ikana canyon",
         "from Ikana Graveyard",
     --  "from Termina Field (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Swordsman's School",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Music Box House",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Ikana Castle Boss Room",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Tourist Information",
+    [0]="main door",
         "from boat ride",
         "in front of desk (unused?)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "from Ikana canyon",
+    {name="Stone Tower",
+    [0]="from Ikana canyon",
         "from inverting",
         "from Temple",
         "from Owl Statue",
     },
 
-    {[0]=
-        "from inverting",
+    {name="Inverted Stone Tower",
+    [0]="from inverting",
         "from stone Tower",
     --  "(crash)",
     --  "from inverting (no cutscene)",
     },
 
-    {[0]=
-        "after beating Snowhead",
+    {name="Mountain Village (Thawed)",
+    [0]="after beating Snowhead",
         "from Smithy's",
         "from road to Village",
         "from Graveyard",
@@ -698,46 +698,46 @@ return {
     --  "after being Snowhead (duplicate)",
     },
 
-    {[0]=
-        "from Smithy area",
+    {name="(Road to Snowhead Temple)",
+    [0]="from Smithy area",
         "from Snowhead",
     },
 
-    {[0]=
-        "from road",
+    {name="Snowhead",
+    [0]="from road",
         "from Snowhead Temple",
         "from Great Fairy's fountain",
         "from Owl Statue",
     },
 
-    {[0]=
-        "from Smithy area",
+    {name="(Road to Goron Village) (Frozen)",
+    [0]="from Smithy area",
         "from Goron Village",
         "from Goron Racetrack",
     --  "from Smithy area (duplicate)",
     },
 
-    {[0]=
-        "from Smithy area",
+    {name="(Road to Goron Village) (Thawed)",
+    [0]="from Smithy area",
         "from Goron Village",
         "from Goron Racetrack",
     --  "from Smithy area (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Great Bay Temple - Gyorg",
+    [0]="main door",
         "immediately falling",
     },
 
-    {[0]=
-        "main door",
+    {name="Secret Shrine",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Stone Pot Inn",
+    [0]="main door",
         "upstairs door",
         "Grandma",
         "after talking",
@@ -745,13 +745,13 @@ return {
         "after listening",
     },
 
-    {[0]=
-        "default",
+    {name="(Cutscene before Great Bay Temple)",
+    [0]="default",
     --  "no cutscene",
     },
 
-    {[0]=
-        "twisty hallway",
+    {name="Clock Tower (Inside)",
+    [0]="twisty hallway",
         "from Clock Town",
         "getting Deku mask",
         "after cutscene?",
@@ -761,44 +761,44 @@ return {
     --  "twisty hallway (no cutscene)",
     },
 
-    {[0]=
-        "from Swamp",
+    {name="Woods of Mystery",
+    [0]="from Swamp",
         "from grotto?",
     },
 
-    {[0]=
-        "kicked off horse",
+    {name="Lost Woods (Gain Control)",
+    [0]="kicked off horse",
         "first SoT cutscene",
     --  "(crash)",
     --  "gain control (no cutscene)",
     },
 
-    {[0]=
-        "from Moon",
+    {name="Ikana Trial",
+    [0]="from Moon",
     --  "from Moon (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "Moon",
+    {name="Moon",
+    [0]="Moon",
     --  "Moon (duplicate)",
     },
 
-    {[0]=
-        "main door",
+    {name="Bomb Shop",
+    [0]="main door",
     --  "main door (duplicate)",
     --  "(crash)",
     --  "main door (duplicate)",
     },
 
-    {[0]=
-        "Giants",
+    {name="Giants' Chamber",
+    [0]="Giants",
     --  "no cutscene",
     },
 
-    {[0]=
-        "from milk road",
+    {name="Gorman Track",
+    [0]="from milk road",
         "?",
         "after beating minigame",
         "from milk road (behind fence)",
@@ -807,15 +807,15 @@ return {
         "beginning minigame",
     },
 
-    {[0]=
-        "from road",
+    {name="Goron Racetrack",
+    [0]="from road",
         "beginning minigame",
         "after beating minigame",
     --  "from road (duplicate)",
     },
 
-    {[0]=
-        "from Termina Field",
+    {name="East Clock Town",
+    [0]="from Termina Field",
         "from South Clock Town (South)",
         "from Bomber's hideout",
         "from South Clock Town (North)",
@@ -829,8 +829,8 @@ return {
         "from milk bar",
     },
 
-    {[0]=
-        "from Termina Field",
+    {name="West Clock Town",
+    [0]="from Termina Field",
         "from South Clock Town (South)",
         "from South Clock Town (North)",
         "from Swordsman's School",
@@ -842,8 +842,8 @@ return {
     --  "from Termina Field (duplicate)",
     },
 
-    {[0]=
-        "from Termina Field",
+    {name="North Clock Town",
+    [0]="from Termina Field",
         "from East Clock Town",
         "from South Clock Town",
         "from Great Fairy's fountain",
@@ -853,8 +853,8 @@ return {
         "after sakon attacks",
     },
 
-    {[0]=
-        "from Clock Tower",
+    {name="South Clock Town",
+    [0]="from Clock Tower",
         "from Termina Field",
         "from East Clock Town (North)",
         "from West Clock Town (North)",
@@ -868,38 +868,38 @@ return {
     --  "from Clock Tower (no cutscene)",
     },
 
-    {[0]=
-        "from South Clock Town",
+    {name="Laundry Pool",
+    [0]="from South Clock Town",
         "from Kafei's room",
     },
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 
-    {},
+    {name=bad},
 }

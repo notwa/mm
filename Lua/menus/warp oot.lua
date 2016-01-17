@@ -1,7 +1,6 @@
 local ins = table.insert
-local scene_names = require "data.scene names oot"
 local entrance_names = require "data.entrance names oot"
-local maxscene = #scene_names
+local maxscene = #entrance_names
 
 local per_page = 16
 local pagecount = math.ceil((maxscene + 1)/per_page)
@@ -19,7 +18,7 @@ for si=0, maxscene do
 
     local entrance_items = {}
     local entrances = entrance_names[i]
-    local scene_name = scene_names[i]
+    local scene_name = entrances.name
 
     ins(entrance_items, Text( ("Warp to %s"):format(scene_name) ))
 

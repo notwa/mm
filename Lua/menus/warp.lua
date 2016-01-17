@@ -1,5 +1,4 @@
 local ins = table.insert
-local scene_names = require "data.scene names"
 local entrance_names = require "data.entrance names"
 local scene_id_to_entrance_id = require "data.scene to entrance"
 
@@ -25,7 +24,7 @@ for si=0x00,0x7F do
     local scene_name = '[crash]'
     if i ~= nil then
         entrances = entrance_names[i]
-        scene_name = scene_names[i]
+        scene_name = entrances.name
     end
 
     ins(entrance_items, Text( ("Warp to %s"):format(scene_name) ))

@@ -2,7 +2,6 @@ require "lib.setup"
 require "boilerplate"
 require "addrs"
 
-local scene_names = require "data.scene names"
 local entrance_names = require "data.entrance names"
 
 local open = io.open
@@ -33,7 +32,7 @@ local function calc_dump(a, writer)
         writer("err")
         return
     end
-    writer(scene_names[scene_id])
+    writer(t.name)
     if t[entrance] then
         writer(t[entrance])
     else
