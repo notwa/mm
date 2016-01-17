@@ -1,64 +1,65 @@
+-- TODO: fix "from Market Entrance" ones that should just be "from Market"
 return {[0]=
     {[0]=
         {"from Kokiri Forest", 0x0000},
-        {"from Deku Tree Boss", 0x0252},
+        {"from boss door", 0x0252},
     },
 
     {[0]=
         {"from Death Mountain Trail", 0x0004},
-        {"from Dodongo's Cavern Boss", 0x00C5},
+        {"from boss door", 0x00C5},
     },
 
     {[0]=
         {"from Zora's Fountain", 0x0028},
-        {"Map 14, from Inside Jabu Jabu's Belly Boss", 0x0407},
+        {"from boss door (wrong room)", 0x0407},
     },
 
     {[0]=
         {"from Sacred Forest Meadow", 0x0169},
-        {"Outside Boss Door, from Forest Temple Boss, Secret Map #0", 0x024E},
-        {"Ceiling Crush room", 0x0584},
+        {"from boss door", 0x024E},
+        {"in ceiling crush room", 0x0584},
     },
 
     {[0]=
         {"from Death Mountain Crater", 0x0165},
-        {"Outside Boss Door, from Fire Temple Boss, Secret Map #0", 0x0175},
+        {"from boss door", 0x0175},
     },
 
     {[0]=
         {"from Lake Hylia", 0x0010},
-        {"Main Entrance, from Water Temple Boss", 0x0423},
+        {"from Lake Hylia (dupe?)", 0x0423},
     },
 
     {[0]=
         {"from Desert Colossus", 0x0082},
-        {"Boss Room Entrance, from Spirit Temple Boss", 0x02F5},
-        {"from Desert Colossus, Silver Gauntlets Chest", 0x03F0},
-        {"from Desert Colossus, Mirror Shield Chest", 0x03F4},
-        {"Crashes (Bad Map)", 0x03F8},
+        {"from boss door", 0x02F5},
+        {"from Silver Gauntlets Chest", 0x03F0},
+        {"from Mirror Shield Chest", 0x03F4},
+    --  {"Crashes (Bad Map)", 0x03F8},
     },
 
     {[0]=
         {"from Graveyard", 0x0037},
-        {"Outside Boss Door", 0x02B2},
-        {"from Shadow Temple Boss, Secret Map #0", 0x02B6},
-        {"?", 0x04EA},
+        {"from boss door", 0x02B2},
+    --  {"from Shadow Temple Boss, Secret Map #0", 0x02B6},
+    --  {"?", 0x04EA},
     },
 
     {[0]=
         {"from Kakariko Village", 0x0098},
-        {"???", 0x05CC},
+        {"from Kakariko Village (dupe?)", 0x05CC},
     },
 
     {[0]=
         {"from Zora's Fountain", 0x0088},
-        {"?", 0x05D8},
+        {"to sliding blocks puzzle (wrong room)", 0x05D8},
     },
 
     {[0]=
         {"from Inside Ganon's Castle", 0x041B},
-        {"from Outside Boss Door", 0x0427},
-        {"Facing Boss Key Door", 0x042B},
+        {"from boss door", 0x0427},
+        {"to alt boss door", 0x042B},
     },
 
     {[0]=
@@ -66,45 +67,45 @@ return {[0]=
     },
 
     {[0]=
-        {"from Gerudo Fortress", 0x0486},
-        {"from Gerudo Fortress", 0x048A},
-        {"from Gerudo Fortress", 0x048E},
-        {"from Gerudo Fortress", 0x0492},
-        {"from Gerudo Fortress", 0x0496},
-        {"from Gerudo Fortress", 0x049A},
-        {"from Gerudo Fortress", 0x049E},
-        {"from Gerudo Fortress", 0x04A2},
-        {"from Gerudo Fortress", 0x04A6},
-        {"from Gerudo Fortress", 0x04AA},
-        {"from Gerudo Fortress", 0x04AE},
-        {"from Gerudo Fortress", 0x04B2},
-        {"from Gerudo Fortress", 0x0570},
+        {"from Gerudo Fortress 1", 0x0486}, -- bottom left
+        {"from Gerudo Fortress 2", 0x048A}, -- bottom middle left
+        {"from Gerudo Fortress 3", 0x048E}, -- bottom middle right
+        {"from Gerudo Fortress 6", 0x0492}, -- middle middle
+        {"from Gerudo Fortress 4", 0x0496}, -- bottom right
+        {"from Gerudo Fortress 5", 0x049A}, -- middle left
+        {"from Gerudo Fortress 7", 0x049E}, -- middle right
+        {"from Gerudo Fortress 11", 0x04A2}, -- upper far right
+        {"from Gerudo Fortress 10", 0x04A6}, -- upper right
+        {"from Gerudo Fortress 9", 0x04AA}, -- upper middle
+        {"from Gerudo Fortress 12", 0x04AE}, -- nearest to jail, under chest
+        {"from Gerudo Fortress 13", 0x04B2}, -- above jail
+        {"from Gerudo Fortress 8", 0x0570}, -- upper left
     },
 
     {[0]=
-        {"from Castle", 0x0467},
-        {"from Ganon's Tower Climb", 0x0534},
-        {"Clear Forest Trial, from Inside Ganon's Castle", 0x0538},
-        {"Clear Water Trial, from Inside Ganon's Castle", 0x053C},
-        {"Clear Shadow Trial, from Inside Ganon's Castle", 0x0540},
-        {"Clear Fire Trial, from Inside Ganon's Castle", 0x0544},
-        {"Clear Light Trial, from Inside Ganon's Castle", 0x0548},
-        {"Clear Spirit Trial, from Inside Ganon's Castle", 0x054C},
+        {"from Exterior", 0x0467},
+        {"from Ganon's Tower", 0x0534},
+        {"cleared Forest Trial", 0x0538},
+        {"cleared Water Trial", 0x053C},
+        {"cleared Shadow Trial", 0x0540},
+        {"cleared Fire Trial", 0x0544},
+        {"cleared Light Trial", 0x0548},
+        {"cleared Spirit Trial", 0x054C},
     },
 
     {[0]=
-        {"Bottom of Boss Room, from Tower Collapse Exterior, (Higher)", 0x0179},
-        {"Bottom of Boss Room, from Tower Collapse Exterior, (Lower)", 0x0134},
-        {"Burning Rocks, from Tower Collapse Exterior, (Higher)", 0x01B5},
-        {"Burning Rocks, from Tower Collapse Exterior, (Lower)", 0x0256},
-        {"Stalfos Fight Room, from Tower Collapse Exterior, (Higher)", 0x03DC},
-        {"Stalfos Fight Room, from Tower Collapse Exterior, (Lower)", 0x03E0},
-        {"Staircase Down, from Tower Collapse Exterior, (Higher)", 0x03E4},
-        {"Staircase Down, from Tower Collapse Interior Exit", 0x04B6},
+        {"bottom of boss room, from Exterior (upper)", 0x0179},
+        {"bottom of boss room, from Exterior (lower)", 0x0134},
+        {"burning rocks, from Exterior, (upper)", 0x01B5},
+        {"burning rocks, from Exterior, (lower)", 0x0256},
+        {"Stalfos room, from Exterior, (upper)", 0x03DC},
+        {"Stalfos room, from Exterior, (lower)", 0x03E0},
+        {"staircase down, from Exterior, (upper)", 0x03E4},
+        {"staircase down, from Interior Exit", 0x04B6},
     },
 
     {[0]=
-        {"from Tower Collapse Interior, Stairs", 0x056C},
+        {"from Interior, stairs", 0x056C},
     },
 
     {[0]=
@@ -151,7 +152,7 @@ return {[0]=
     },
 
     {[0]=
-        {"Death Cutscene, from Ganondorf Boss Room", 0x043F},
+        {"Death cutscene, from Ganondorf Boss Room", 0x043F},
         {"from Tower Collapse Interior, Boss Room Floor (Higher)", 0x04BA},
         {"from Tower Collapse Interior, Boss Room Floor (Lower)", 0x032C},
         {"from Tower Collapse Interior, Burning Rocks (Higher)", 0x0330},
@@ -164,27 +165,27 @@ return {[0]=
     {[0]=
         {"from Market", 0x0033},
         {"from Hyrule Field", 0x0276},
-        {"from Lots 'o Pots", 0x026E},
+        {"from Guard Post", 0x026E},
     },
 
     {[0]=
         {"from Market", 0x0034},
         {"from Hyrule Field", 0x0277},
-        {"from Lots 'o Pots", 0x026F},
+        {"from Guard Post", 0x026F},
     },
 
     {[0]=
         {"from Market", 0x0035},
         {"from Hyrule Field", 0x0278},
-        {"from Lots 'o Pots", 0x0270},
+        {"from Guard Post", 0x0270},
     },
 
     {[0]=
-        {"Right Entrance, from Market", 0x00AD},
-        {"Left Entrance, from Market", 0x029A},
+        {"from Market (right)", 0x00AD},
+        {"from Market (left)", 0x029A},
         {"from Bombchu Shop", 0x03C0},
-        {"Right side of alley, from door, from Back Alley Village House", 0x0067},
-        {"from Puppy Woman's House", 0x038C},
+        {"from right house", 0x0067},
+        {"from Puppy Woman's house", 0x038C},
     --  [0]={"Right Entrance, from Market", 0x00AF},
     --  [1]={"Left Entrance, from Market", 0x029C},
     --  [2]={"from Bombchu Shop", 0x03C2},
@@ -193,11 +194,11 @@ return {[0]=
     },
 
     {[0]=
-        {"Right Entrance, from Market", 0x00AE},
-        {"Left Entrance, from Market", 0x029B},
+        {"from Market (right)", 0x00AE},
+        {"from Market (left)", 0x029B},
         {"from Bombchu Shop", 0x03C1},
-        {"Right side of alley, from door, from Back Alley Village House", 0x0068},
-        {"from Puppy Woman's House", 0x038D},
+        {"from right house", 0x0068},
+        {"from Puppy Woman's house", 0x038D},
     --  [0]={"Right Entrance, from Market", 0x00B0},
     --  [1]={"Left Entrance, from Market", 0x029D},
     --  [2]={"from Bombchu Shop", 0x03C3},
@@ -209,8 +210,8 @@ return {[0]=
         {"from Market Entrance", 0x00B1},
         {"from Castle", 0x025A},
         {"from Temple of Time", 0x025E},
-        {"from Back Alley, (Right)", 0x0262},
-        {"from Back Alley, (Left)", 0x029E},
+        {"from Back Alley right", 0x0262},
+        {"from Back Alley left", 0x029E},
         {"from Market Potion Shop", 0x02A2},
         {"from Bazaar", 0x03B8},
         {"from Bombchu Bowling Alley", 0x03BC},
@@ -224,8 +225,8 @@ return {[0]=
         {"from Market Entrance", 0x00B2},
         {"from Castle", 0x025B},
         {"from Temple of Time", 0x025F},
-        {"from Back Alley, (Right)", 0x0263},
-        {"from Back Alley, (Left)", 0x029F},
+        {"from Back Alley right", 0x0263},
+        {"from Back Alley left", 0x029F},
         {"from Potion Shop", 0x02A3},
         {"from Bazaar", 0x03B9},
         {"from Bombchu Bowling Alley", 0x03BD},
@@ -238,8 +239,8 @@ return {[0]=
         {"from Market Entrance", 0x00B3},
         {"from Ganon's Castle", 0x025C},
         {"from Temple of Time", 0x0260},
-        {"from Back Alley, (Right)", 0x0264},
-        {"from Back Alley, (Left)", 0x02A0},
+        {"from Back Alley (right)", 0x0264},
+        {"from Back Alley (left)", 0x02A0},
         {"from Potion Shop", 0x02A4},
         {"from Bazaar", 0x03BA},
         {"from Bombchu Bowling Alley", 0x03BE},
@@ -249,17 +250,17 @@ return {[0]=
     },
 
     {[0]=
-        {"from Market Entrance", 0x0171},
+        {"from Market", 0x0171},
         {"from Temple of Time", 0x0472},
     },
 
     {[0]=
-        {"from Market Entrance", 0x0172},
+        {"from Market", 0x0172},
         {"from Temple of Time", 0x0473},
     },
 
     {[0]=
-        {"from Market Entrance", 0x0173},
+        {"from Market", 0x0173},
         {"from Temple of Time", 0x0474},
     },
 
@@ -280,11 +281,11 @@ return {[0]=
     },
 
     {[0]=
-        {"Boss's House, from Kakariko Village", 0x02FD},
+        {"from Kakariko Village", 0x02FD},
     },
 
     {[0]=
-        {"Back Alley Guy's House, from Back Alley, (Right)", 0x043B},
+        {"from Back Alley", 0x043B},
     },
 
     {[0]=
@@ -306,8 +307,8 @@ return {[0]=
 
     {[0]=
         {"from Kakariko Village", 0x0384},
-        {"Unused", 0x03E8},
-        {"Back Door, from Kakariko Village", 0x03EC},
+        {"from Kakariko Village (dupe?)", 0x03E8},
+        {"from Kakariko Village (back door)", 0x03EC},
     --  [0]={"from Kakariko Village", 0x0386},
     --  [1]={"Unused", 0x03EA},
     --  [2]={"Back Door, from Kakariko Village", 0x03EE},
@@ -318,8 +319,8 @@ return {[0]=
     },
 
     {[0]=
-        {"??? (Back Alley)", 0x0390},
-        {"from Back Alley, (Left)", 0x0528},
+        {"from Back Alley", 0x0390},
+        {"from Back Alley (dupe?)", 0x0528},
     },
 
     {[0]=
@@ -327,13 +328,13 @@ return {[0]=
     },
 
     {[0]=
-        {"Bed Entrance, from Savewarp", 0x00BB},
+        {"from Save Warp", 0x00BB},
         {"from Kokiri Forest", 0x0272},
     --  [0]={"Bed Entrance, from Savewarp", 0x00C0},
     },
 
     {[0]=
-        {"from Back Alley, (Left)", 0x0398},
+        {"from Back Alley", 0x0398},
     },
 
     {[0]=
@@ -342,12 +343,12 @@ return {[0]=
 
     {[0]=
         {"from Kakariko Village", 0x039C},
-        {"Roof entrance, from Kakariko Village", 0x05C8},
+        {"from Kakariko Village (roof)", 0x05C8},
     },
 
     {[0]=
         {"from Lake Hylia", 0x0043},
-        {"Possibly Eyedrops Timeout", 0x01C5},
+        {"Eyedrops Timeout?", 0x01C5},
     },
 
     {[0]=
@@ -362,11 +363,11 @@ return {[0]=
         {"from Death Mountain Trail", 0x0315},
         {"from Death Mountain Crater", 0x04BE},
         {"from Castle", 0x04C2},
-        {"Leaving puts you at 044B", 0x04F2},
+        {"unused?", 0x04F2},
     },
 
     {[0]=
-        {"from Grotto spot", 0x036D},
+        {"from Grotto Hole", 0x036D},
     },
 
     {[0]=
@@ -376,17 +377,17 @@ return {[0]=
     },
 
     {[0]=
-        {"Default", 0x003F},
+        {"generic", 0x003F},
         {"Big Skulltula", 0x0598},
         {"Heart Piece Scrub", 0x059C},
         {"Two Redeads", 0x05A0},
         {"Three Deku Salescrubs", 0x05A4},
         {"Webbed", 0x05A8},
         {"Octoroc", 0x05AC},
-        {"Two Deku Salescrubs, Closest sells Deku Nut Upgrade", 0x05B0},
+        {"Two Deku Salescrubs (closest sells Deku Nut Upgrade)", 0x05B0},
         {"Two Wolfos", 0x05B4},
         {"Bombable Wall", 0x05B8},
-        {"Two Deku Salescrubs, Closest sells Green Pot", 0x05BC},
+        {"Two Deku Salescrubs (closest sells Green Pot)", 0x05BC},
         {"Tektite", 0x05C0},
         {"Forest Stage", 0x05C4},
         {"Cow", 0x05FC},
@@ -397,12 +398,12 @@ return {[0]=
     },
 
     {[0]=
-        {"Hylian Shield Chest, from Graveyard", 0x004B},
+        {"from Graveyard", 0x004B},
     },
 
     {[0]=
         {"from Graveyard", 0x002D},
-        {"Sun Song Cutscene", 0x0574},
+        {"from Sun Song cutscene", 0x0574},
     },
 
     {[0]=
@@ -414,13 +415,13 @@ return {[0]=
 
     {[0]=
         {"from Outside Temple of Time", 0x0053},
-        {},
-        {"Pull or Place Master Sword", 0x02CA},
-        {"Standing facing away from SoT spot", 0x0320},
-        {"After pulling the MS for first time", 0x0324},
-        {"from Temple of Time, Light Arrow Cutscene", 0x058C},
-        {"Front of Pedestal", 0x0590},
-        {"Prelude Entrance", 0x05F4},
+        {"n/a", 0},
+        {"from Master Sword", 0x02CA},
+        {"facing exit (closer to DoT)", 0x0320},
+        {"from Master Sword (first time)", 0x0324},
+        {"from Light Arrow cutscene", 0x058C},
+        {"facing exit", 0x0590},
+        {"from Prelude Warp", 0x05F4},
     --  [0]={"from Outside Temple of Time", 0x005E},
     --  [0]={"from Outside Temple of Time", 0x005F},
     },
@@ -432,14 +433,14 @@ return {[0]=
     },
 
     {[0]=
-        {"from Castle, Crawlspace", 0x007A},
+        {"from crawlspace", 0x007A},
         {"from Zelda's Courtyard", 0x0296},
     --  [0]={"from Castle, Crawlspace", 0x007C},
     --  [1]={"from Zelda's Courtyard", 0x0298},
     },
 
     {[0]=
-        {"from Castle, Crawlspace", 0x007B},
+        {"from crawlspace", 0x007B},
         {"from Zelda's Courtyard", 0x0297},
     --  [0]={"from Castle, Crawlspace", 0x007D},
     --  [1]={"from Zelda's Courtyard", 0x0299},
@@ -455,9 +456,9 @@ return {[0]=
     },
 
     {[0]=
-        {"Dampe's Grave, from Graveyard", 0x044F},
-        {"Windmill, from Kakariko Village", 0x0453},
-        {"Windmill After Song of Storms?", 0x0503},
+        {"from Graveyard", 0x044F},
+        {"from Kakariko Village", 0x0453},
+        {"from Storms cutscene", 0x0503},
     },
 
     {[0]=
@@ -466,7 +467,7 @@ return {[0]=
 
     {[0]=
         {"from Castle Courtyard", 0x0400},
-        {"from Triforce Legend Cutscene", 0x05F0},
+        {"from Triforce cutscene", 0x05F0},
     },
 
     {[0]=
@@ -474,9 +475,9 @@ return {[0]=
     },
 
     {[0]=
-        {"Talon's House, from Lon Lon Ranch", 0x004F},
-        {"Back Tower, from Lon Lon Ranch", 0x05D0},
-        {"Talon's House, from Lose/Win Cucco Game", 0x05E4},
+        {"from Lon Lon Ranch (Talon's House)", 0x004F},
+        {"from Lon Lon Ranch (Cow in House)", 0x05D0},
+        {"from Cucco minigame", 0x05E4},
     },
 
     {[0]=
@@ -513,7 +514,7 @@ return {[0]=
         {"from Zora River, Water", 0x0311},
         {"from Lon Lon Ranch, Front Gate Jump", 0x0476},
         {"Get Ocarina of Time", 0x050F},
-        {"After Impa Escort Cutscene", 0x0594},
+        {"After Impa Escort cutscene", 0x0594},
     --  [0]={"from After Zelda Escape, 2nd+ Impa Escort", 0x00D1},
     --  [0]={"from After Zelda Escape, 2nd+ Impa Escort", 0x00D2},
     --  [0]={"from After Zelda Escape, 2nd+ Impa Escort", 0x00D4},
@@ -539,7 +540,7 @@ return {[0]=
         {"from Shooting Gallery", 0x0463},
         {"from House of Skulltula", 0x04EE},
         {"from Kakariko Potion Shop, Back Entrance", 0x04FF},
-        {"from Nocturne Cutscene", 0x0513},
+        {"from Nocturne cutscene", 0x0513},
         {"Owl Drop Spot, from Death Mountain Crater, Owl Teleport", 0x0554},
         {"from Impa's House, Cow Exit", 0x05DC},
     --  [0]={"from Hyrule Field", 0x00DF},
@@ -572,7 +573,7 @@ return {[0]=
     },
 
     {[0]=
-        {"from After Forest Medallion Cutscene", 0x00EE},
+        {"from After Forest Medallion cutscene", 0x00EE},
         {"from Deku Tree", 0x0209},
         {"from Lost Woods, Hyrule Bridge", 0x020D},
         {"from Link's House", 0x0211},
@@ -583,14 +584,14 @@ return {[0]=
         {"from House of Twins", 0x033C},
         {"from Mido's House", 0x0443},
         {"from Saria's House", 0x0447},
-        {"After Deku Tree Death Cutscene, from Kokiri Forest", 0x0457},
-        {"Deku Sprout Cutscene", 0x05E8},
-    --  [0]={"from After Forest Medallion Cutscene", 0x00F2},
-    --  [0]={"from After Forest Medallion Cutscene", 0x00F3},
-    --  [0]={"from After Forest Medallion Cutscene", 0x00F4},
-    --  [0]={"from After Forest Medallion Cutscene", 0x00F5},
-    --  [0]={"from After Forest Medallion Cutscene", 0x00F6},
-    --  [0]={"from After Forest Medallion Cutscene", 0x00F8},
+        {"After Deku Tree Death cutscene, from Kokiri Forest", 0x0457},
+        {"Deku Sprout cutscene", 0x05E8},
+    --  [0]={"from After Forest Medallion cutscene", 0x00F2},
+    --  [0]={"from After Forest Medallion cutscene", 0x00F3},
+    --  [0]={"from After Forest Medallion cutscene", 0x00F4},
+    --  [0]={"from After Forest Medallion cutscene", 0x00F5},
+    --  [0]={"from After Forest Medallion cutscene", 0x00F6},
+    --  [0]={"from After Forest Medallion cutscene", 0x00F8},
     },
 
     {[0]=
@@ -637,17 +638,17 @@ return {[0]=
     },
 
     {[0]=
-        {"Sapphire Cutscene Entrance", 0x010E},
+        {"Sapphire cutscene Entrance", 0x010E},
         {"from Inside Jabu Jabu's Belly", 0x0221},
         {"from Zora's Domain", 0x0225},
         {"from Ice Cavern", 0x03D4},
         {"SE corner facing fallen tree", 0x03D8},
         {"from Great Fairy's Fountain (Spells)", 0x0394},
-    --  [0]={"Sapphire Cutscene Entrance", 0x0112},
-    --  [0]={"Sapphire Cutscene Entrance", 0x0113},
-    --  [0]={"Sapphire Cutscene Entrance", 0x0114},
-    --  [0]={"Sapphire Cutscene Entrance", 0x0115},
-    --  [0]={"Sapphire Cutscene Entrance", 0x0116},
+    --  [0]={"Sapphire cutscene Entrance", 0x0112},
+    --  [0]={"Sapphire cutscene Entrance", 0x0113},
+    --  [0]={"Sapphire cutscene Entrance", 0x0114},
+    --  [0]={"Sapphire cutscene Entrance", 0x0115},
+    --  [0]={"Sapphire cutscene Entrance", 0x0116},
     },
 
     {[0]=
@@ -679,9 +680,9 @@ return {[0]=
         {"from Spirit Temple", 0x01E1},
         {"from Spirit Temple, Gauntlets Entrance", 0x01E5},
         {"from Spirit Temple, Mirror Shield Entrance", 0x01E9},
-        {"After Requiem Cutscene", 0x01ED},
+        {"After Requiem cutscene", 0x01ED},
         {"Requiem Entrance", 0x01F1},
-        {"Nabooru Capture Cutscene Entrance", 0x01F5},
+        {"Nabooru Capture cutscene Entrance", 0x01F5},
         {"from Great Fairy's Fountain (Spells)", 0x057C},
         {"from Spirit Temple Boss, Blue Warp", 0x0610},
     --  [0]={"from Haunted Wasteland", 0x0127},
@@ -735,7 +736,7 @@ return {[0]=
         {"from Death Mountain Crater", 0x01BD},
         {"from Dodongo's Cavern", 0x0242},
         {"from Great Fairy's Fountain (Upgrades)", 0x045B},
-        {"Goron Ruby Cutscene", 0x047A},
+        {"Goron Ruby cutscene", 0x047A},
     --  [0]={"from Kakariko Village", 0x0141},
     --  [0]={"from Kakariko Village", 0x0142},
     --  [0]={"from Kakariko Village", 0x0144},
@@ -760,7 +761,7 @@ return {[0]=
 
     {[0]=
         {"from Hyrule Field", 0x0157},
-        {"Epona's Song Cutscene", 0x02AE},
+        {"Epona's Song cutscene", 0x02AE},
         {"Near South Gate", 0x02E2},
         {"Near West Gate", 0x02E6},
         {"from Ranch House, Talon's House", 0x0378},

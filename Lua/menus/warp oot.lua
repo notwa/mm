@@ -1,7 +1,7 @@
 local ins = table.insert
 local scene_names = require "data.scene names oot"
 local entrance_names = require "data.entrance names oot"
-local maxscene = 109
+local maxscene = #scene_names
 
 local per_page = 16
 local pagecount = math.ceil((maxscene + 1)/per_page)
