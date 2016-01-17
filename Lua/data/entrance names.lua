@@ -13,7 +13,7 @@ return {
         "from Spider House",
         "from Ikana",
         "from Owl Statue",
-        "from road (no cutscene)",
+    --  "from road (no cutscene)",
     },
 
     {},
@@ -69,7 +69,7 @@ return {
 
     {[0]=
         "from Moon",
-        "from Moon (duplicate)",
+    --  "from Moon (duplicate)",
     },
 
     {[0]=
@@ -95,13 +95,13 @@ return {
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
         "Mayor's room",
-        "(crash)",
+    --  "(crash)",
     },
 
     {[0]=
@@ -137,18 +137,18 @@ return {
         "through telescope",
         "from nowhere (press start screen?)",
         "from far outside",
-        "from main door (no cutscene)",
-        "(crash)",
+    --  "from main door (no cutscene)",
+    --  "(crash)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (no cutscene)",
+    --  "main door (no cutscene)",
     },
 
     {[0]=
@@ -159,7 +159,7 @@ return {
     {[0]=
         "main door",
         "to boss room",
-        "(crash)",
+    --  "(crash)",
     },
 
     {[0]=
@@ -174,14 +174,14 @@ return {
         "after being turned into Deku",
         "after voiding out?",
         "part of SoT cutscene",
-        "main door (no cutscene) (unused)",
+    --  "main door (no cutscene) (unused)",
     },
 
     {[0]=
         "main door",
         "Deku Princess after Odolwa",
         "Deku Princess room",
-        "main door with wrong room loaded (unused?)",
+    --  "main door with wrong room loaded (unused?)",
     },
 
     {[0]=
@@ -197,29 +197,29 @@ return {
         "from above, inbetween Redeads",
         "from above, Floormaster",
         "from boss room",
-        "from Beneath the Well (duplicate)",
+    --  "from Beneath the Well (duplicate)",
     },
 
     {[0]=
         "from Clock Town",
         "after beating minigame",
-        "(crash)",
-        "from Clock Town (duplicate)",
+    --  "(crash)",
+    --  "from Clock Town (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
@@ -230,7 +230,7 @@ return {
         "from Owl Statue",
         "from Romani's Ranch facing the wrong way",
         "from Gorman track facing the wrong way",
-        "from Termina Field (duplicate)",
+    --  "from Termina Field (duplicate)",
     },
 
     {[0]=
@@ -254,12 +254,12 @@ return {
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "from Great Bay",
-        "from Great Bay (duplicate)",
+    --  "from Great Bay (duplicate)",
     },
 
     {[0]=
@@ -277,24 +277,24 @@ return {
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "from Clock Town",
         "from Termina Field",
         "after telescope",
-        "from Clock Town (duplicate?)",
+    --  "from Clock Town (duplicate?)",
     },
 
     {[0]=
         "from Moon",
-        "from Moon?",
+    --  "from Moon?",
     },
 
     {[0]=
@@ -309,14 +309,14 @@ return {
         "from JP grotto 3",
         "from Bean Seller's grotto",
         "from JP grotto 4",
-        "from Swamp (no cutscene)",
+    --  "from Swamp (no cutscene)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
@@ -335,19 +335,19 @@ return {
         "Moon crashing",
         "near East Clock Town (unused?)",
         "after skull kid cutscene",
-        "from West Clock Town (no cutscene)",
+    --  "from West Clock Town (no cutscene)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
@@ -361,7 +361,7 @@ return {
         "main door",
         "from shop",
         "after Lullaby",
-        "main door (no cutscene)",
+    --  "main door (no cutscene)",
     },
 
     {[0]=
@@ -374,14 +374,14 @@ return {
         "from Tijo's room",
         "after something?",
         "after concert?",
-        "main door (no cutscene)",
+    --  "main door (no cutscene)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
@@ -397,17 +397,17 @@ return {
         "in front of Barn (c)",
         "in front of Romani",
         "in front of Barn, facing other way",
-        "(crash)",
-        "in front of Barn (d)",
-        "in front of Barn (e)",
+    --  "(crash)",
+    --  "in front of Barn (d)",
+    --  "in front of Barn (e)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "(crash)",
-        "(crash)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "(crash)",
+    --  "(crash)",
     },
 
     {[0]=
@@ -442,9 +442,9 @@ return {
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {},
@@ -457,21 +457,21 @@ return {
         "being kicked out",
         "from Hookshot platform",
         "from passage door",
-        "from Great Bay (no cutscene)",
+    --  "from Great Bay (no cutscene)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
@@ -483,23 +483,23 @@ return {
 
     {[0]=
         "from Moon",
-        "from Moon?",
-        "(crash)",
-        "from Moon??",
+    --  "from Moon?",
+    --  "(crash)",
+    --  "from Moon??",
     },
 
     {[0]=
         "from Termina Field",
         "from Swamp",
         "from Shooting Gallery",
-        "from Termina Field (duplicate)",
+    --  "from Termina Field (duplicate)",
     },
 
     {[0]=
         "from Ranch",
         "after beating minigame",
-        "(crash)",
-        "from Ranch (duplicate)",
+    --  "(crash)",
+    --  "from Ranch (duplicate)",
     },
 
     {[0]=
@@ -518,7 +518,7 @@ return {
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
@@ -533,7 +533,7 @@ return {
         "from Spider House",
         "from Ikana",
         "from Owl Statue",
-        "from road (no cutscene)",
+    --  "from road (no cutscene)",
     },
 
     {[0]=
@@ -542,12 +542,12 @@ return {
         "from Great Fairy's fountain",
         "from Deku princess",
         "from Owl Statue",
-        "from Swamp (no cutscene)",
+    --  "from Swamp (no cutscene)",
     },
 
     {[0]=
         "from Moon",
-        "from Moon?",
+    --  "from Moon?",
     },
 
     {[0]=
@@ -556,7 +556,7 @@ return {
         "from shrine",
         "from lens of truth cave",
         "from voiding out",
-        "from road (duplicate)",
+    --  "from road (duplicate)",
     },
 
     {[0]=
@@ -569,7 +569,7 @@ return {
         "minigame",
         "minigame 2?",
         "after beating minigame?",
-        "from Great Bay (no cutscene)",
+    --  "from Great Bay (no cutscene)",
     },
 
     {[0]=
@@ -585,7 +585,7 @@ return {
         "after playing song to Japas",
         "Zora Shop",
         "after playing song to Evan",
-        "Tijo's room (duplicate)",
+    --  "Tijo's room (duplicate)",
     },
 
     {[0]=
@@ -594,21 +594,21 @@ return {
         "from Shrine",
         "from Lens of Truth cave",
         "from voiding out",
-        "from road (duplicate)",
+    --  "from road (duplicate)",
     },
 
     {[0]=
         "main door",
         "getting Goron mask",
-        "(crash)",
-        "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
@@ -621,54 +621,54 @@ return {
         "from Snowhead passage",
         "from somewhere?", -- FIXME
         "from Owl Statue",
-        "after being Snowhead (duplicate)",
+    --  "after being Snowhead (duplicate)",
     },
 
     {[0]=
         "from Ikana canyon",
         "from minigame",
         "after beating minigame",
-        "from Ikana canyon (duplicate)",
+    --  "from Ikana canyon (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "from Termina Field",
         "from Ikana canyon",
         "from Ikana Graveyard",
-        "from Termina Field (duplicate)",
+    --  "from Termina Field (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "main door",
         "from boat ride",
         "in front of desk (unused?)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
@@ -681,8 +681,8 @@ return {
     {[0]=
         "from inverting",
         "from stone Tower",
-        "(crash)",
-        "from inverting (no cutscene)",
+    --  "(crash)",
+    --  "from inverting (no cutscene)",
     },
 
     {[0]=
@@ -695,7 +695,7 @@ return {
         "from Snowhead passage",
         "after beating Snowhead (with cutscene)",
         "from Owl Statue",
-        "after being Snowhead (duplicate)",
+    --  "after being Snowhead (duplicate)",
     },
 
     {[0]=
@@ -714,14 +714,14 @@ return {
         "from Smithy area",
         "from Goron Village",
         "from Goron Racetrack",
-        "from Smithy area (duplicate)",
+    --  "from Smithy area (duplicate)",
     },
 
     {[0]=
         "from Smithy area",
         "from Goron Village",
         "from Goron Racetrack",
-        "from Smithy area (duplicate)",
+    --  "from Smithy area (duplicate)",
     },
 
     {[0]=
@@ -731,9 +731,9 @@ return {
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
@@ -747,7 +747,7 @@ return {
 
     {[0]=
         "default",
-        "no cutscene",
+    --  "no cutscene",
     },
 
     {[0]=
@@ -758,7 +758,7 @@ return {
         "first SoT cutscene",
         "from twisty hallway (unused?)",
         "Salesman talking about mask",
-        "twisty hallway (no cutscene)",
+    --  "twisty hallway (no cutscene)",
     },
 
     {[0]=
@@ -769,32 +769,32 @@ return {
     {[0]=
         "kicked off horse",
         "first SoT cutscene",
-        "(crash)",
-        "gain control (no cutscene)",
+    --  "(crash)",
+    --  "gain control (no cutscene)",
     },
 
     {[0]=
         "from Moon",
-        "from Moon (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "from Moon (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "Moon",
-        "Moon (duplicate)",
+    --  "Moon (duplicate)",
     },
 
     {[0]=
         "main door",
-        "main door (duplicate)",
-        "(crash)",
-        "main door (duplicate)",
+    --  "main door (duplicate)",
+    --  "(crash)",
+    --  "main door (duplicate)",
     },
 
     {[0]=
         "Giants",
-        "no cutscene",
+    --  "no cutscene",
     },
 
     {[0]=
@@ -811,7 +811,7 @@ return {
         "from road",
         "beginning minigame",
         "after beating minigame",
-        "from road (duplicate)",
+    --  "from road (duplicate)",
     },
 
     {[0]=
@@ -839,7 +839,7 @@ return {
         "from Bomb Shop",
         "from Post Office",
         "from Lottery Shop",
-        "from Termina Field (duplicate)",
+    --  "from Termina Field (duplicate)",
     },
 
     {[0]=
@@ -865,7 +865,7 @@ return {
         "from atop Clock Tower (unused)",
         "from Owl Statue",
         "from SoT cutscene",
-        "from Clock Tower (no cutscene)",
+    --  "from Clock Tower (no cutscene)",
     },
 
     {[0]=
