@@ -768,8 +768,8 @@ return {[0]=
         {"from Stables", 0x042F},
         {"after paying Ingo", 0x04CA},
         {"after beating Ingo twice", 0x04CE},
-        {"?", 0x0558}, -- "You're too slow!" the hell does that mean?
-        {"??? (Near Ingo/Malon)", 0x055C},
+        {"out of bounds (unused)", 0x0558},
+        {"near Ingo/Malon (unused)", 0x055C},
         {"from Cow in House", 0x05D4},
     --  [0]={"from Hyrule Field", 0x015B},
     --  [0]={"from Hyrule Field", 0x015C},
