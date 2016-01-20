@@ -21,12 +21,11 @@
 
 /* TODO:
 short term:
-    shuffle owl loads
-    shuffle owl warps
     go to poisoned or clean swamp depending on boss defeated status
     go to frozen or spring mountain depending on boss defeated status
     don't shuffle if cutscene mod is set
     fix death warps so they won't spawn you out of bounds
+    make turtle cutscene shorter (maybe just set first time flag by default?)
 
 long term:
     add/fix generic grottos
