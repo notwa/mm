@@ -21,7 +21,6 @@
 
 /* TODO:
 short term:
-    set first SoT cutscene as watched already
     shuffle owl loads
     shuffle owl warps
     go to poisoned or clean swamp depending on boss defeated status
@@ -247,7 +246,7 @@ shuffle_hook_return:
 
 .org @default_save
     .ascii  "\0\0\0\0\0\0" // ZELDA3
-    .half   0 // SoT count
+    .half   1 // SoT count
     .ascii  ">>>>>>>>" // player name
     .half   0x30 // hearts
     .half   0x30 // max hearts
