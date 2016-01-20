@@ -16,7 +16,9 @@ local function kill_bom(s)
 end
 
 local function sanitize(v)
-    return type(v) == 'string' and strfmt('%q', v) or tostring(v)
+    local force = type(v) == 'string' and v:sub(1, 1):match('%d')
+    force = force and true or false
+    return type(v) == 'string' and strfmt('%q', v) or tostring(v), force
 end
 
 local function _serialize(value, writer, level)
@@ -25,15 +27,16 @@ local function _serialize(value, writer, level)
         local indent = strrep('\t', level)
         writer('{\n')
         for key,value in opairs(value) do
-            local sane = sanitize(key)
-            local keyval = sane == '"'..key..'"' and key or '['..sane..']'
+            local sane, force = sanitize(key)
+            local keyval = (sane == '"'..key..'"' and not force) and key or '['..sane..']'
             writer(indent..keyval..' = ')
             _serialize(value, writer, level + 1)
             writer(',\n')
         end
         writer(strrep('\t', level - 1)..'}')
     else
-        writer(sanitize(value))
+        local sane, force = sanitize(value)
+        writer(sane)
     end
 end
 
