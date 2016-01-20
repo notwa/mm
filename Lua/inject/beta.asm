@@ -33,7 +33,18 @@ short term:
     actually begin shuffling entrances/exits
 
 long term:
+    fix grottos
+    make bombers' code etc. a function of the filename (if it isn't already)
     skip giants cutscenes; give oath when any mask is acquired
+*/
+
+/* notes:
+8016A708    breakpoint hit for reading entrance mod (gets summed immediately after)
+then calls 80132338 -> 801322C0
+same thing for calling 80132374
+
+80132338 calls 801322C0 and returns the scene number
+801322C0 returns the entrance value in V0 (and the pointer to it in V1)
 */
 
     .word   0xDEADBEEF
@@ -132,6 +143,64 @@ load_hook:
     not     v0, v0
     sw      v0, hash
     jpop    4, s0, s1, ra
+
+prng:
+    // just a reimplementation of the PRNG the game uses.
+    // it's from Numerical Recipes in C, by the way.
+    // random = random*0x19660D + 0x3C6EF35F;
+    lw      t0, rng_last
+    li      t1, 0x19660D
+    multu   t0, t1
+    li      t2, 0x3C6EF35F
+    mflo    t3
+    addu    v0, t3, t2
+    sw      v0, rng_last
+    jr
+    nop
+
+rng_last:
+    .word   0
+
+.include "entrances.asm"
+
+shuffle_exit:
+    // a0: exit value
+    // v0: shuffled exit value
+    push    4, ra
+    mov     v0, a0
+    li      t0, @entries
+    li      t1, 0
+    lw      t2, crc32
+    sw      t2, rng_last
+    la      t3, shuffles
+    mov     t4, t3
+-:
+    lhu     t5, (t4)
+    beq     a0, t5, +
+    nop
+    addi    t1, t1, 1
+    beq     t1, t0, shuffle_exit_return
+    nop
+    b       -
+    addi    t4, t4, 4 // 2*sizeof(halfword)
++:
+    lhu     v0, 2(t4)
+shuffle_exit_return:
+    jpop    4, ra
+
+shuffle_hook:
+    push    4, ra
+    jal     shuffle_exit
+    nop
+    mov     a0, v0
+    pop     4, ra
+    j       shuffle_hook_return
+    sw      a0, 0(sp) // original code
+
+.org 0x801322C0
+    j       shuffle_hook
+    andi    a0, a0, 0xFFFF // original code
+shuffle_hook_return:
 
 .org @starting_exit
     li      t8, 0xD800
