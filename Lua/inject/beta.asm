@@ -16,24 +16,22 @@
 
 [link_object_ptr]: 0x803FFFF4
 
-/*
-    push    4, ra
-    li      a0, 0x0063 // inside clock tower
-    li      a1, 1 // second word
-    li      a2, 0 // first bit ("You've met with a terrible fate")
-    jal     set_scene_flag
-    nop
-    jpop    4, ra
-*/
     jr
     nop
 
 /* TODO:
 short term:
-    actually begin shuffling entrances/exits
+    set first SoT cutscene as watched already
+    shuffle owl loads
+    shuffle owl warps
+    go to poisoned or clean swamp depending on boss defeated status
+    go to frozen or spring mountain depending on boss defeated status
+    don't shuffle if cutscene mod is set
+    fix death warps so they won't spawn you out of bounds
 
 long term:
-    fix grottos
+    add/fix generic grottos
+    make death warps work like in mzx's hack
     make bombers' code etc. a function of the filename (if it isn't already)
     skip giants cutscenes; give oath when any mask is acquired
 */
@@ -59,6 +57,7 @@ tunic_color:
     .word   0xFFFFFFFF
 
 .include "crc32.asm"
+.include "entrances.asm"
 
 set_scene_flag:
     // a0: scene number
@@ -142,26 +141,63 @@ load_hook:
     li      a1, 8
     not     v0, v0
     sw      v0, hash
+    sw      v0, rng_seed
+    jal     shuffle_all
+    nop
     jpop    4, s0, s1, ra
 
 prng:
     // just a reimplementation of the PRNG the game uses.
     // it's from Numerical Recipes in C, by the way.
     // random = random*0x19660D + 0x3C6EF35F;
-    lw      t0, rng_last
+    lw      t0, rng_seed
     li      t1, 0x19660D
     multu   t0, t1
     li      t2, 0x3C6EF35F
     mflo    t3
     addu    v0, t3, t2
-    sw      v0, rng_last
+    sw      v0, rng_seed
     jr
     nop
 
-rng_last:
+rng_seed:
     .word   0
 
-.include "entrances.asm"
+randint:
+    // v0 = random integer from 0 to a0; a0 >= 0
+    push    4, s0, ra, 1
+    jal     prng
+    addi    s0, a0, 1
+    divu    v0, s0
+    mfhi    v0
+    jpop    4, s0, ra, 1
+
+shuffle_all:
+    push    4, s0, s1, s2, ra
+    // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_.22inside-out.22_algorithm
+    li      s0, 0
+    li      s1, @entries
+    la      s2, shuffles
+-:
+    jal     randint
+    mov     a0, s0
+    // s0 is i, v0 is j
+    sll     t0, s0, 2 // 1<<2 == 2*sizeof(half)
+    sll     t1, v0, 2 // likewise
+    addu    t0, s2, t0 // [i]
+    addu    t1, s2, t1 // [j]
+    // a[i] = a[j]
+    lhu     t3, 2(t1)
+    sh      t3, 2(t0)
+    // a[j] = source[i]
+    lhu     t4, 0(t0)
+    sh      t4, 2(t1)
+    // iterate
+    addi    s0, s0, 1
+    bne     s0, s1, -
+    nop
++:
+    jpop    4, s0, s1, s2, ra
 
 shuffle_exit:
     // a0: exit value
@@ -171,7 +207,7 @@ shuffle_exit:
     li      t0, @entries
     li      t1, 0
     lw      t2, crc32
-    sw      t2, rng_last
+    sw      t2, rng_seed
     la      t3, shuffles
     mov     t4, t3
 -:
