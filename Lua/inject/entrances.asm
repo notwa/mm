@@ -1,4 +1,4 @@
-[entries]: 258
+[entries]: 261
 shuffles:
 // format: from, to[, paired_from, paired_to]
 // "to" gets filled in when the file is loaded
@@ -138,5 +138,9 @@ shuffles:
 .half 0xAA30, 0 // Owl Save/Warp: Stone Tower
 .half 0xB230, 0 // Owl Save/Warp: Snowhead
 .half 0xD890, 0 // Owl Save/Warp: Clock Town
+
+.half 0x5010, 0 // Kicked out of Deku Palace
+.half 0x68C0, 0 // Kicked out of Pirates' Interior
+.half 0x7040, 0 // Kicked out of Pirates' Exterior
 
 .align
