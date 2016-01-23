@@ -21,9 +21,8 @@
 
 /* TODO:
 short term:
-    go to poisoned or clean swamp depending on boss defeated status
-    go to frozen or spring mountain depending on boss defeated status
     don't shuffle if cutscene mod is set
+        also test beating each boss
     fix death warps so they won't spawn you out of bounds
     make turtle cutscene shorter (maybe just set first time flag by default?)
 
@@ -32,6 +31,7 @@ long term:
     make death warps work like in mzx's hack
     make bombers' code etc. a function of the filename (if it isn't already)
     skip giants cutscenes; give oath when any mask is acquired
+    maybe make shuffling more random (reduce rng bias)
 */
 
 /* notes:
@@ -77,6 +77,25 @@ set_scene_flag:
     jr
     sw      v0, (t3) // write it back
 
+get_event_flag:
+    // a0: event flag offset
+    // a1: byte offset
+    // a2: bit to set (0-7)
+    // v0: 1 if set, else 0
+    li      t0, @link_save
+    addu    t1, t0, a0
+    addu    t2, t1, a1
+    lb      v0, (t2)
+    li      t6, 1
+    sllv    t6, t6, a2
+    and     v0, v0, t6
+    beqz    v0, +
+    cl      v0
+    li      v0, 1
++:
+    jr
+    nop
+
 set_event_flag:
     // a0: event flag offset
     // a1: byte offset
@@ -114,7 +133,7 @@ tunic_color_hook:
     lhu     v0, 0xF6DC(v0) // original code
 
 load_hook:
-    push    4, s0, s1, ra
+    push    4, s0, s1, ra, 1
     li      s0, @link_save
     lb      t0, @has_completed_intro(s0)
     bnez    t0, +
@@ -142,7 +161,7 @@ load_hook:
     sw      v0, rng_seed
     jal     shuffle_all
     nop
-    jpop    4, s0, s1, ra
+    jpop    4, s0, s1, ra, 1
 
 prng:
     // just a reimplementation of the PRNG the game uses.
@@ -163,12 +182,12 @@ rng_seed:
 
 randint:
     // v0 = random integer from 0 to a0; a0 >= 0
-    push    4, s0, ra, 1
+    push    4, s0, ra
     jal     prng
     addi    s0, a0, 1
     divu    v0, s0
     mfhi    v0
-    jpop    4, s0, ra, 1
+    jpop    4, s0, ra
 
 shuffle_all:
     push    4, s0, s1, s2, ra
@@ -200,7 +219,7 @@ shuffle_all:
 shuffle_exit:
     // a0: exit value
     // v0: shuffled exit value
-    push    4, ra
+    push    4, ra, 1
     mov     v0, a0
     li      t0, @entries
     li      t1, 0
@@ -220,14 +239,56 @@ shuffle_exit:
 +:
     lhu     v0, 2(t4)
 shuffle_exit_return:
-    jpop    4, ra
+    jpop    4, ra, 1
 
 shuffle_hook:
-    push    4, ra
+    push    4, s0, ra
     jal     shuffle_exit
     nop
-    mov     a0, v0
-    pop     4, ra
+    mov     s0, v0
+// handle alt scenes depending on game state
+    // use clean swamp when odolwa is beaten
+    li      a0, @week_event_reg
+    li      a1, 20
+    jal     get_event_flag
+    li      a2, 1
+    beqz    v0, +
+    nop
+    andi    t9, s0, 0x01FF
+    andi    t0, s0, 0xFE00
+    // can't actually use bnei here because unsignedness, oops
+    li      at, 0x8400
+    bne     t0, at, +
+    li      at, 0x0C00
+    addu    s0, t9, at
++:
+    // use unfrozen mountain when goht is beaten
+    li      a0, @week_event_reg
+    li      a1, 33
+    jal     get_event_flag
+    li      a2, 7
+    beqz    v0, shuffle_hook_done
+    nop
+    andi    t9, s0, 0x01FF
+    andi    t0, s0, 0xFE00
+    li      at, 0x9400
+    bne     t0, at, +
+    li      at, 0x8A00
+    addu    s0, t9, at
++:
+    li      at, 0x9A00
+    bne     t0, at, +
+    li      at, 0xAE00
+    addu    s0, t9, at
++:
+    li      at, 0xB400
+    bne     t0, at, +
+    li      at, 0xB600
+    addu    s0, t9, at
++:
+shuffle_hook_done:
+    mov     a0, s0
+    pop     4, s0, ra
     j       shuffle_hook_return
     sw      a0, 0(sp) // original code
 
