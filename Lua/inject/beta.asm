@@ -23,9 +23,8 @@
 
 /* TODO:
 short term:
-    shuffle boss entrances
-    ALWAYS cleanse swamp, even if woodfall temple isn't raised
-    test beating each boss and other cutscene stuff
+    fix/shuffle cleansed/unfrozen scenes that lead to each other
+    test beating each boss and other cutscene stuff (odolwa works)
     fix death warps so they won't spawn you out of bounds
     make sure koume spawns in the woods
     allow peeking thru curiosity shop at any time
@@ -251,7 +250,7 @@ shuffle_exit_return:
 
 shuffle_hook:
     push    4, s0, ra
-    jal     shuffle_exit
+    jal     shuffle_exit // immediately pass a0 to here
     nop
     mov     s0, v0
 // handle alt scenes depending on game state
@@ -275,7 +274,7 @@ shuffle_hook:
     li      a1, 33
     jal     get_event_flag
     li      a2, 7
-    beqz    v0, shuffle_hook_done
+    beqz    v0, shuffle_hook_more
     nop
     andi    t9, s0, 0x01FF
     andi    t0, s0, 0xFE00
@@ -294,7 +293,16 @@ shuffle_hook:
     li      at, 0xB600
     addu    s0, t9, at
 +:
-shuffle_hook_done:
+shuffle_hook_more:
+    // set woodfall temple as raised after beating odolwa
+    // otherwise the swamp won't be cleansed
+    li      at, 0x8601
+    bne     s0, at, +
+    li      a1, 20
+    li      a0, @week_event_reg
+    jal     set_event_flag
+    li      a2, 0
++:
     mov     a0, s0
     pop     4, s0, ra
     j       shuffle_hook_return
