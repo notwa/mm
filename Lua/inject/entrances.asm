@@ -1,4 +1,4 @@
-[entries]: 261
+[entries]: 268
 shuffles:
 // format: from, to[, paired_from, paired_to]
 // "to" gets filled in when the file is loaded
@@ -142,5 +142,14 @@ shuffles:
 .half 0x5010, 0 // Kicked out of Deku Palace
 .half 0x68C0, 0 // Kicked out of Pirates' Interior
 .half 0x7040, 0 // Kicked out of Pirates' Exterior
+
+.half 0x6820, 0 // Great Bay Coast (Lab): Swimming too far
+.half 0x6860, 0 // Great Bay Coast (Rock): Swimming too far
+.half 0x6A30, 0 // Zora Cape: Swimming too far
+
+.half 0x3800, 0 // Boss: Odolwa
+.half 0x8200, 0 // Boss: Goht
+.half 0xB800, 0 // Boss: Gyorg
+.half 0x6600, 0 // Boss: Twinmold
 
 .align

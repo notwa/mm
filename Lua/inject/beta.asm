@@ -1,11 +1,10 @@
 [link_save]: 0x801EF670
-[has_completed_intro]: 0x5
-[have_tatl]: 0x22
-[player_name]: 0x2C
-[scene_flags]: 0x470
-[scene_record_size]: 0x14
-[week_event_reg]: 0xEF8
-[scene_flags_ingame]: 0x3F68
+ [has_completed_intro]: 0x5
+ [have_tatl]: 0x22
+ [player_name]: 0x2C
+ [scene_flags]: 0x470
+ [week_event_reg]: 0xEF8
+ [scene_flags_ingame]: 0x3F68
 
 [global_context]: 0x803E6B20
 
@@ -14,23 +13,34 @@
 [starting_exit]: 0x8014533C
 [default_save]: 0x801C6898
 
-[link_object_ptr]: 0x803FFFF4
+[link_object_ptr]: 0x803FFFF4 // actually just an offset of link_actor?
 
+[scene_record_size]: 0x14
+
+// do nothing per-frame
     jr
     nop
 
 /* TODO:
 short term:
-    don't shuffle if cutscene mod is set
-        also test beating each boss
+    shuffle boss entrances
+    ALWAYS cleanse swamp, even if woodfall temple isn't raised
+    test beating each boss and other cutscene stuff
     fix death warps so they won't spawn you out of bounds
-    make turtle cutscene shorter (maybe just set first time flag by default?)
+    make sure koume spawns in the woods
+    allow peeking thru curiosity shop at any time
+    set up wallet sizes not unlike mm randomizer
+        allow buying of biggest bomb bag without an existing bomb bag
+    make turtle cutscene shorter (just set first time flag by default)
 
 long term:
     add/fix generic grottos
     make death warps work like in mzx's hack
+    boss warps take you to a duplicate of an existing exit (0x3010, ?, ?, ?)
+    skip giants cutscenes; give oath when any mask is acquired (0xCC00 fyi)
+
+really long term:
     make bombers' code etc. a function of the filename (if it isn't already)
-    skip giants cutscenes; give oath when any mask is acquired
     maybe make shuffling more random (reduce rng bias)
 */
 
@@ -44,10 +54,8 @@ same thing for calling 80132374
 */
 
     .word   0xDEADBEEF
-// debugging stuff
-whatever:
+whatever: // debugging stuff
     .word 0
-// end of debugging stuff
     .word   0xDEADBEEF
 
 hash:
