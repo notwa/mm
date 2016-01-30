@@ -248,12 +248,27 @@ shuffle_exit:
 shuffle_exit_return:
     jpop    4, ra, 1
 
-shuffle_hook:
+unset_alt_scene:
+    andi    t9, a0, 0x01FF
+    andi    t0, a0, 0xFE00
+    // use poisoned swamp
+    li      at, 0x0C00
+    bne     t0, at, +
+    li      at, 0x8400
+    addu    a0, t9, at
++:
+    // use frozen mountain
+    li      at, 0x9A00
+    bne     t0, at, +
+    li      at, 0xAE00
+    addu    a0, t9, at
++:
+    jr
+    mov     v0, a0
+
+set_alt_scene:
     push    4, s0, ra
-    jal     shuffle_exit // immediately pass a0 to here
-    nop
-    mov     s0, v0
-// handle alt scenes depending on game state
+    mov     s0, a0
     // use clean swamp when odolwa is beaten
     li      a0, @week_event_reg
     li      a1, 20
@@ -274,7 +289,7 @@ shuffle_hook:
     li      a1, 33
     jal     get_event_flag
     li      a2, 7
-    beqz    v0, shuffle_hook_more
+    beqz    v0, set_alt_scene_return
     nop
     andi    t9, s0, 0x01FF
     andi    t0, s0, 0xFE00
@@ -293,6 +308,20 @@ shuffle_hook:
     li      at, 0xB600
     addu    s0, t9, at
 +:
+set_alt_scene_return:
+    mov     v0, s0
+    jpop    4, s0, ra
+
+shuffle_hook:
+    push    4, s0, ra
+    // immediately passes a0 to this
+    jal     unset_alt_scene
+    nop
+    jal     shuffle_exit
+    mov     a0, v0
+    jal     set_alt_scene
+    mov     a0, v0
+    mov     s0, v0
 shuffle_hook_more:
     // set woodfall temple as raised after beating odolwa
     // otherwise the swamp won't be cleansed
