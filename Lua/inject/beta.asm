@@ -35,6 +35,7 @@ long term:
     add/fix generic grottos
     make death warps work like in mzx's hack
     boss warps take you to a duplicate of an existing exit (0x3010, ?, ?, ?)
+    add deku princess prison back to list without breaking everything
     skip giants cutscenes; give oath when any mask is acquired (0xCC00 fyi)
 
 really long term:

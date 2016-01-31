@@ -1,4 +1,4 @@
-[entries]: 268
+[entries]: 266
 shuffles:
 // format: from, to[, paired_from, paired_to]
 // "to" gets filled in when the file is loaded
@@ -42,7 +42,7 @@ shuffles:
 .half 0x2A00, 0, 0xAC10, 0 // Inverted Stone Tower Temple
 .half 0x2E10, 0, 0xC000, 0 // Deku Intro Area / Twisty Hallway
 .half 0x3000, 0, 0x8610, 0 // Woodfall Temple
-.half 0x3020, 0, 0x8630, 0 // Woodfall Temple (Deku Princess)
+//.half 0x3020, 0, 0x8630, 0 // Woodfall Temple (Deku Princess) (actually 0x8632?)
 .half 0x3200, 0, 0x5430, 0 // Snowhead Passage / Termina Field
 .half 0x3210, 0, 0x9A60, 0 // Snowhead Passage / Mountain Village
 .half 0x3400, 0, 0x9010, 0 // Ikana Castle / Beneath the Well
