@@ -4,6 +4,8 @@
  [player_name]: 0x2C
  [scene_flags]: 0x470
  [week_event_reg]: 0xEF8
+ [voidout_type]: 0x3CB0
+ [voidout_exit]: 0x3CC4
  [scene_flags_ingame]: 0x3F68
 
 [global_context]: 0x803E6B20
@@ -24,7 +26,6 @@
 /* TODO:
 short term:
     test beating each boss and other cutscene stuff (odolwa works)
-    fix death warps so they won't spawn you out of bounds
     make sure koume spawns in the woods
     allow peeking thru curiosity shop at any time
     set up wallet sizes not unlike mm randomizer
@@ -48,16 +49,31 @@ same thing for calling 80132374
 
 80132338 calls 801322C0 and returns the scene number
 801322C0 returns the entrance value in V0 (and the pointer to it in V1)
+
+80169E14 sets voidout index to v0
+function begins at 80169DCC, a2 is exit value
+v0 is set by the jal at 80169DF0 to 80130768
+80130768 just reconstructs the exit value :/
+
+801322C0 jrs twice until it reaches 8016AA9C,
+which calls 800B9170 and eventually calls 80169DCC
+inbetween: 800BB2D0
 */
 
     .word   0xDEADBEEF
 whatever: // debugging stuff
-    .word 0
+    .word   0
     .word   0xDEADBEEF
 
 hash:
 tunic_color:
     .word   0xFFFFFFFF
+
+old_exit:
+    .half   0
+new_exit:
+    .half   0
+.align
 
 .include "crc32.asm"
 .include "entrances.asm"
@@ -318,7 +334,27 @@ set_alt_scene_return:
 
 shuffle_hook:
     push    4, s0, ra
-    // immediately passes a0 to this
+    sh      a0, old_exit
+    li      t0, @link_save
+    lw      t1, @voidout_type(t0)
+    // if this was a death warp, don't use coordinates for respawning
+    li      at, -6
+    bne     t1, at, +
+    nop
+    cl      t1
+    sw      t1, @voidout_type(t0)
++:
+    // same for walking between areas in ikana castle
+    li      at, -2
+    bne     t1, at, +
+    nop
+    cl      t1
+    sw      t1, @voidout_type(t0)
++:
+    // if this was a void out, don't shuffle
+    bnez    t1, +
+    mov     s0, a0
+    // implicitly passes a0
     jal     unset_alt_scene
     nop
     jal     shuffle_exit
@@ -326,6 +362,7 @@ shuffle_hook:
     jal     set_alt_scene
     mov     a0, v0
     mov     s0, v0
+    sh      v0, new_exit
     // set woodfall temple as raised after beating odolwa
     // otherwise the swamp won't be cleansed
     li      at, 0x8601
@@ -340,10 +377,18 @@ shuffle_hook:
     j       shuffle_hook_return
     sw      a0, 0(sp) // original code
 
+set_void_hook:
+    lhu     v0, new_exit
+    jr
+    nop
+
 .org 0x801322C0
     j       shuffle_hook
     andi    a0, a0, 0xFFFF // original code
 shuffle_hook_return:
+
+.org 0x80169DF0
+    jal     set_void_hook
 
 .org @starting_exit
     li      t8, 0xD800
