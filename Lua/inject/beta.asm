@@ -23,14 +23,12 @@
 
 /* TODO:
 short term:
-    fix/shuffle cleansed/unfrozen scenes that lead to each other
     test beating each boss and other cutscene stuff (odolwa works)
     fix death warps so they won't spawn you out of bounds
     make sure koume spawns in the woods
     allow peeking thru curiosity shop at any time
     set up wallet sizes not unlike mm randomizer
         allow buying of biggest bomb bag without an existing bomb bag
-    make turtle cutscene shorter (just set first time flag by default)
 
 long term:
     add/fix generic grottos
@@ -150,14 +148,20 @@ load_hook:
     sb      t0, @have_tatl(s0)
     li      a0, 0x0063 // inside clock tower
     li      a1, 1 // second word
-    li      a2, 0 // first bit ("You've met with a terrible fate")
     jal     set_scene_flag
-    nop
+    li      a2, 0 // first bit ("You've met with a terrible fate")
     li      a0, @week_event_reg
     li      a1, 31
-    li      a2, 2 // Tatl reminding you about the four directions
     jal     set_event_flag
-    nop
+    li      a2, 2 // Tatl reminding you about the four directions
+    li      a0, @week_event_reg
+    li      a1, 93
+    jal     set_event_flag
+    li      a2, 3 // woken turtle once (shortens cutscene)
+    li      a0, @week_event_reg
+    li      a1, 53
+    jal     set_event_flag
+    li      a2, 6 // taken turtle once (skips pirates getting wrekt)
 +:
     addi    a0, s0, @player_name
     li      a2, 0xFFFFFFFF
@@ -322,7 +326,6 @@ shuffle_hook:
     jal     set_alt_scene
     mov     a0, v0
     mov     s0, v0
-shuffle_hook_more:
     // set woodfall temple as raised after beating odolwa
     // otherwise the swamp won't be cleansed
     li      at, 0x8601
