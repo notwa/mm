@@ -1,6 +1,6 @@
 local hash
 if bizstring then
-    hash = gameinfo.getromhash() 
+    hash = gameinfo.getromhash()
 else
     hash = m64p.rom.settings.MD5
 end

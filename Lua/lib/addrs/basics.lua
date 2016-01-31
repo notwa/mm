@@ -132,4 +132,11 @@ return {
         actor  = 0x1DBBB0,
         LLsize = 0x10,
     },
+
+    ["O BQ11"] = {
+        link   = 0x11A5D0,
+        global = 0x1C8A10,
+        actor  = 0x1DAFD0,
+        LLsize = 0x30,
+    }
 }
