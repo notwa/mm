@@ -25,8 +25,8 @@
 
 /* TODO:
 short term:
+    don't shuffle termina field skull kid cutscene
     test beating each boss and other cutscene stuff (odolwa works)
-    make sure koume spawns in the woods
     allow peeking thru curiosity shop at any time
     set up wallet sizes not unlike mm randomizer
         allow buying of biggest bomb bag without an existing bomb bag
@@ -59,6 +59,8 @@ v0 is set by the jal at 80169DF0 to 80130768
 801322C0 jrs twice until it reaches 8016AA9C,
 which calls 800B9170 and eventually calls 80169DCC
 inbetween: 800BB2D0
+
+80167058 writes exit value
 */
 
     .word   0xDEADBEEF
@@ -244,15 +246,13 @@ shuffle_all:
 +:
     jpop    4, s0, s1, s2, ra
 
-shuffle_exit:
+shuffle_get:
     // a0: exit value
     // v0: shuffled exit value
     push    4, ra, 1
     mov     v0, a0
     li      t0, @entries
     li      t1, 0
-    lw      t2, crc32
-    sw      t2, rng_seed
     la      t3, shuffles
     mov     t4, t3
 -:
@@ -260,13 +260,13 @@ shuffle_exit:
     beq     a0, t5, +
     nop
     addi    t1, t1, 1
-    beq     t1, t0, shuffle_exit_return
+    beq     t1, t0, shuffle_get_return
     nop
     b       -
     addi    t4, t4, 4 // 2*sizeof(halfword)
 +:
     lhu     v0, 2(t4)
-shuffle_exit_return:
+shuffle_get_return:
     jpop    4, ra, 1
 
 unset_alt_scene:
@@ -333,7 +333,7 @@ set_alt_scene_return:
     mov     v0, s0
     jpop    4, s0, ra
 
-shuffle_hook:
+shuffle_exit:
     push    4, s0, ra
     sh      a0, old_exit
     li      t0, @link_save
@@ -358,7 +358,7 @@ shuffle_hook:
     // implicitly passes a0
     jal     unset_alt_scene
     nop
-    jal     shuffle_exit
+    jal     shuffle_get
     mov     a0, v0
     jal     set_alt_scene
     mov     a0, v0
@@ -373,27 +373,28 @@ shuffle_hook:
     jal     set_event_flag
     li      a2, 0
 +:
-    mov     a0, s0
-    pop     4, s0, ra
-    j       shuffle_hook_return
-    sw      a0, 0(sp) // original code
+    mov     v0, s0
+    jpop    4, s0, ra
 
-set_void_hook:
-    lhu     v0, new_exit
-    jr
+setup_hook:
+    push    4, a0, ra
+    lw      a0, @link_save
+    jal     shuffle_exit
+    andi    a0, a0, 0xFFFF
+    sw      v0, @link_save
+    pop     4, a0, ra
+    addiu   sp, sp, 0xFF58 // original code
+    j       setup_return
+    sw      s1, 0x30(sp) // original code
+
+.org 0x8016A2C8
+    j       setup_hook
     nop
-
-.org 0x801322C0
-    j       shuffle_hook
-    andi    a0, a0, 0xFFFF // original code
-shuffle_hook_return:
-
-.org 0x80169DF0
-    jal     set_void_hook
+setup_return:
 
 .org @starting_exit
-    li      t8, 0xD800
-    li      t4, 0xD800
+    li      t8, 0xD800 // modified code
+    li      t4, 0xD800 // modified code
 
 .org 0x80145464 // JR of starting_exit's function
     j       load_hook // tail call
