@@ -1,4 +1,4 @@
-[entries]: 266
+[entries]: 267
 shuffles:
 // format: from, to[, paired_from, paired_to]
 // "to" gets filled in when the file is loaded
@@ -42,7 +42,6 @@ shuffles:
 .half 0x2A00, 0, 0xAC10, 0 // Inverted Stone Tower Temple
 .half 0x2E10, 0, 0xC000, 0 // Deku Intro Area / Twisty Hallway
 .half 0x3000, 0, 0x8610, 0 // Woodfall Temple
-//.half 0x3020, 0, 0x8630, 0 // Woodfall Temple (Deku Princess) (actually 0x8632?)
 .half 0x3200, 0, 0x5430, 0 // Snowhead Passage / Termina Field
 .half 0x3210, 0, 0x9A60, 0 // Snowhead Passage / Mountain Village
 .half 0x3400, 0, 0x9010, 0 // Ikana Castle / Beneath the Well
@@ -128,6 +127,8 @@ shuffles:
 .half 0xD620, 0, 0xD840, 0 // North Clock Town / South Clock Town
 .half 0xD860, 0, 0xDA00, 0 // Laundry Pool
 
+//.half 0x3020, 0, 0x8630, 0 // Woodfall Temple (Deku Princess) (actually 0x8632?)
+
 .half 0x2040, 0 // Owl Save/Warp: Ikana Canyon
 .half 0x3E40, 0 // Owl Save/Warp: Milk Road
 .half 0x68B0, 0 // Owl Save/Warp: Great Bay
@@ -142,6 +143,7 @@ shuffles:
 .half 0x5010, 0 // Kicked out of Deku Palace
 .half 0x68C0, 0 // Kicked out of Pirates' Interior
 .half 0x7040, 0 // Kicked out of Pirates' Exterior
+.half 0x8490, 0 // Waterfall from Canyon to Swamp
 
 .half 0x6820, 0 // Great Bay Coast (Lab): Swimming too far
 .half 0x6860, 0 // Great Bay Coast (Rock): Swimming too far
