@@ -279,10 +279,20 @@ unset_alt_scene:
     addu    a0, t9, at
 +:
     // use frozen mountain
-    li      at, 0x9A00
+    li      at, 0x8A00
     bne     t0, at, +
+    li      at, 0x9400
+    addu    s0, t9, at
++:
     li      at, 0xAE00
-    addu    a0, t9, at
+    bne     t0, at, +
+    li      at, 0x9A00
+    addu    s0, t9, at
++:
+    li      at, 0xB600
+    bne     t0, at, +
+    li      at, 0xB400
+    addu    s0, t9, at
 +:
     jr
     mov     v0, a0
