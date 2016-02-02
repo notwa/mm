@@ -6,6 +6,7 @@
  [week_event_reg]: 0xEF8
  [voidout_type]: 0x3CB0
  [voidout_exit]: 0x3CC4
+ [exit_mod_setter]: 0x3F4A
  [scene_flags_ingame]: 0x3F68
 
 [global_context]: 0x803E6B20
@@ -25,7 +26,6 @@
 
 /* TODO:
 short term:
-    don't shuffle termina field skull kid cutscene
     test beating each boss and other cutscene stuff (odolwa works)
     allow peeking thru curiosity shop at any time
     set up wallet sizes not unlike mm randomizer
@@ -355,6 +355,10 @@ shuffle_exit:
     // if this was a void out, don't shuffle
     bnez    t1, +
     mov     s0, a0
+    // if this is a cutscene, don't shuffle
+    lh      t2, @exit_mod_setter(t0)
+    bnei    t2, 0xFFEF, +
+    nop
     // implicitly passes a0
     jal     unset_alt_scene
     nop
