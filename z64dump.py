@@ -49,7 +49,7 @@ def z_dump_file(f, i=0, name=None, uncompress=True):
     # ve inferred from filesize, and we're making pe be 0
     # ps can just be the end of the last file
     fn = '{:04} V{:08X}'.format(i, vs)
-    if name is not None:
+    if name is not None and name is not '':
         fn = fn + ' ' + str(name)
 
     size = ve - vs
@@ -143,7 +143,12 @@ def dump_rom(fn):
             f.seek(0xBE80)
             names = f.read(0x6490).split(b'\x00')
             names = [str(n, 'utf-8') for n in names if n != b'']
-
+        if romhash in ('ad69c91157f6705e8ab06c79fe08aad47bb57ba7',
+                       'c892bbda3993e66bd0d56a10ecd30b1ee612210f'):
+            # filenames inferred from debug rom
+            with open('fn O US10.txt') as f2:
+                names = f2.readlines()
+            names = [n.strip() for n in names]
         with SubDir(romhash):
             f.seek(0)
             z_dump(f, names)
