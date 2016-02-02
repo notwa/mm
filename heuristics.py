@@ -1,3 +1,5 @@
+from util import *
+
 def try_makerom(f):
     f.seek(0)
     if f.read(12) == b'\x80\x37\x12\x40\x00\x00\x00\x0f\x80\x00\x04\x00':
@@ -11,10 +13,20 @@ def try_dmadata(f):
     return False
 
 def try_actor(f):
-    # actors are just object files really,
-    # so anything we can detect with
-    # would just detect code or inconsistent data.
-    # maybe there's some common-looking function between them.
+    f.seek(-4, 2)
+    section_size = R4(f.read(4))
+    file_size = f.tell()
+    if section_size > 0x4000 or section_size == 0:
+        # assume this section isn't larger than 16KiB
+        # (that's 4 times larger than the largest one in OoT)
+        return False
+    f.seek(-section_size, 2)
+    section_start = f.tell()
+    data_offset = R4(f.read(4))
+    data_size = R4(f.read(4))
+    misc_size = R4(f.read(4))
+    if section_start == data_offset + data_size + misc_size:
+        return True
     return False
 
 def try_scene_or_room(f, bank=2):
