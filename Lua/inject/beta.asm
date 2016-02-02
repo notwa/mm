@@ -32,11 +32,12 @@ short term:
         allow buying of biggest bomb bag without an existing bomb bag
 
 long term:
+    maybe skip zora/goron mask cutscenes (1C00 FFF3 -> 6890 0000, 1C00 ???? -> ???? 0000)
+    skip giants cutscenes; give oath when any mask is acquired (0xCC00 fyi)
     add/fix generic grottos
     make death warps work like in mzx's hack
     boss warps take you to a duplicate of an existing exit (0x3010, ?, ?, ?)
     add deku princess prison back to list without breaking everything
-    skip giants cutscenes; give oath when any mask is acquired (0xCC00 fyi)
 
 really long term:
     make bombers' code etc. a function of the filename (if it isn't already)
@@ -165,6 +166,10 @@ load_hook:
     // first time setup
     sb      t0, @has_completed_intro(s0)
     sb      t0, @have_tatl(s0)
+    li      a0, 0x001A // deku intro area
+    li      a1, 2
+    jal     set_scene_flag
+    li      a2, 2 // "Hey, you! C'mon! Press Z and talk to me!"
     li      a0, 0x0063 // inside clock tower
     li      a1, 1 // second word
     jal     set_scene_flag
