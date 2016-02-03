@@ -27,14 +27,22 @@
 /* TODO:
 short term:
     test beating each boss and other cutscene stuff (odolwa works)
+    randomize being kicked out of deku palace (cutscene 0000) same for pirates
     allow peeking thru curiosity shop at any time
     set up wallet sizes not unlike mm randomizer
         allow buying of biggest bomb bag without an existing bomb bag
 
+    set skull kid termina field tree crap as watched
+    set clock town first time as being watched
+    set deku mask being worn once
+
 long term:
-    maybe skip zora/goron mask cutscenes (1C00 FFF3 -> 6890 0000, 1C00 ???? -> ???? 0000)
+    maybe skip zora/goron mask cutscenes (1C00 FFF3 -> 6890 0000, 1C00 FFF4 -> 9610 0000)
     skip giants cutscenes; give oath when any mask is acquired (0xCC00 fyi)
+    disable save file checksum checking
+    only require 3 eggs for NWBN
     add/fix generic grottos
+    import jp deku palace
     make death warps work like in mzx's hack
     boss warps take you to a duplicate of an existing exit (0x3010, ?, ?, ?)
     add deku princess prison back to list without breaking everything
