@@ -55,14 +55,14 @@ local hook = [[
     sw      a2,  8(sp)
     sw      a3, 12(sp)
     bal     start
-    subi    sp, sp, 20
-    lw      ra, 16(sp)
-    lw      a0, 20(sp)
-    lw      a1, 24(sp)
-    lw      a2, 28(sp)
-    lw      a3, 32(sp)
+    subi    sp, sp, 24
+    lw      ra, 20(sp)
+    lw      a0, 24(sp)
+    lw      a1, 28(sp)
+    lw      a2, 32(sp)
+    lw      a3, 36(sp)
     j       @hooked
-    addi    sp, sp, 20
+    addi    sp, sp, 24
 start:
 ]]
 
