@@ -10,7 +10,7 @@ lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 
 unpack = lambda fmt, data: struct.unpack(fmt, bytes(data))
 
-extended='°ÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜßàáâäçèéêëìíîïñòóôöùúûü¡¿ͣ'
+extended='°ÀÁÂÄÇÈÉÊËÌÍÎÏÑÒÓÔÖÙÚÛÜßàáâäçèéêëìíîïñòóôöùúûü¡ª¿'
 
 def parse_jp_text(f):
     s = ''
@@ -68,7 +68,7 @@ def parse_jp_text(f):
             else:
                 bs += b' '*int(arg2(), 16)
         elif x == 0x0100:
-            bs += '[あ?]'.encode('shift-jis')
+            bs += b'[Link]'
         elif x == 0x0101:
             if verbose:
                 bs += b'[instant on]'
@@ -117,7 +117,7 @@ def parse_jp_text(f):
         elif x == 0x0204:
             bs += b'[postman timer]'
         elif x == 0x0208:
-            bs += b'[result time?]'
+            bs += b'[deku score?]'
         elif x == 0x020B:
             bs += b'[highscore? 020B]'
         elif x == 0x020C:
@@ -187,13 +187,13 @@ def parse_jp_text(f):
             if verbose:
                 bs += b'[no skip?]'
         elif x == 0x0306:
-            bs += b'[highscore? 0306]'
+            bs += b'[octorok archery highscore]'
         elif x == 0x0307:
-            bs += b'[epona highscore]'
+            bs += b'[epona highscore?]'
         elif x == 0x0308:
             bs += b'[highscore? 0308]'
         elif x == 0x0309:
-            bs += b'[highscore? 0309]'
+            bs += b'[epona highscore]'
         elif x == 0x030A:
             bs += b'[deku highscore]'
         elif x == 0x030B:
@@ -366,6 +366,8 @@ def parse_en_text(f):
         elif x == 0x15:
             if verbose:
                 bs += b'[no skip?]'
+        elif x == 0x16:
+            bs += b'[Link]'
         elif x == 0x17:
             if verbose:
                 bs += b'[instant on]'
@@ -405,8 +407,6 @@ def parse_en_text(f):
             else:
                 arg()
                 arg()
-        elif x == 0x16:
-            bs += b'[Link]'
         elif x == 0xC2:
             if verbose:
                 bs += b'[two-choice]'
