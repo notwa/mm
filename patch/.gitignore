@@ -1,4 +1,5 @@
 *.z64
+*.bin
 patchme
 lips
 entrances.asm

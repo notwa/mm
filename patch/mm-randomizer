@@ -1,26 +1,40 @@
 #!/usr/bin/env bash
 set -e
 
+fast=0
+[[ "$1" == "fast" ]] && fast=1
+[[ "$1" == "test" ]] && fast=2
+
 inject=../Lua/inject
 sha1=d6133ace5afaa0882cf214cf88daba39e266c078
 extracted=../dump/mm-US10-"$sha1"
 rom=../../roms/everything/"Legend of Zelda, The - Majora's Mask (U) [!].z64"
 lips=../Lua/lib/lips
+
 code="0031 V00B3C000"
+extra="1552 V02EE7040"
 
 if ! [ -d "$extracted" ]; then
     ../z64dump.py "$rom"
     mv "$sha1" "$extracted"
 fi
-[ -d patchme ] && rm -r patchme
-cp -r "$extracted" patchme
+if [ $fast -eq 0 ]; then
+    [ -d patchme ] && rm -r patchme
+    cp -r "$extracted" patchme
+fi
 
 # don't copy entire dir; avoid copying dotfiles (.git)
 mkdir -p lips
 cp "$lips"/* lips
-
 cp "$inject/"{crc32,entrances}.asm .
-luajit patch.lua code.asm patchme/"$code"
 
-../z64dump.py patchme
-mv patchme.z64 mm-randomizer.z64
+#touch patchme/"$extra"
+dd if=/dev/zero of=patchme/"$extra" bs=370688 count=1 2>/dev/null
+
+luajit patch.lua code.asm patchme/"$code" 0
+luajit patch.lua extra.asm patchme/"$extra" 0x80780000
+
+if [ $fast -ne 2 ]; then
+    ../z64dump.py patchme
+    mv patchme.z64 mm-randomizer.z64
+fi

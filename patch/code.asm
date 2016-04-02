@@ -1,16 +1,40 @@
-[link_save]: 0x801EF670
- [has_completed_intro]: 0x5
- [have_tatl]: 0x22
- [player_name]: 0x2C
- [scene_flags]: 0x470
- [week_event_reg]: 0xEF8
- [voidout_type]: 0x3CB0
- [voidout_exit]: 0x3CC4
- [exit_mod_setter]: 0x3F4A
- [scene_flags_ingame]: 0x3F68
+.include "common.asm"
 
 [starting_exit]: 0x9F87C
 [default_save]: 0x120DD8
+
+; 0x8016A2C8 -> 0xC4808
+; 0x8016A2C8 - 0xC4808 = 0x800A5AC0
+
+; 0x8016AC0C - 0x8016A2C8 = 0x944
+
+.org 0xC4808
+    ; if we've already loaded once, don't load again
+    lbu     t0, @start          ; 2
+    bnez    t0, +               ; 1
+    nop                         ; 1
+    push    4, a0, a1, a2, ra   ; 5
+    li      a0, @start          ; 1
+    li      a1, @vstart         ; 2
+    li      a2, @size           ; 2
+    jal     @DMARomToRam        ; 1
+    nop                         ; 1
+    pop     4, a0, a1, a2, ra   ; 5
++:
+    j       @dma_hook           ; 1
+    nop                         ; 1
+; total overwriten instructions: 23
+; the original function is in setup.asm,
+; and is moved into our extra file.
+; we have (0x944 / 4 - 23) = 570 words of space here, should we need it.
+    .word    0xDEADBEEF
+
+.org 0x9F9A4 ; JR of starting_exit's function
+    j       @load_hook ; tail call
+
+.org 0x80710
+    j       @tunic_color_hook
+    lhu     t1, 0x1DB0(t1); original code
 
 .org @starting_exit
     li      t8, 0xD800 ; modified code
