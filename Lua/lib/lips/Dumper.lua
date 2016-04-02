@@ -85,7 +85,8 @@ function Dumper:add_directive(fn, line, name, a, b)
         self:add_bytes(line, b1, b0)
     elseif name == 'WORD' then
         if type(a) == 'string' then
-            local t = {line=line, kind='label', name=a}
+            t.kind = 'label'
+            t.name = a
             insert(self.commands, t)
             self:advance(4)
         else
@@ -270,7 +271,7 @@ function Dumper:dump()
                 self.pos = self.pos + t.skip
             end
         elseif t.kind == 'label' then
-            local val = self:desym{'LABELSYM', t.name}
+            local val = self:desym{tt='LABELSYM', tok=t.name}
             val = (val % 0x80000000) + 0x80000000
             local b0 = bitrange(val, 0, 7)
             local b1 = bitrange(val, 8, 15)

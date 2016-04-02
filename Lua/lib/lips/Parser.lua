@@ -29,7 +29,7 @@ function Parser:directive()
         if self:is_EOL() and name == 'ALIGN' then
             add(name, 0)
         else
-            local size = self:number()
+            local size = self:number().tok
             if self:is_EOL() then
                 add(name, size)
             else
