@@ -43,6 +43,8 @@ def z_dump_file(f, i=0, name=None, uncompress=True):
     pe = R4(f.read(4)) # physical end
     here = f.tell()
 
+    dump = uncompress and dump_wrap or dump_as
+
     if vs == ve == ps == pe == 0:
         return False
 
@@ -56,13 +58,13 @@ def z_dump_file(f, i=0, name=None, uncompress=True):
 
     if ps == 0xFFFFFFFF or pe == 0xFFFFFFFF:
         #lament('file does not exist')
-        dump_as(b'', fn, size)
+        dump_as(b'', fn, 0)
     elif pe == 0:
         #lament('file is uncompressed')
         pe = ps + size
         f.seek(ps)
         data = f.read(pe - ps)
-        dump_wrap(data, fn, size)
+        dump(data, fn, size)
     else:
         #lament('file is compressed')
         f.seek(ps)
@@ -70,16 +72,16 @@ def z_dump_file(f, i=0, name=None, uncompress=True):
         if compressed[:4] == b'Yaz0':
             if uncompress:
                 data = Yaz0.decode(compressed)
-                dump_wrap(data, fn, size)
+                dump(data, fn, size)
             else:
-                dump_wrap(compressed, fn+'.Yaz0', len(compressed))
+                dump(compressed, fn+'.Yaz0', len(compressed))
         else:
             if uncompress:
                 lament('unknown compression; skipping:', fn)
                 lament(compressed[:4])
             else:
                 lament('unknown compression:', fn)
-                dump_wrap(compressed, fn, len(compressed))
+                dump(compressed, fn, len(compressed))
 
     f.seek(here)
     return True
@@ -97,7 +99,7 @@ def z_find_dma(f):
             else:
                 f.seek(len(rest), 1)
 
-def z_dump(f, names=None):
+def z_dump(f, names=None, uncompress=True):
     f.seek(0x1060) # skip header when finding dmatable
     addr = z_find_dma(f)
     if addr == None:
@@ -112,17 +114,17 @@ def z_dump(f, names=None):
     i = 0
     if names:
         for n in names:
-            if z_dump_file(f, i, n):
+            if z_dump_file(f, i, n, uncompress):
                 i += 1
             else:
                 lament("ran out of filenames")
                 break
-    while z_dump_file(f, i):
+    while z_dump_file(f, i, None, uncompress):
         i += 1
     if names and i > len(names):
         lament("extraneous filenames")
 
-def dump_rom(fn):
+def dump_rom(fn, uncompress=True):
     with open(fn, 'rb') as f:
         data = f.read()
 
@@ -151,7 +153,7 @@ def dump_rom(fn):
             names = [n.strip() for n in names]
         with SubDir(romhash):
             f.seek(0)
-            z_dump(f, names)
+            z_dump(f, names, uncompress)
 
 def z_read_file(path, fn=None):
     if fn == None:
@@ -205,7 +207,10 @@ def fix_rom(f):
     f.write(W4(crc1))
     f.write(W4(crc2))
 
-def create_rom(d):
+def align(x):
+    return (x + 15) // 16 * 16
+
+def create_rom(d, compress=False):
     root, _, files = next(os.walk(d))
     files.sort()
 
@@ -217,7 +222,8 @@ def create_rom(d):
         f.write(bytearray(rom_size))
         f.seek(0)
 
-        start = 0
+        start_v = 0
+        start_p = 0
 
         for i, fn in enumerate(files):
             path = os.path.join(root, fn)
@@ -226,44 +232,68 @@ def create_rom(d):
                 lament('skipping:', fn)
                 continue
 
+            size_v = len(data)
+            size_p = size_v
+            unempty = size_v > 0
+            compressed = size_v >= 4 and data[:4] == b'Yaz0'
+
             if i <= 2:
                 # makerom, boot, dmadata need to be exactly where they were
-                start = vs
+                start_v = vs
+                start_p = start_v
             else:
-                # align to next row
-                start = (start + 15)//16*16
+                start_v = align(start_v)
+                start_p = align(start_p)
+                if compress and unempty:
+                    lament('Comp…: {}'.format(fn))
+                    data = Yaz0.encode(data)
+                    size_p = len(data)
+                    lament("Ratio: {:3}%".format(int(size_p / size_v * 100)))
+                    compressed = True
 
-            size = len(data)
-            if size:
-                ps = start
-                pe = 0
+            if unempty:
+                ps = start_p
+                if compressed:
+                    pe = align(start_p + size_p)
+                    ve = vs + int.from_bytes(data[4:8], 'big')
+                    #ve = vs + len(Yaz0.decode(data))
+                else:
+                    pe = 0
+                    ve = vs + size_v
             else:
                 ps = 0xFFFFFFFF
                 pe = 0xFFFFFFFF
-            ve = vs + size
+                ve = vs
 
-            assert(start <= rom_size)
-            assert(start + size <= rom_size)
+
+            assert(start_v <= rom_size)
+            assert(start_v + size_v <= rom_size)
             assert(vs < rom_size)
             assert(ve <= rom_size)
 
-            if size:
-                f.seek(start)
+            if unempty:
+                f.seek(start_p)
                 f.write(data)
 
             dma.append([vs, ve, ps, pe])
-            start += size
+
+            start_v += size_v
+            start_p += size_p
 
         z_write_dma(f, dma)
         fix_rom(f)
 
 def run(args):
+    compress = False
     for path in args:
+        if path == '-c':
+            compress = not compress
+            continue
         # directories are technically files, so check this first
         if os.path.isdir(path):
-            create_rom(path)
+            create_rom(path, compress)
         elif os.path.isfile(path):
-            dump_rom(path)
+            dump_rom(path, not compress)
         else:
             lament('no-op:', path)
 
