@@ -67,5 +67,5 @@ if [ $fast -ne 2 ]; then
     comp "$code"
     comp "$extra"
     (cd ..; ./z64dump.py patch/patchme)
-    dd if=patchme.z64 of=mm-randomizer.z64 bs=$((1024*1024)) count=32 status=none
+    dd if=patchme.z64 of=mm-bq.z64 bs=$((1024*1024)) count=32 status=none
 fi
