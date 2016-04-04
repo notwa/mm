@@ -5,10 +5,26 @@
 
 ; 0x8016A2C8 -> 0xC4808
 ; 0x8016A2C8 - 0xC4808 = 0x800A5AC0
-
 ; 0x8016AC0C - 0x8016A2C8 = 0x944
 
-.org 0xC4808
+.org 0xCEDE0 ; 0x801748A0
+    ; this appears to be the main game loop function
+    ; we can "make room" for some injected code
+    ; by taking advantage of it never returning under normal circumstances.
+    ; we'll cut out pushing RA, S1-S8 stuff on stack.
+    ; props to CloudMax for doing this in OoT first.
+    addiu   sp, sp, 0xFCC0 ; original code
+    ; push removed here
+    li      s0, 0x801BD910 ; original code
+    ; pushes removed here
+    ; 6 instructions to work with
+    li      a1, @vstart         ; 2
+    li      a2, @size           ; 2
+    jal     @DMARomToRam        ; 1
+    li      a0, @start          ; 1 (just make sure @start can be a LUI!)
+
+.org 0xC4808 ; 0x8016A2C8
+/*
     ; if we've already loaded once, don't load again
     lbu     t0, @start          ; 2
     bnez    t0, +               ; 1
@@ -28,6 +44,9 @@
 ; and is moved into our extra file.
 ; we have (0x944 / 4 - 23) = 570 words of space here, should we need it.
     .word    0xDEADBEEF
+*/
+    j       @dma_hook           ; 1
+    nop                         ; 1
 
 .org 0x9F9A4 ; JR of starting_exit's function
     j       @load_hook ; tail call

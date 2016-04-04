@@ -26,9 +26,9 @@ dma_hook:
     jal     setup_hook
     nop
     pop     4, 1, ra
-
-; original code (includes jr)
-.include "setup.asm"
+    addiu   sp, sp, 0xFF58 ; original code
+    j       0x8016A2D0 ; return to scene setup function
+    sw      s1, 0x30(sp) ; original code
 
 set_scene_flag:
     ; a0: scene number
