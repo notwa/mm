@@ -148,7 +148,7 @@ end
 local asms = {
     ['O US10'] = 'spawn oot.asm',
     ['O JP10'] = 'spawn oot.asm',
-    ['O EUDB MQ'] = 'print.asm',
+    ['O EUDB MQ'] = 'widescreen.asm',
 
     ['M US10'] = 'beta.asm',
     ['M JP10'] = 'spawn mm early.asm',
