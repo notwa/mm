@@ -367,7 +367,7 @@ data.instructions = {
     TRUNC_L_D={17, 'DS', 'F0SDC',  9, data.fmt_double},
     TRUNC_L_S={17, 'DS', 'F0SDC',  9, data.fmt_single},
     TRUNC_W_D={17, 'DS', 'F0SDC', 13, data.fmt_double},
-    TRUNC_W_S={17, 'DS', 'F0SDC', 13, data.fmt_double},
+    TRUNC_W_S={17, 'DS', 'F0SDC', 13, data.fmt_single},
 
     -- pseudo-instructions
 
