@@ -1,5 +1,9 @@
 * - Copy*
-cm oot save.lua
-cm mm save.lua
-__pycache__/*
+*.7z
 *.State
+*.bin
+*.exe
+*.z64
+__pycache__/*
+cm mm save.lua
+cm oot save.lua

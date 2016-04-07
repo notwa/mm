@@ -131,9 +131,6 @@ static int encodeYaz0(u8 *src, u8 *dst, int srcSize)
 
 		// write eight codes
 		if (validBitCount == 8) {
-			//fwrite(&currCodeByte, 1, 1, dstFile);
-			//fwrite(buf, 1, bufPos, dstFile);
-
 			dst[dstPos++] = currCodeByte;
 			for (int j = 0; j < bufPos; j++)
 				dst[dstPos++] = buf[j];
@@ -145,9 +142,6 @@ static int encodeYaz0(u8 *src, u8 *dst, int srcSize)
 	}
 
 	if (validBitCount > 0) {
-		//fwrite(&currCodeByte, 1, 1, dstFile);
-		//fwrite(buf, 1, bufPos, dstFile);
-
 		dst[dstPos++] = currCodeByte;
 		for (int j = 0; j < bufPos; j++)
 			dst[dstPos++] = buf[j];
@@ -175,7 +169,7 @@ void decompress(u8 *src, u8 *dst, int uncompressedSize)
 			validBitCount = 8;
 		}
 
-		if((currCodeByte & 0x80) != 0) {
+		if ((currCodeByte & 0x80) != 0) {
 			// straight copy
 			dst[dstPlace] = src[srcPlace];
 			dstPlace++;
@@ -190,11 +184,12 @@ void decompress(u8 *src, u8 *dst, int uncompressedSize)
 			u32 copySource = dstPlace - (dist + 1);
 
 			u32 numBytes = byte1 >> 4;
-			if(numBytes == 0) {
+			if (numBytes == 0) {
 				numBytes = src[srcPlace] + 0x12;
 				srcPlace++;
-			} else
+			} else {
 				numBytes += 2;
+			}
 
 			// copy run
 			int i;
@@ -211,11 +206,15 @@ void decompress(u8 *src, u8 *dst, int uncompressedSize)
 	}
 }
 
-
 int main(int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++) {
 		FILE *f = fopen(argv[i], "rb");
+
+		if (f == NULL) {
+			perror(argv[1]);
+			exit(1);
+		}
 
 		fseek(f, 0, SEEK_END);
 		long size = ftell(f);

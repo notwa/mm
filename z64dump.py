@@ -256,7 +256,6 @@ def create_rom(d, compress=False):
                 if compressed:
                     pe = align(start_p + size_p)
                     ve = vs + int.from_bytes(data[4:8], 'big')
-                    #ve = vs + len(Yaz0.decode(data))
                 else:
                     pe = 0
                     ve = vs + size_v

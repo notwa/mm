@@ -37,16 +37,11 @@ comp() {
     rm patchme/"$1"
 }
 
-#if ! [ -d "$extracted" ]; then
 if [ $fast -eq 0 ] || [ ! -d patchme ]; then
     [ -d patchme ] && rm -r patchme
     (cd ..; ./z64dump.py -c "$rom")
     mv ../"$sha1" patchme
 fi
-#if [ $fast -eq 0 ]; then
-#    [ -d patchme ] && rm -r patchme
-#    cp -r "$extracted" patchme
-#fi
 
 unc "$code"
 
