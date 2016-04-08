@@ -207,8 +207,6 @@ scale_step:
     andi    v0, v0, 0xFFFF
 
 ; set up screen dimensions to render widescreen.
-; these constants don't actually make sense to me,
-; but they seem to yield the correct aspect ratio.
 [res2_L]: 0
 [res2_T]: 30
 [res2_R]: 320
