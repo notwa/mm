@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -e
+
+rom=../roms/everything/"Legend of Zelda, The - Ocarina of Time - Master Quest (E) (Debug) [f1].z64"
+lips=../Lua/lib/lips
+
+(cd ..; cp "$rom" patch/oot-widescreen.z64)
+
+# don't copy entire dir; avoid copying dotfiles (.git)
+mkdir -p lips
+cp "$lips"/* lips
+
+luajit patch.lua widescreen-inline.asm oot-widescreen.z64 0 0x035D0000 0x80700000
+
+(cd ..; ./z64dump.py -f patch/oot-widescreen.z64)
