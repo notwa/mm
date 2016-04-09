@@ -2,15 +2,20 @@ package.path = package.path..";./?/init.lua"
 
 local assemble = require "lips"
 
-local function inject(patch, target, offset)
+local function inject(patch, target, offset, erom, eram)
     offset = offset or 0
 
     local f = io.open(target, 'r+b')
+    if not f then
+        print("file not found:", target)
+        return
+    end
 
     local function write(pos, line)
         assert(#line == 2, "that ain't const")
-        -- TODO: write hex dump format of written bytes
-        if pos >= offset then
+        if erom and eram and pos >= eram then
+            pos = pos - eram + erom
+        elseif pos >= offset then
             pos = pos - offset
         end
         if pos >= 1024*1024*1024 then
@@ -19,6 +24,10 @@ local function inject(patch, target, offset)
             return
         end
         f:seek('set', pos)
+
+        -- TODO: write hex dump format of written bytes
+        print(("%08X    %s"):format(pos, line))
+
         f:write(string.char(tonumber(line, 16)))
     end
 
@@ -28,12 +37,19 @@ local function inject(patch, target, offset)
     f:close()
 end
 
-local offset = arg[3]
-if offset then
-    if offset:sub(2) == '0x' then
-        offset = tonumber(offset, 16)
+local function parsenum(s)
+    if s:sub(2) == '0x' then
+        s = tonumber(s, 16)
     else
-        offset = tonumber(offset)
+        s = tonumber(s)
     end
+    return s
 end
-inject(arg[1], arg[2], offset)
+
+local offset = arg[3]
+local extra_rom = arg[4]
+local extra_ram = arg[5]
+if offset then offset = parsenum(offset) end
+if extra_rom then extra_rom = parsenum(extra_rom) end
+if extra_ram then extra_ram = parsenum(extra_ram) end
+inject(arg[1], arg[2], offset, extra_rom, extra_ram)
