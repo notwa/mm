@@ -264,7 +264,6 @@ def create_rom(d, compress=False):
                 pe = 0xFFFFFFFF
                 ve = vs
 
-
             assert(start_v <= rom_size)
             assert(start_v + size_v <= rom_size)
             assert(vs < rom_size)
@@ -284,9 +283,17 @@ def create_rom(d, compress=False):
 
 def run(args):
     compress = False
+    fix = False
     for path in args:
         if path == '-c':
             compress = not compress
+            continue
+        if path == '-f':
+            fix = not fix
+            continue
+        if fix:
+            with open(path, 'r+b') as f:
+                fix_rom(f)
             continue
         # directories are technically files, so check this first
         if os.path.isdir(path):
