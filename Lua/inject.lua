@@ -4,6 +4,8 @@ local addrs = require "addrs"
 require "messages"
 local assemble = require "lips"
 
+local unpack = unpack or table.unpack
+
 local injection_points = {
     ['M US10'] = {
         inject_addr = 0x780000,
@@ -46,6 +48,13 @@ local injection_points = {
 }
 injection_points['O JP10'] = injection_points['O US10']
 
+local no_point = {
+    inject_addr = 0,
+    inject_maxlen = 0x800000,
+    ow_addr = 0,
+    ow_before = 0,
+}
+
 local hook = [[
 [hooked]: 0x%08X
     // note: this will fail when the hooked function takes args on stack
@@ -66,18 +75,18 @@ local hook = [[
 start:
 ]]
 
-local function inject(fn)
+local function inject(fn, dumb)
     local asm_dir = bizstring and 'inject/' or './mm/Lua/inject/'
     local asm_path = asm_dir..fn
 
-    local point = injection_points[version]
+    local point = dumb and no_point or injection_points[version]
     if point == nil then
         print("Sorry, inject.lua is unimplemented for your game version.")
         return
     end
 
     -- seemingly unused region of memory
-    local inject_addr = point.inject_addr
+    local inject_addr = point.inject_addr % 0x80000000
     -- how much room we have to work with
     local inject_maxlen = point.inject_maxlen
     -- the jal instruction to overwrite with our hook
@@ -89,7 +98,7 @@ local function inject(fn)
 
     -- encode our jal instruction
     local ow_after = 0x0C000000 + math.floor(inject_addr/4)
-    if R4(ow_addr) ~= ow_before and R4(ow_addr) ~= ow_after then
+    if not dumb and R4(ow_addr) ~= ow_before and R4(ow_addr) ~= ow_after then
         print("Can't inject -- game code is different!")
         return
     end
@@ -117,12 +126,16 @@ local function inject(fn)
 
     -- offset assembly labels so they work properly, and assemble!
     local true_offset = 0x80000000 + inject_addr
-    assemble(hook, write, {unsafe=true, offset=true_offset})
-    assemble(asm_path, write, {unsafe=true, offset=true_offset + size})
+    if not dumb then
+        assemble(hook, write, {unsafe=true, offset=true_offset})
+        assemble(asm_path, write, {unsafe=true, offset=true_offset + size})
+    else
+        assemble(asm_path, write, {unsafe=true, offset=true_offset})
+    end
 
     print_deferred()
     printf("size: %i words", size/4)
-    if cons_pos >= inject_end then
+    if not dumb and cons_pos >= inject_end then
         print("Assembly too large!")
         print("The game will probably crash.")
     end
@@ -131,9 +144,11 @@ local function inject(fn)
         W1(pos, val)
     end
 
-    -- finally, write our new jump over the original
-    printf('%08X: %08X', ow_addr, ow_after)
-    W4(ow_addr, ow_after)
+    if not dumb then
+        -- finally, write our new jump over the original
+        printf('%08X: %08X', ow_addr, ow_after)
+        W4(ow_addr, ow_after)
+    end
 
     -- force code cache to be reloaded
     if bizstring then
@@ -146,17 +161,18 @@ local function inject(fn)
 end
 
 local asms = {
-    ['O US10'] = 'spawn oot.asm',
-    ['O JP10'] = 'spawn oot.asm',
-    ['O EUDB MQ'] = 'widescreen.asm',
+    ['O US10'] = {'spawn oot.asm'},
+    ['O JP10'] = {'spawn oot.asm'},
+    ['O EUDB MQ'] = {'widescreen.asm'},
+--  ['O EUDB MQ'] = {'widescreen-inline.asm', true},
 
-    ['M US10'] = 'beta.asm',
-    ['M JP10'] = 'spawn mm early.asm',
+    ['M US10'] = {'beta.asm'},
+    ['M JP10'] = {'spawn mm early.asm'},
 }
 
-local asm = asms[version]
-if asm then
-    inject(asm)
+local args = asms[version]
+if args then
+    inject(unpack(args))
 else
     print('no appropriate assembly found for this game')
 end
