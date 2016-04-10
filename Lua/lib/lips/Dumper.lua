@@ -233,8 +233,7 @@ end
 
 function Dumper:write(t)
     for _, b in ipairs(t) do
-        local s = ('%02X'):format(b)
-        self.writer(self.pos, s)
+        self.writer(self.pos, b)
         self.pos = self.pos + 1
     end
 end

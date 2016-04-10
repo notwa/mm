@@ -112,16 +112,15 @@ local function inject(fn, dumb)
     local inject_bytes = {}
     local size = 0
     local cons_pos = inject_addr
-    local function write(pos, line)
-        assert(#line == 2, "that ain't const")
-        dprint(("%08X"):format(pos), line)
+    local function write(pos, b)
+        dprint(("%08X    %02X"):format(pos, b))
         pos = pos % 0x80000000
         size = size + 1
         -- FIXME: doesn't detect .skip/.space directives
         if pos > cons_pos and (pos < inject_end or cons_pos == pos - 1) then
             cons_pos = pos
         end
-        inject_bytes[pos] = tonumber(line, 16)
+        inject_bytes[pos] = b
     end
 
     -- offset assembly labels so they work properly, and assemble!

@@ -21,8 +21,7 @@ local function inject(args)
         end
     end
 
-    local function write(pos, line)
-        assert(#line == 2, "that ain't const")
+    local function write(pos, b)
         if args.extra_rom and args.extra_ram and pos >= args.extra_ram then
             pos = pos - args.extra_ram + args.extra_rom
         elseif pos >= args.offset then
@@ -30,15 +29,14 @@ local function inject(args)
         end
         if pos >= 1024*1024*1024 then
             print("you probably don't want to do this:")
-            print(("%08X"):format(pos), line)
+            print(("%08X    %02X"):format(pos, b))
             return
         end
         f:seek('set', pos)
 
         -- TODO: write hex dump format of written bytes
-        --print(("%08X    %s"):format(pos, line))
 
-        f:write(string.char(tonumber(line, 16)))
+        f:write(string.char(b))
     end
 
     assemble(args.input, write, {unsafe=true, offset=args.offset, labels=state})

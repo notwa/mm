@@ -18,7 +18,7 @@ function lips.word_writer()
     local max = -1
     return function(pos, b)
         if pos then
-            buff[pos] = b
+            buff[pos] = ("%02X"):format(b)
             if pos > max then
                 max = pos
             end
