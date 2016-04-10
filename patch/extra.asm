@@ -1,4 +1,4 @@
-    ; note: we check the first byte here to determine if we've been loaded already
+; note: we check the first byte here to determine if we've been loaded already
     .word   0xDEADBEEF ; so this can't be 0x00xxxxxx
 whatever: ; debugging stuff
     .word   0
@@ -210,13 +210,13 @@ shuffle_get:
     beq     a0, t5, +
     nop
     addi    t1, t1, 1
-    beq     t1, t0, shuffle_get_return
+    beq     t1, t0, +return
     nop
     b       -
     addi    t4, t4, 4 ; 2*sizeof(halfword)
 +:
     lhu     v0, 2(t4)
-shuffle_get_return:
++return:
     jpop    4, ra, 1
 
 unset_alt_scene:
@@ -270,7 +270,7 @@ set_alt_scene:
     li      a1, 33
     jal     get_event_flag
     li      a2, 7
-    beqz    v0, set_alt_scene_return
+    beqz    v0, +return
     nop
     andi    t9, s0, 0x01FF
     andi    t0, s0, 0xFE00
@@ -289,7 +289,7 @@ set_alt_scene:
     li      at, 0xB600
     addu    s0, t9, at
 +:
-set_alt_scene_return:
++return:
     mov     v0, s0
     jpop    4, s0, ra
 
