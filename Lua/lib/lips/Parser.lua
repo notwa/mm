@@ -54,7 +54,7 @@ function Parser:directive()
             add(name, self:const().tok)
         end
         self:expect_EOL()
-    elseif name == 'INC' then
+    elseif name == 'INC' or name == 'INCBIN' then
         -- noop, handled by lexer
     elseif name == 'ASCII' or name == 'ASCIIZ' then
         local bytes = self:string()
@@ -65,8 +65,6 @@ function Parser:directive()
             add('BYTE', 0)
         end
         self:expect_EOL()
-    elseif name == 'INCBIN' then
-        self:error('unimplemented')
     elseif name == 'FLOAT' then
         self:error('unimplemented')
     else
@@ -179,6 +177,7 @@ function Parser:instruction()
     elseif overrides[name] then
         overrides[name](self, name)
     elseif h[2] == 'tob' then -- TODO: or h[2] == 'Tob' then
+        -- handle all the addressing modes for lw/sw-like instructions
         local lui = data.instructions['LUI']
         local addu = data.instructions['ADDU']
         local args = {}
@@ -191,6 +190,9 @@ function Parser:instruction()
             local lui_args = {}
             local addu_args = {}
             local o = self:const()
+            if self.tt == 'NUM' then
+                o:set('offset', self:const().tok)
+            end
             args.offset = self:token(o)
             if not o.portion then
                 args.offset:set('portion', 'lower')
@@ -273,6 +275,9 @@ function Parser:parse(asm)
         else
             self:error('unexpected token (unknown instruction?)')
         end
+    end
+    if self.options.labels then
+        self.dumper:export_labels(self.options.labels)
     end
     return self.dumper:dump()
 end

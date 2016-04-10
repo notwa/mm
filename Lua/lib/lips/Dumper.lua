@@ -12,7 +12,7 @@ function Dumper:init(writer, fn, options)
     self.writer = writer
     self.fn = fn or '(string)'
     self.options = options or {}
-    self.labels = {}
+    self.labels = setmetatable({}, {__index=options.labels})
     self.commands = {}
     self.pos = options.offset or 0
     self.lastcommand = nil
@@ -20,6 +20,17 @@ end
 
 function Dumper:error(msg)
     error(format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
+end
+
+function Dumper:export_labels(t)
+    for k, v in pairs(self.labels) do
+        -- only return valid labels; those that don't begin with a number
+        -- (relative labels are invalid)
+        if not tostring(k):sub(1, 1):find('%d') then
+            t[k] = v
+        end
+    end
+    return t
 end
 
 function Dumper:advance(by)
@@ -138,21 +149,25 @@ function Dumper:desym(t)
         end
         return rel % 0x10000
     elseif type(t.tok) == 'number' then
+        if t.offset then
+            return t.tok + t.offset
+        end
         return t.tok
     elseif t.tt == 'REG' then
         assert(data.all_registers[t.tok], 'Internal Error: unknown register')
         return data.registers[t.tok] or data.fpu_registers[t.tok] or data.sys_registers[t.tok]
-    elseif t.tt == 'LABELSYM' then
+    elseif t.tt == 'LABELSYM' or t.tt == 'LABELREL' then
         local label = self.labels[t.tok]
         if label == nil then
             self:error('undefined label')
         end
-        return label
-    elseif t.tt == 'LABELREL' then
-        local label = self.labels[t.tok]
-        if label == nil then
-            self:error('undefined label')
+        if t.offset then
+            label = label + t.offset
         end
+        if t.tt == 'LABELSYM' then
+            return label
+        end
+
         label = label % 0x80000000
         local pos = self.pos % 0x80000000
         local rel = floor(label/4) - 1 - floor(pos/4)

@@ -89,6 +89,10 @@ function Lexer:read_chars(pattern)
     return buff
 end
 
+function Lexer:read_spaces()
+    return self:read_chars('[ \t]')
+end
+
 function Lexer:read_decimal()
     local buff = self:read_chars('%d')
     local num = tonumber(buff)
@@ -262,7 +266,7 @@ function Lexer:lex_string_naive(yield) -- no escape sequences
 end
 
 function Lexer:lex_include(_yield)
-    self:read_chars('%s')
+    self:read_spaces()
     local fn
     self:lex_string_naive(function(tt, tok)
         fn = tok
@@ -272,6 +276,24 @@ function Lexer:lex_include(_yield)
     end
     local sublexer = Lexer(util.readfile(fn), fn, self.options)
     sublexer:lex(_yield)
+end
+
+function Lexer:lex_include_binary(_yield)
+    self:read_spaces()
+    local fn
+    self:lex_string_naive(function(tt, tok)
+        fn = tok
+    end)
+    if self.options.path then
+        fn = self.options.path..fn
+    end
+    -- NOTE: this allocates two tables for each byte.
+    --       this could easily cause performance issues on big files.
+    local data = util.readfile(fn, true)
+    for b in string.gfind(data, '.') do
+        _yield('DIR', 'BYTE', fn, 0)
+        _yield('NUM', string.byte(b), fn, 0)
+    end
 end
 
 function Lexer:lex(_yield)
@@ -334,6 +356,9 @@ function Lexer:lex(_yield)
             if up == 'INC' or up == 'INCASM' or up == 'INCLUDE' then
                 yield('DIR', 'INC')
                 self:lex_include(_yield)
+            elseif up == 'INCBIN' then
+                yield('DIR', 'INCBIN')
+                self:lex_include_binary(_yield)
             else
                 yield('DIR', up)
             end
@@ -371,16 +396,25 @@ function Lexer:lex(_yield)
         elseif self.chr == '+' or self.chr == '-' then
             local sign_chr = self.chr
             local sign = sign_chr == '+' and 1 or -1
-            local buff = self:read_chars('%'..self.chr)
-            if #buff == 1 and self.chr == ':' then
+            local signs = self:read_chars('%'..self.chr)
+            local name = ''
+            if self.chr:find('[%a_]') then
+                name = self:read_chars('[%w_]')
+            end
+            if #signs == 1 and self.chr == ':' then
                 self:nextc()
-                yield('RELLABEL', sign_chr)
+                yield('RELLABEL', signs..name)
             else
+                self:read_spaces()
                 local n = self:read_number()
                 if n then
                     yield('NUM', sign*n)
+                elseif #signs == 1 and name == '' then
+                    -- this could be a RELLABELSYM
+                    -- we'll have to let the preproc figure it out
+                    yield('UNARY', sign)
                 else
-                    yield('RELLABELSYM', sign*#buff)
+                    yield('RELLABELSYM', signs..name)
                 end
             end
         else
