@@ -79,7 +79,7 @@ function Preproc:process(tokens)
             if label:sub(1, 1) == '+' then
                 insert(plus_labels, rl)
             elseif label:sub(1, 1) == '-' then
-                insert(minus_labels, rl)
+                insert(minus_labels, 1, rl)
             else
                 error('Internal Error: unexpected token for relative label')
             end
