@@ -349,29 +349,3 @@ setup_hook:
     jpop    4, a0, ra
 
 .word 0xDEADBEEF
-
-.org @dma_hook
-    j       dma_hook
-    nop
-.word dma_hook
-    nop
-
-.org @setup_hook
-    j       setup_hook
-    nop
-.word setup_hook
-    nop
-
-.org @load_hook
-    j       load_hook
-    nop
-.word load_hook
-    nop
-
-.org @tunic_color_hook
-    j       tunic_color_hook
-    nop
-.word tunic_color_hook
-    nop
-
-.align 0x10

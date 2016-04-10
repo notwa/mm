@@ -10,6 +10,6 @@ lips=../Lua/lib/lips
 mkdir -p lips
 cp "$lips"/* lips
 
-luajit patch.lua widescreen-inline.asm oot-widescreen.z64 0 0x035D0000 0x80700000
+luajit patch.lua -o 0 --extra-rom 0x035D0000 --extra-ram 0x80700000 widescreen-inline.asm oot-widescreen.z64
 
 (cd ..; ./z64dump.py -f patch/oot-widescreen.z64)

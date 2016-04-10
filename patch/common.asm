@@ -22,11 +22,3 @@
 ;[link_object_ptr]: 0x244
 
 [scene_record_size]: 0x14
-
-; TODO: use arithmetic to do this (add that to lips)
-; TODO: better yet, add proper label exports to lips
-;       so you can write the routines anywhere
-[dma_hook]:         0x807DA000
-[load_hook]:        0x807DA010
-[setup_hook]:       0x807DA020
-[tunic_color_hook]: 0x807DA030

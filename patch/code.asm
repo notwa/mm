@@ -24,35 +24,14 @@
     li      a0, @start          ; 1 (just make sure @start can be a LUI!)
 
 .org 0xC4808 ; 0x8016A2C8
-/*
-    ; if we've already loaded once, don't load again
-    lbu     t0, @start          ; 2
-    bnez    t0, +               ; 1
-    nop                         ; 1
-    push    4, a0, a1, a2, ra   ; 5
-    li      a0, @start          ; 1
-    li      a1, @vstart         ; 2
-    li      a2, @size           ; 2
-    jal     @DMARomToRam        ; 1
-    nop                         ; 1
-    pop     4, a0, a1, a2, ra   ; 5
-+:
-    j       @dma_hook           ; 1
-    nop                         ; 1
-; total overwriten instructions: 23
-; the original function is in setup.asm,
-; and is moved into our extra file.
-; we have (0x944 / 4 - 23) = 570 words of space here, should we need it.
-    .word    0xDEADBEEF
-*/
-    j       @dma_hook           ; 1
+    j       dma_hook            ; 1
     nop                         ; 1
 
 .org 0x9F9A4 ; JR of starting_exit's function
-    j       @load_hook ; tail call
+    j       load_hook ; tail call
 
 .org 0x80710
-    j       @tunic_color_hook
+    j       tunic_color_hook
     lhu     t1, 0x1DB0(t1); original code
 
 .org @starting_exit

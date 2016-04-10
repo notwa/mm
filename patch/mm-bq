@@ -37,6 +37,8 @@ comp() {
     rm patchme/"$1"
 }
 
+[ ! -s ../z64yaz0 ] && cc -O3 ../z64yaz0.c -o ../z64yaz0
+
 if [ $fast -eq 0 ] || [ ! -d patchme ]; then
     [ -d patchme ] && rm -r patchme
     (cd ..; ./z64dump.py -c "$rom")
@@ -50,11 +52,12 @@ mkdir -p lips
 cp "$lips"/* lips
 cp "$inject/"{crc32,entrances}.asm .
 
-touch "extra"
+dd if=/dev/zero of=extra bs=370688 count=1 2>/dev/null
 
-luajit patch.lua code.asm patchme/"$code" 0
-luajit patch.lua extra.asm extra 0x80780000
+luajit patch.lua -e labels.lua -o 0x80780000 extra.asm extra
+luajit patch.lua -i labels.lua code.asm patchme/"$code"
 
+# ensure the file is the proper size (Lua seems to expand it?)
 dd if=extra of=patchme/"$extra" bs=370688 count=1 2>/dev/null
 rm extra
 
