@@ -25,7 +25,7 @@
 
 [actor_spawn]: 0x80031F50
 [object_spawn]: 0x80097C00
-[object_index]: 0xAF246C ; 0x8009812C
+[object_index]: 0xB0F2CC ; 0x8009812C
 
 [max_actor_no]: 0x1D6
 
