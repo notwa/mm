@@ -1,5 +1,4 @@
-; note: we check the first byte here to determine if we've been loaded already
-    .word   0xDEADBEEF ; so this can't be 0x00xxxxxx
+    .word   0xDEADBEEF
 whatever: ; debugging stuff
     .word   0
 

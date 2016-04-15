@@ -2,7 +2,7 @@
 require "lib.setup"
 require "boilerplate"
 
-local buffer = 0x700070
+local buffer = 0x700180
 
 local vfc = A(0x168960, 4)
 
