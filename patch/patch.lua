@@ -34,8 +34,6 @@ local function inject(args)
         end
         f:seek('set', pos)
 
-        -- TODO: write hex dump format of written bytes
-
         f:write(string.char(b))
     end
 
@@ -60,12 +58,14 @@ end
 
 local ap = argparse("patch", "patch a binary file with assembly")
 
+-- TODO: option to dump hex or gs codes when no output is given
 ap:argument("input", "input assembly file")
 ap:argument("output", "output binary file")
 ap:option("-o --offset", "offset to pass to lips", "0"):convert(parsenum)
 ap:option("-i --import", "import state file(s) containing labels"):count("*")
 ap:option("-e --export", "export state file containing labels")
 --ap:option("-s --state", "--import and --export to this file")
+-- TODO: replace this with a lua table import of associated addresses
 ap:option("--extra-rom", "dumb stuff"):convert(parsenum)
 ap:option("--extra-ram", "dumb stuff"):convert(parsenum)
 
