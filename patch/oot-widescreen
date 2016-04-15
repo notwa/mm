@@ -16,8 +16,8 @@ cp ../../"$rom" "$out"
 mkdir -p lips
 cp ../"$lips"/* lips
 
-cp ../"$inject/"widescreen-either.asm .
-cp ../widescreen-inline.asm .
+cp ../"$inject/"*.asm .
+cp ../*.asm .
 
 luajit patch.lua -o 0 \
   --extra-rom 0x035D0000 --extra-ram 0x80700000 \

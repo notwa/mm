@@ -56,10 +56,8 @@ unc "$code"
 mkdir -p lips
 cp ../"$lips"/* lips
 
-cp ../"$inject/"{crc32,entrances}.asm .
-cp ../extra.asm .
-cp ../common.asm .
-cp ../code.asm .
+cp ../"$inject"/*.asm .
+cp ../*.asm .
 
 dd if=/dev/zero of=extra bs=370688 count=1 2>/dev/null
 

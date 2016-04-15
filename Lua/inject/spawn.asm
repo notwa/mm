@@ -6,8 +6,8 @@
 
 [hold_delay_amount]: 3
 
+spawn:
     push    4, s0, s1, s2, s3, s4, ra,
-    li      t0, @link_save
     li      t1, @global_context
     lhu     s0, anum
     lw      s1, hold_delay
