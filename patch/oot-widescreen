@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
+inject=../Lua/inject
 rom=../roms/everything/"Legend of Zelda, The - Ocarina of Time - Master Quest (E) (Debug) [f1].z64"
 lips=../Lua/lib/lips
 
@@ -9,6 +10,7 @@ lips=../Lua/lib/lips
 # don't copy entire dir; avoid copying dotfiles (.git)
 mkdir -p lips
 cp "$lips"/* lips
+cp "$inject/"widescreen-either.asm .
 
 luajit patch.lua -o 0 --extra-rom 0x035D0000 --extra-ram 0x80700000 widescreen-inline.asm oot-widescreen.z64
 
