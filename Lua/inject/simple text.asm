@@ -58,4 +58,3 @@ simple_text:
     sw      v0, @dlist_offset(s1)
 
     jpop    4, 1, s0, s1, ra
-

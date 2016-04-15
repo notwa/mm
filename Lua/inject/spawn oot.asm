@@ -19,7 +19,7 @@
 [upgrades_offset]: 0xA0
 [upgrades_2_offset]: 0xA2
 
-[dlist_offset]: 0x2C0
+[dlist_offset]: 0x2B0
 
 [SetTextRGBA]:      0x800CBE58
 [SetTextXY]:        0x800CBEC8

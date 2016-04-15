@@ -5,7 +5,7 @@
 [global_context]: 0x80212020
 
 // offset from first pointer in global context
-[dlist_offset]: 0x2C0
+[dlist_offset]: 0x2B0
 
 [SetTextRGBA]:      0x800FB3AC
 [SetTextXY]:        0x800FB41C
@@ -19,14 +19,14 @@
 [ObjectIndex]: 0x8009812C
 
     push    4, 1, ra
-// draw some nonsense text
+// draw the debug text
     li      a0, 0x00010001 // xy
     li      a1, 0x88CCFFFF // rgba
     la      a2, fmt
     la      a3, buffer
     jal     simple_text
     nop
-// reset buffer position in our per-frame hook
+// reset buffer position
     la      t0, buffer
     sw      t0, buffer_pos
 // and set the string to null
@@ -35,9 +35,6 @@
 
 fmt:
     .asciiz "%s"
-.align
-str:
-    .asciiz "hey"
 .align
 
 .include "simple text.asm"
