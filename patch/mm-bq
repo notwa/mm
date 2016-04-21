@@ -2,8 +2,10 @@
 set -e
 
 fast=0
-[[ "$1" == "fast" ]] && fast=1
-[[ "$1" == "test" ]] && fast=2
+[[ "$1" == "fast" ]] && fast=1 && shift
+[[ "$1" == "test" ]] && fast=2 && shift
+
+args="$@"
 
 inject=../Lua/inject
 sha1=d6133ace5afaa0882cf214cf88daba39e266c078
@@ -61,8 +63,8 @@ cp ../*.asm .
 
 dd if=/dev/zero of=extra bs=370688 count=1 2>/dev/null
 
-luajit patch.lua -e labels.lua -o 0x80780000 extra.asm extra
-luajit patch.lua -i labels.lua code.asm patchme/"$code"
+luajit patch.lua -e labels.lua -o 0x80780000 "$@" extra.asm extra
+luajit patch.lua -i labels.lua "$@" code.asm patchme/"$code"
 
 # ensure the file is the proper size (Lua seems to expand it?)
 dd if=extra of=patchme/"$extra" bs=370688 count=1 2>/dev/null
