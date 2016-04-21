@@ -4,8 +4,10 @@ local find = string.find
 local format = string.format
 local insert = table.insert
 
-local data = require "lips.data"
-local util = require "lips.util"
+local path = string.gsub(..., "[^.]+$", "")
+local data = require(path.."data")
+local util = require(path.."util")
+local Base = require(path.."Base")
 
 local simple_escapes = {
     ['0']   = 0x00,
@@ -20,7 +22,7 @@ local simple_escapes = {
     ['v']   = 0x0B,
 }
 
-local Lexer = util.Class()
+local Lexer = Base:extend()
 function Lexer:init(asm, fn, options)
     self.asm = asm
     self.fn = fn or '(string)'
@@ -37,6 +39,19 @@ function Lexer:error(msg)
 end
 
 function Lexer:nextc()
+    -- iterate to the next character while translating newlines.
+    -- outputs:
+    --self.chr      the character as a string
+    --self.chr2     the character after it as a string
+    --self.chrchr   both characters as a string
+    --              chr values can be empty
+    --self.ord      numeric value of the character
+    --self.ord2     numeric value of the character after it
+    --              ord values can be self.EOF
+    --self.was_EOL  if the character was an EOL
+    --              this EOL state is preserved past the EOF
+    --              so it can be used to determine if the file lacks a final EOL
+
     if self.pos > #self.asm then
         self.ord = self.EOF
         self.ord2 = self.EOF
@@ -129,10 +144,18 @@ function Lexer:read_number()
         self:nextc()
         return self:read_hex()
     elseif self.chr:find('%d') then
-        if self.chr2 == 'x' or self.chr2 == 'X' then
+        if self.chr2 == 'x' then
             self:nextc()
             self:nextc()
             return self:read_hex()
+        elseif self.chr2 == 'o' then
+            self:nextc()
+            self:nextc()
+            return self:read_octal()
+        elseif self.chr2 == 'b' then
+            self:nextc()
+            self:nextc()
+            return self:read_binary()
         elseif self.chr == '0' and self.chr2:find('%d') then
             self:nextc()
             return self:read_octal()
@@ -284,11 +307,12 @@ function Lexer:lex_include_binary(_yield)
     self:lex_string_naive(function(tt, tok)
         fn = tok
     end)
+    -- TODO: allow optional offset and size arguments
     if self.options.path then
         fn = self.options.path..fn
     end
-    -- NOTE: this allocates two tables for each byte.
-    --       this could easily cause performance issues on big files.
+    -- FIXME: this allocates two tables for each byte.
+    --        this could easily cause performance issues on big files.
     local data = util.readfile(fn, true)
     for b in string.gfind(data, '.') do
         _yield('DIR', 'BYTE', fn, 0)
@@ -327,14 +351,14 @@ function Lexer:lex(_yield)
             self:nextc()
             local buff = self:read_chars('[%w_]')
             if self.chr ~= ']' then
-                self:error('invalid define name')
+                self:error('invalid variable name')
             end
             self:nextc()
             if self.chr ~= ':' then
-                self:error('define requires a colon')
+                self:error('expected a colon after closing bracket')
             end
             self:nextc()
-            yield('DEF', buff)
+            yield('VAR', buff)
         elseif self.chr == ']' then
             self:error('unmatched closing bracket')
         elseif self.chr == '(' then
@@ -367,11 +391,19 @@ function Lexer:lex(_yield)
         elseif self.chr == '@' then
             self:nextc()
             local buff = self:read_chars('[%w_]')
-            yield('DEFSYM', buff)
+            yield('VARSYM', buff)
         elseif self.chr == '%' then
             self:nextc()
-            local call = self:read_chars('[%w_]')
-            yield('SPECIAL', call)
+            if self.chr:find('[%a_]') then
+                local call = self:read_chars('[%w_]')
+                if call ~= '' then
+                    yield('SPECIAL', call)
+                end
+            elseif self.chr:find('[01]') then
+                yield('NUM', self:read_binary())
+            else
+                self:error('unknown % syntax')
+            end
         elseif self.chr:find('[%a_]') then
             local buff = self:read_chars('[%w_.]')
             local up = buff:upper()

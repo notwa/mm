@@ -1,22 +1,26 @@
 local format = string.format
 local insert = table.insert
 
-local data = require "lips.data"
-local util = require "lips.util"
-local Token = require "lips.Token"
+local path = string.gsub(..., "[^.]+$", "")
+local data = require(path.."data")
+local Base = require(path.."Base")
+local Token = require(path.."Token")
 
 local arg_types = {
     NUM = true,
     REG = true,
-    DEFSYM = true,
+    VARSYM = true,
     LABELSYM = true,
     RELLABELSYM = true,
 }
 
-local Muncher = util.Class()
+local Muncher = Base:extend()
 -- no base init method
 
-function Muncher:error(msg)
+function Muncher:error(msg, got)
+    if got ~= nil then
+        msg = msg..', got '..tostring(got)
+    end
     error(format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
@@ -25,9 +29,11 @@ function Muncher:token(t, val)
     if type(t) == 'table' then
         t.fn = self.fn
         t.line = self.line
-        return Token(t)
+        local token = Token(t)
+        return token
     else
-        return Token(self.fn, self.line, t, val)
+        local token = Token(self.fn, self.line, t, val)
+        return token
     end
 end
 
@@ -109,8 +115,8 @@ function Muncher:deref()
 end
 
 function Muncher:const(relative, no_label)
-    if self.tt ~= 'NUM' and self.tt ~= 'LABELSYM' then
-        self:error('expected constant')
+    if self.tt ~= 'NUM' and self.tt ~= 'VARSYM' and self.tt ~= 'LABELSYM' then
+        self:error('expected constant', self.tt)
     end
     if no_label and self.tt == 'LABELSYM' then
         self:error('labels are not allowed here')

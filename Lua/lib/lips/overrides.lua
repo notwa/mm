@@ -1,21 +1,58 @@
 local insert = table.insert
 
-local data = require "lips.data"
-local util = require "lips.util"
-
-local instructions = data.instructions
+local path = string.gsub(..., "[^.]+$", "")
+local data = require(path.."data")
 
 local overrides = {}
--- note: "self" is an instance of Parser
+-- note: "self" is an instance of Preproc
+
+local function tob_override(self, name)
+    -- handle all the addressing modes for lw/sw-like instructions
+    local rt = self:pop('CPU')
+    local offset, base
+    if self:peek('DEREF') then
+        offset = 0
+        base = self:pop('DEREF')
+    else -- NUM or LABELSYM
+        local o = self:pop('CONST')
+        if self:peek('NUM') then
+            local temp, err = self:pop('CONST'):compute()
+            if err then
+                self:error(err, temp)
+            end
+            o:set('offset', temp)
+        end
+        offset = self:token(o)
+        if not o.portion then
+            offset:set('portion', 'lower')
+        end
+        -- attempt to use the fewest possible instructions for this offset
+        if not o.portion and (o.tt == 'LABELSYM' or o.tok >= 0x80000000) then
+            local immediate = self:token(o):set('portion', 'upperoff')
+            self:push_new('LUI', 'AT', immediate)
+            if self.s[self.i] ~= nil then
+                local reg = self:pop('DEREF'):set('tt', 'REG')
+                if reg.tok ~= 'R0' then
+                    self:push_new('ADDU', 'AT', 'AT', 'R0')
+                end
+            end
+            base = self:token('DEREF', 'AT')
+        else
+            base = self:pop('DEREF')
+        end
+    end
+    self:push_new(name, rt, offset, base)
+end
+
+for k, v in pairs(data.instructions) do
+    if v[2] == 'tob' then
+        overrides[k] = tob_override
+    end
+end
 
 function overrides.LI(self, name)
-    local lui = instructions['LUI']
-    local ori = instructions['ORI']
-    local addiu = instructions['ADDIU']
-    local args = {}
-    args.rt = self:register()
-    self:optional_comma()
-    local im = self:const()
+    local rt = self:pop('CPU')
+    local im = self:pop('CONST')
 
     -- for us, this is just semantics. for a "real" assembler,
     -- LA could add appropriate RELO LUI/ADDIU directives.
@@ -24,272 +61,180 @@ function overrides.LI(self, name)
     end
 
     if im.portion then
-        args.rs = 'R0'
-        args.immediate = im
-        self:format_out(addiu, args)
+        -- FIXME: use appropriate instruction based on portion?
+        self:push_new('ADDIU', rt, 'R0', im)
         return
     end
 
     im.tok = im.tok % 0x100000000
     if im.tok >= 0x10000 and im.tok <= 0xFFFF8000 then
-        args.rs = args.rt
-        args.immediate = self:token(im):set('portion', 'upper')
-        self:format_out(lui, args)
+        local rs = rt
+        local immediate = self:token(im):set('portion', 'upper')
+        self:push_new('LUI', rt, immediate)
         if im.tok % 0x10000 ~= 0 then
-            args.immediate = self:token(im):set('portion', 'lower')
-            self:format_out(ori, args)
+            local immediate = self:token(im):set('portion', 'lower')
+            self:push_new('ORI', rt, rs, immediate)
         end
     elseif im.tok >= 0x8000 and im.tok < 0x10000 then
-        args.rs = 'R0'
-        args.immediate = self:token(im):set('portion', 'lower')
-        self:format_out(ori, args)
+        local immediate = self:token(im):set('portion', 'lower')
+        self:push_new('ORI', rt, 'R0', immediate)
     else
-        args.rs = 'R0'
-        args.immediate = self:token(im):set('portion', 'lower')
-        self:format_out(addiu, args)
+        local immediate = self:token(im):set('portion', 'lower')
+        self:push_new('ADDIU', rt, 'R0', immediate)
     end
 end
 
 function overrides.LA(self, name)
-    local lui = instructions['LUI']
-    local addiu = instructions['ADDIU']
-    local args = {}
-    args.rt = self:register()
-    self:optional_comma()
-    local im = self:const()
+    local rt = self:pop('CPU')
+    local im = self:pop('CONST')
 
-    args.rs = args.rt
-    args.immediate = self:token(im):set('portion', 'upperoff')
-    self:format_out(lui, args)
-    args.immediate = self:token(im):set('portion', 'lower')
-    self:format_out(addiu, args)
+    local rs = rt
+    local immediate = self:token(im):set('portion', 'upperoff')
+    self:push_new('LUI', rt, immediate)
+    local immediate = self:token(im):set('portion', 'lower')
+    self:push_new('ADDIU', rt, rt, immediate)
 end
 
 function overrides.PUSH(self, name)
-    local addi = instructions['ADDI']
-    local w = instructions[name == 'PUSH' and 'SW' or 'LW']
-    local jr = instructions['JR']
+    local w = name == 'PUSH' and 'SW' or 'LW'
     local stack = {}
-    while not self:is_EOL() do
-        if self.tt == 'NUM' then
-            if self.tok < 0 then
-                self:error("can't push a negative number of spaces")
+    for _, t in ipairs(self.s) do
+        if t.tt == 'NUM' then
+            if t.tok < 0 then
+                self:error("can't push a negative number of spaces", t.tok)
             end
-            for i=1,self.tok do
+            for i=1, t.tok do
                 insert(stack, '')
             end
-            self:advance()
+            self:pop()
         else
-            insert(stack, self:register())
-        end
-        if not self:is_EOL() then
-            self:optional_comma()
+            insert(stack, self:pop('CPU'))
         end
     end
     if #stack == 0 then
         self:error(name..' requires at least one argument')
     end
-    local args = {}
     if name == 'PUSH' then
-        args.rt = 'SP'
-        args.rs = 'SP'
-        args.immediate = self:token(#stack*4):set('negate')
-        self:format_out(addi, args)
+        local immediate = self:token(#stack*4):set('negate')
+        self:push_new('ADDIU', 'SP', 'SP', immediate)
     end
-    args.base = 'SP'
     for i, r in ipairs(stack) do
-        args.rt = r
         if r ~= '' then
-            args.offset = (i - 1)*4
-            self:format_out(w, args)
+            local offset = (i - 1)*4
+            self:push_new(w, r, offset, self:token('DEREF', 'SP'))
         end
     end
     if name == 'JPOP' then
-        args.rs = 'RA'
-        self:format_out(jr, args)
+        self:push_new('JR', 'RA')
     end
     if name == 'POP' or name == 'JPOP' then
-        args.rt = 'SP'
-        args.rs = 'SP'
-        args.immediate = #stack*4
-        self:format_out(addi, args)
+        local immediate = #stack * 4
+        self:push_new('ADDIU', 'SP', 'SP', immediate)
     end
 end
 overrides.POP = overrides.PUSH
 overrides.JPOP = overrides.PUSH
 
 function overrides.NAND(self, name)
-    local and_ = instructions['AND']
-    local nor = instructions['NOR']
-    local args = {}
-    args.rd = self:register()
-    self:optional_comma()
-    args.rs = self:register()
-    self:optional_comma()
-    args.rt = self:register()
-    self:format_out(and_, args)
-    args.rs = args.rd
-    args.rt = 'R0'
-    self:format_out(nor, args)
+    local rd = self:pop('CPU')
+    local rs = self:pop('CPU')
+    local rt = self:pop('CPU')
+    self:push_new('AND', rd, rs, rt)
+    local rs = rd
+    local rt = 'R0'
+    self:push_new('NOR', rd, rs, rt)
 end
 
 function overrides.NANDI(self, name)
-    local andi = instructions['ANDI']
-    local nor = instructions['NOR']
-    local args = {}
-    args.rt = self:register()
-    self:optional_comma()
-    args.rs = self:register()
-    self:optional_comma()
-    args.immediate = self:const()
-    self:format_out(andi[3], andi[1], args, andi[4], andi[5])
-    args.rd = args.rt
-    args.rs = args.rt
-    args.rt = 'R0'
-    self:format_out(nor[3], nor[1], args, nor[4], nor[5])
+    local rt = self:pop('CPU')
+    local rs = self:pop('CPU')
+    local immediate = self:pop('CONST')
+    self:push_new('ANDI', rt, rs, immediate)
+    local rd = rt
+    local rs = rt
+    local rt = 'R0'
+    self:push_new('NOR', rd, rs, rt)
 end
 
 function overrides.NORI(self, name)
-    local ori = instructions['ORI']
-    local nor = instructions['NOR']
-    local args = {}
-    args.rt = self:register()
-    self:optional_comma()
-    args.rs = self:register()
-    self:optional_comma()
-    args.immediate = self:const()
-    self:format_out(ori, args)
-    args.rd = args.rt
-    args.rs = args.rt
-    args.rt = 'R0'
-    self:format_out(nor, args)
+    local rt = self:pop('CPU')
+    local rs = self:pop('CPU')
+    local immediate = self:pop('CONST')
+    self:push_new('ORI', rt, rs, immediate)
+    local rd = rt
+    local rs = rt
+    local rt = 'R0'
+    self:push_new('NOR', rd, rs, rt)
 end
 
 function overrides.ROL(self, name)
-    local sll = instructions['SLL']
-    local srl = instructions['SRL']
-    local or_ = instructions['OR']
-    local args = {}
-    local left = self:register()
-    self:optional_comma()
-    args.rt = self:register()
-    self:optional_comma()
-    args.immediate = self:const()
-    args.rd = left
-    if args.rd == 'AT' or args.rt == 'AT' then
-        self:error('registers cannot be AT in this pseudo-instruction')
-    end
-    if args.rd == args.rt and args.rd ~= 'R0' then
-        self:error('registers cannot be the same')
-    end
-    self:format_out(sll, args)
-    args.rd = 'AT'
-    args.immediate = 32 - args.immediate[2]
-    self:format_out(srl, args)
-    args.rd = left
-    args.rs = left
-    args.rt = 'AT'
-    self:format_out(or_, args)
+    -- FIXME
+    local rd, rs, rt
+    local left = self:pop('CPU')
+    rt = self:pop('CPU')
+    local immediate = self:pop('CONST')
+    error('Internal Error: unimplemented')
 end
 
 function overrides.ROR(self, name)
-    local sll = instructions['SLL']
-    local srl = instructions['SRL']
-    local or_ = instructions['OR']
-    local args = {}
-    local right = self:register()
-    self:optional_comma()
-    args.rt = self:register()
-    self:optional_comma()
-    args.immediate = self:const()
-    args.rd = right
-    if args.rt == 'AT' or args.rd == 'AT' then
-        self:error('registers cannot be AT in a pseudo-instruction that uses AT')
-    end
-    if args.rd == args.rt and args.rd ~= 'R0' then
-        self:error('registers cannot be the same')
-    end
-    self:format_out(srl, args)
-    args.rd = 'AT'
-    args.immediate = 32 - args.immediate[2]
-    self:format_out(sll, args)
-    args.rd = right
-    args.rs = right
-    args.rt = 'AT'
-    self:format_out(or_, args)
+    -- FIXME
+    local right = self:pop('CPU')
+    local rt = self:pop('CPU')
+    local immediate = self:pop('CONST')
+    error('Internal Error: unimplemented')
 end
 
 function overrides.JR(self, name)
-    local jr = instructions['JR']
-    local args = {}
-    if self:is_EOL() then
-        args.rs = 'RA'
-    else
-        args.rs = self:register()
-    end
-    self:format_out(jr, args)
+    local rs = self:peek() and self:pop('CPU') or 'RA'
+    self:push_new('JR', rs)
 end
 
 local branch_basics = {
-    BEQI = "BEQ",
-    BGEI = "BEQ",
-    BGTI = "BEQ",
-    BLEI = "BNE",
-    BLTI = "BNE",
-    BNEI = "BNE",
-    BEQIL = "BEQL",
-    BGEIL = "BEQL",
-    BGTIL = "BEQL",
-    BLEIL = "BNEL",
-    BLTIL = "BNEL",
-    BNEIL = "BNEL",
+    BEQI = 'BEQ',
+    BGEI = 'BEQ',
+    BGTI = 'BEQ',
+    BLEI = 'BNE',
+    BLTI = 'BNE',
+    BNEI = 'BNE',
+    BEQIL = 'BEQL',
+    BGEIL = 'BEQL',
+    BGTIL = 'BEQL',
+    BLEIL = 'BNEL',
+    BLTIL = 'BNEL',
+    BNEIL = 'BNEL',
 }
 
 function overrides.BEQI(self, name)
-    local addiu = instructions['ADDIU']
-    local branch = instructions[branch_basics[name]]
-    local args = {}
-    local reg = self:register()
-    self:optional_comma()
-    args.immediate = self:const()
-    self:optional_comma()
-    args.offset = self:token(self:const('relative')):set('signed')
+    local branch = branch_basics[name]
+    local reg = self:pop('CPU')
+    local immediate = self:pop('CONST')
+    local offset = self:pop('REL'):set('signed')
 
     if reg == 'AT' then
         self:error('register cannot be AT in this pseudo-instruction')
     end
 
-    args.rt = 'AT'
-    args.rs = 'R0'
-    self:format_out(addiu, args)
+    self:push_new('ADDIU', 'AT', 'R0', immediate)
 
-    args.rs = reg
-    self:format_out(branch, args)
+    self:push_new(branch, reg, 'AT', offset)
 end
 overrides.BNEI = overrides.BEQI
 overrides.BEQIL = overrides.BEQI
 overrides.BNEIL = overrides.BEQI
 
 function overrides.BLTI(self, name)
-    local slti = instructions['SLTI']
-    local branch = instructions[branch_basics[name]]
-    local args = {}
-    args.rs = self:register()
-    self:optional_comma()
-    args.immediate = self:const()
-    self:optional_comma()
-    args.offset = self:token(self:const('relative')):set('signed')
+    local branch = branch_basics[name]
+    local reg = self:pop('CPU')
+    local immediate = self:pop('CONST')
+    local offset = self:pop('REL'):set('signed')
 
-    if args.rs == 'AT' then
+    if reg == 'AT' then
         self:error('register cannot be AT in this pseudo-instruction')
     end
 
-    args.rt = 'AT'
-    self:format_out(slti, args)
+    self:push_new('SLTI', 'AT', reg, immediate)
 
-    args.rs = 'AT'
-    args.rt = 'R0'
-    self:format_out(branch, args)
+    self:push_new(branch, 'R0', 'AT', offset)
 end
 overrides.BGEI = overrides.BLTI
 overrides.BLTIL = overrides.BLTI
@@ -297,40 +242,29 @@ overrides.BGEIL = overrides.BLTI
 
 function overrides.BLEI(self, name)
     -- TODO: this can probably be optimized
-    local addiu = instructions['ADDIU']
-    local slt = instructions['SLT']
-    local branch = instructions[branch_basics[name]]
-    local beq = instructions['BEQ']
-    local args = {}
-    local reg = self:register()
-    self:optional_comma()
-    args.immediate = self:const()
-    self:optional_comma()
-    local offset = self:token(self:const('relative')):set('signed')
+    local branch = branch_basics[name]
+    local reg = self:pop('CPU')
+    local immediate = self:pop('CONST')
+    local offset = self:pop('REL'):set('signed')
 
     if reg == 'AT' then
         self:error('register cannot be AT in this pseudo-instruction')
     end
 
-    args.rt = 'AT'
-    args.rs = 'R0'
-    self:format_out(addiu, args)
+    self:push_new('ADDIU', 'AT', 'R0', immediate)
 
+    local beq_offset
     if name == 'BLEI' then
-        args.offset = offset
+        beq_offset = offset
     else
-        args.offset = 2 -- branch to delay slot of the next branch
+        -- FIXME: this probably isn't correct for branch-likely instructions
+        beq_offset = 2 -- branch to delay slot of the next branch
     end
-    args.rs = reg
-    self:format_out(beq, args)
+    self:push_new('BEQ', reg, 'R0', beq_offset)
 
-    args.rd = 'AT'
-    self:format_out(slt, args)
+    self:push_new('SLT', 'AT', reg, immediate)
 
-    args.rs = 'AT'
-    args.rt = 'R0'
-    args.offset = offset
-    self:format_out(branch, args)
+    self:push_new(branch, 'AT', 'R0', offset)
 end
 overrides.BGTI = overrides.BLEI
 overrides.BLEIL = overrides.BLEI

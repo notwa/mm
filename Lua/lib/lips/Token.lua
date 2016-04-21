@@ -1,6 +1,12 @@
-local util = require "lips.util"
+local floor = math.floor
 
-local Token = util.Class()
+local path = string.gsub(..., "[^.]+$", "")
+local Base = require(path.."Base")
+local util = require(path.."util")
+
+local bitrange = util.bitrange
+
+local Token = Base:extend()
 function Token:init(...)
     local args = {...}
     if #args == 1 then
@@ -34,19 +40,24 @@ function Token:init(...)
     else
         error('Internal Error: init takes 1, 3 or 4 arguments', 3)
     end
+    self:validate(1)
+    return self
+end
+
+function Token:validate(n)
+    n = (n or 0) + 3 -- depth for error message
     if not self.fn then
-        error('Internal Error: tokens require a filename', 3)
+        error('Internal Error: tokens require a filename', n)
     end
     if not self.line then
-        error('Internal Error: tokens require a line number', 3)
+        error('Internal Error: tokens require a line number', n)
     end
     if not self.tt then
-        error('Internal Error: token is missing a type', 3)
+        error('Internal Error: token is missing a type', n)
     end
     if not self.tok then
-        error('Internal Error: token is missing a value', 3)
+        error('Internal Error: token is missing a value', n)
     end
-    return self
 end
 
 function Token:set(key, value)
@@ -55,6 +66,42 @@ function Token:set(key, value)
     end
     self[key] = value
     return self
+end
+
+function Token:compute()
+    assert(self.tt == 'NUM', 'Internal Error: cannot compute a non-number token')
+    local n = self.tok
+    if self.index then
+        -- TODO: should this still be here now that we have .base?
+        n = n % 0x80000000
+        n = floor(n/4)
+    end
+    if self.negate then
+        n = -n
+    end
+
+    if self.portion == 'upper' then
+        n = bitrange(n, 16, 31)
+    elseif self.portion == 'lower' then
+        n = bitrange(n, 0, 15)
+    elseif self.portion == 'upperoff' then
+        local upper = bitrange(n, 16, 31)
+        local lower = bitrange(n, 0, 15)
+        if lower >= 0x8000 then
+            -- accommodate for offsets being signed
+            upper = (upper + 1) % 0x10000
+        end
+        n = upper
+    end
+
+    if self.negate or self.signed then
+        if n >= 0x10000 or n < -0x8000 then
+            return n, 'value out of range'
+        end
+        n = n % 0x10000
+    end
+
+    return n
 end
 
 return Token
