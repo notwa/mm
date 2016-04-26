@@ -36,6 +36,8 @@ short term:
     set clock town first time as being watched
     set deku mask being worn once
 
+    add true RNG mode
+
 long term:
     maybe skip zora/goron mask cutscenes (1C00 FFF3 -> 6890 0000, 1C00 FFF4 -> 9610 0000)
     skip giants cutscenes; give oath when any mask is acquired (0xCC00 fyi)

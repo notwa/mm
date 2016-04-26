@@ -30,9 +30,9 @@ crc32:
     lw      t7, (t6)
     xor     v0, t1, t7
     // iterate or return
-    subi    a1, a1, 1 // cnt--
+    subi    a1, 1 // cnt--
     bnez    a1, -
-    addi    a0, a0, 1 // ptr++
+    addi    a0, 1 // ptr++
     jr
     nop
 

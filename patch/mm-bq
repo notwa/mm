@@ -1,69 +1,21 @@
 #!/usr/bin/env bash
 set -e
 
-fast=0
-[[ "$1" == "fast" ]] && fast=1 && shift
-[[ "$1" == "test" ]] && fast=2 && shift
-
-args="$@"
-
-inject=../Lua/inject
 sha1=d6133ace5afaa0882cf214cf88daba39e266c078
-extracted=../dump/mm-US10-"$sha1"
-rom=../roms/everything/"Legend of Zelda, The - Majora's Mask (U) [!].z64"
-lips=../Lua/lib/lips
+#extracted=../dump/mm-US10-"$sha1"
+rom=../../roms/everything/"Legend of Zelda, The - Majora's Mask (U) [!].z64"
 out=mm-bq.z64
+
+. common.sh
 
 code="0031 V00B3C000"
 extra="1552 V02EE7040"
 
-ratio() {
-    len1="$(wc -c < "$1")"
-    len2="$(wc -c < "$2")"
-    let percent=(len2*100)/len1
-    echo "ratio: $percent%"
-}
-
-unc() {
-    [ -e patchme/"$1".Yaz0 ] || return 0
-    ../../z64yaz0 patchme/"$1".Yaz0 > patchme/"$1"
-    echo "uncompressed $1"
-    ratio patchme/"$1" patchme/"$1".Yaz0
-    rm patchme/"$1".Yaz0
-}
-
-comp() {
-    [ -e patchme/"$1" ] || return 0
-    ../../z64yaz0 patchme/"$1" > patchme/"$1".Yaz0
-    echo "compressed $1"
-    ratio patchme/"$1" patchme/"$1".Yaz0
-    rm patchme/"$1"
-}
-
-mkdir -p build
-cp *.lua build/
-cd build
-
-[ ! -s ../../z64yaz0 ] && cc -O3 ../../z64yaz0.c -o ../../z64yaz0
-
-if [ $fast -eq 0 ] || [ ! -d patchme ]; then
-    [ -d patchme ] && rm -r patchme
-    (cd ../../; ./z64dump.py -c "$rom")
-    mv ../../"$sha1" patchme
-fi
-
 unc "$code"
-
-# don't copy entire dir; avoid copying dotfiles (.git)
-mkdir -p lips
-cp ../"$lips"/* lips
-
-cp ../"$inject"/*.asm .
-cp ../*.asm .
 
 dd if=/dev/zero of=extra bs=370688 count=1 2>/dev/null
 
-luajit patch.lua -e labels.lua -o 0x80780000 "$@" extra.asm extra
+luajit patch.lua -e labels.lua -b 0x80780000 "$@" extra.asm extra
 luajit patch.lua -i labels.lua "$@" code.asm patchme/"$code"
 
 # ensure the file is the proper size (Lua seems to expand it?)
@@ -73,6 +25,6 @@ rm extra
 if [ $fast -ne 2 ]; then
     comp "$code"
     comp "$extra"
-    (cd ../..; ./z64dump.py patch/build/patchme)
-    dd if=patchme.z64 of="$out" bs=$((1024*1024)) count=32 status=none
+    dump patch/build/patchme
+    copy_rom "$out" 32
 fi

@@ -22,3 +22,5 @@
 ;[link_object_ptr]: 0x244
 
 [scene_record_size]: 0x14
+
+[starting_exit]: 0xD800

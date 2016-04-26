@@ -4,8 +4,8 @@ dpad_control:
     // v0: number after modifications
     la      t1, dpad_values
     srl     t0, a1, 8
-    andi    t0, t0, 0xF
-    add     t0, t0, t1
+    andi    t0, 0xF
+    add     t0, t1
     lb      t0, 0(t0)
     jr
     add     v0, a0, t0

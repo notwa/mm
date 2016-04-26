@@ -4,10 +4,14 @@
 [inject_from]: 0xB3D458 ; 0x800C62B8
 [inject_to]: 0x80700000
 
+.push pc
+.base 0x7F588E60 ; code file in memory
+
 .org @inject_from
     jal     @inject_to
 
-.org @inject_to
+.pop pc
+
     sw      ra, -4(sp)
     sw      a0,  0(sp)
     sw      a1,  4(sp)

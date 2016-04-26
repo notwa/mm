@@ -1,14 +1,3 @@
-/*
-.org 0x18F30
-; add an entry to the end of dmatable to hold our extra code
-; this actually just crashes the game so don't bother
-; (no debug filename associated with it = bad pointer dereference? maybe?)
-    .word @vstart    ; virtual start
-    .word 0x035E0000 ; virtual end (@vstart + @size)
-    .word @vstart    ; physical start (should be same as virtual start)
-    .word 0          ; physical end (should be 0 for uncompressed)
-*/
-
 start:
     push    4, 1, ra
 

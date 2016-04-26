@@ -1,0 +1,313 @@
+#!/usr/bin/env bash
+set -e
+
+sha1=50bebedad9e0f10746a52b07239e47fa6c284d03
+rom=../../roms/everything/"Legend of Zelda, The - Ocarina of Time - Master Quest (E) (Debug) [f1].z64"
+out=oot-dbg-comp.z64
+#sha1=bcc07421ead8a2388075f2051eb89c83164a2bfd
+#rom=patch/oot-dbg-compressed.z64
+#out=oot-dbg-comp.z64
+
+. common.sh
+
+code="0028 V00A94000 code"
+title="0029 V00BCEF30 ovl_title"
+
+#unc "$code"
+#unc "$title"
+
+#luajit patch.lua -o 0 ass.asm "$out"
+
+for f in \
+  "0013 V00802000 icon_item_ger_static" \
+  "0014 V00811000 icon_item_fra_static" \
+  "0022 V008FF000 ger_message_data_static" \
+  "0023 V0093B000 fra_message_data_static" \
+  "1007 V02793000 syotes_scene" \
+  "1008 V02795000 syotes_room_0" \
+  "1009 V027A2000 syotes2_scene" \
+  "1010 V027A5000 syotes2_room_0" \
+  "1011 V027AF000 depth_test_scene" \
+  "1012 V027B0000 depth_test_room_0" \
+  "1305 V02AF6000 testroom_scene" \
+  "1306 V02AFB000 testroom_room_0" \
+  "1307 V02B00000 testroom_room_1" \
+  "1308 V02B03000 testroom_room_2" \
+  "1309 V02B07000 testroom_room_3" \
+  "1310 V02B0B000 testroom_room_4" \
+  "1316 V02B57000 sutaru_scene" \
+  "1317 V02B58000 sutaru_room_0" \
+  "1352 V02D00000 sasatest_scene" \
+  "1353 V02D03000 sasatest_room_0" \
+  "1446 V03280000 hairal_niwa2_scene" \
+  "1447 V03283000 hairal_niwa2_room_0" \
+  "1507 V03544000 besitu_scene" \
+  "1508 V03545000 besitu_room_0" \
+  "1516 V035B3000 test01_scene" \
+  "1517 V035B7000 test01_room_0" \
+; do
+    rm patchme/"$f"
+    touch patchme/"$f"
+    echo "deleted $f"
+done
+
+declare -A raw
+# must be uncompressed
+raw[0000]=1
+raw[0001]=1
+raw[0002]=1
+raw[0007]=1
+raw[0008]=1
+raw[0009]=1
+raw[0010]=1
+raw[0011]=1
+raw[0012]=1
+raw[0013]=1
+raw[0014]=1
+raw[0015]=1
+raw[0016]=1
+raw[0017]=1
+raw[0018]=1
+raw[0019]=1
+raw[0020]=1
+raw[0021]=1
+raw[0022]=1
+raw[0023]=1
+raw[0024]=1
+raw[0025]=1
+raw[0026]=1
+raw[0027]=1
+raw[0501]=1
+raw[0937]=1
+raw[0938]=1
+raw[0939]=1
+raw[0940]=1
+raw[0941]=1
+raw[0942]=1
+raw[0943]=1
+raw[0944]=1
+raw[0945]=1
+raw[0946]=1
+raw[0947]=1
+raw[0948]=1
+raw[0949]=1
+raw[0950]=1
+raw[0951]=1
+raw[0952]=1
+raw[0953]=1
+raw[0954]=1
+raw[0955]=1
+raw[0956]=1
+raw[0957]=1
+raw[0958]=1
+raw[0959]=1
+raw[0960]=1
+raw[0961]=1
+raw[0962]=1
+raw[0963]=1
+raw[0964]=1
+raw[0965]=1
+raw[0966]=1
+raw[0967]=1
+raw[0968]=1
+raw[0969]=1
+raw[0970]=1
+raw[0971]=1
+raw[0972]=1
+raw[0973]=1
+raw[0974]=1
+raw[0975]=1
+raw[0976]=1
+raw[0977]=1
+raw[0978]=1
+raw[0979]=1
+raw[0980]=1
+raw[0981]=1
+raw[0982]=1
+raw[0983]=1
+raw[0984]=1
+raw[0985]=1
+raw[0986]=1
+raw[0987]=1
+raw[0988]=1
+raw[0989]=1
+raw[0990]=1
+raw[0991]=1
+raw[0992]=1
+raw[0993]=1
+raw[0994]=1
+raw[0995]=1
+raw[0996]=1
+raw[0997]=1
+raw[0998]=1
+raw[0999]=1
+raw[1000]=1
+raw[1001]=1
+raw[1002]=1
+raw[1003]=1
+raw[1004]=1
+raw[1518]=1
+raw[1519]=1
+raw[1520]=1
+raw[1521]=1
+raw[1522]=1
+raw[1523]=1
+raw[1524]=1
+raw[1525]=1
+raw[1526]=1
+raw[1527]=1
+raw[1528]=1
+raw[1529]=1
+raw[1530]=1
+raw[1531]=1
+
+# other shit
+raw[0003]=1
+raw[0004]=1
+raw[0006]=1
+raw[1509]=1
+raw[1510]=1
+raw[1511]=1
+raw[1512]=1
+raw[1513]=1
+raw[1514]=1
+raw[1515]=1
+raw[1516]=1
+raw[1517]=1
+
+# might not actually need to be uncompressed
+raw[0010]=0
+raw[0011]=0
+raw[0012]=0
+raw[0013]=0
+raw[0014]=0
+raw[0027]=0
+raw[0501]=0
+raw[0607]=0
+raw[0624]=0
+raw[0648]=0
+raw[0649]=0
+raw[0737]=0
+raw[0841]=0
+raw[0856]=0
+raw[0869]=0
+raw[0937]=0
+raw[0938]=0
+raw[0939]=0
+raw[0940]=0
+raw[0942]=0
+raw[0944]=0
+raw[0946]=0
+raw[0948]=0
+raw[0950]=0
+raw[0952]=0
+raw[0954]=0
+raw[0956]=0
+raw[0958]=0
+raw[0960]=0
+raw[0962]=0
+raw[0964]=0
+raw[0966]=0
+raw[0968]=0
+raw[0970]=0
+raw[0972]=0
+raw[0974]=0
+raw[0976]=0
+raw[0978]=0
+raw[0980]=0
+raw[0982]=0
+raw[0984]=0
+raw[0986]=0
+raw[0988]=0
+raw[0990]=0
+raw[0992]=0
+raw[0994]=0
+raw[0996]=0
+raw[0998]=0
+raw[1000]=0
+raw[1002]=0
+raw[1004]=0
+raw[1005]=0
+raw[1006]=0
+raw[1525]=0
+raw[1526]=0
+raw[1527]=0
+raw[1528]=0
+raw[1529]=0
+raw[1530]=0
+raw[1531]=0
+
+# smaller when uncompressed
+raw[0005]=1
+raw[0501]=1
+raw[0607]=1
+raw[0624]=1
+raw[0648]=1
+raw[0649]=1
+raw[0737]=1
+raw[0841]=1
+raw[0856]=1
+raw[0869]=1
+raw[0942]=1
+raw[0944]=1
+raw[0946]=1
+raw[0948]=1
+raw[0950]=1
+raw[0952]=1
+raw[0954]=1
+raw[0960]=1
+raw[0962]=1
+raw[0964]=1
+raw[0966]=1
+raw[0968]=1
+raw[0972]=1
+raw[0974]=1
+raw[0976]=1
+raw[0980]=1
+raw[0982]=1
+raw[0984]=1
+raw[0986]=1
+raw[0988]=1
+raw[0990]=1
+raw[0992]=1
+raw[0994]=1
+raw[0996]=1
+raw[0998]=1
+raw[1000]=1
+raw[1002]=1
+raw[1004]=1
+raw[1005]=1
+raw[1006]=1
+raw[1519]=1
+raw[1520]=1
+raw[1521]=1
+raw[1522]=1
+raw[1523]=1
+raw[1524]=1
+raw[1525]=1
+raw[1526]=1
+raw[1527]=1
+raw[1528]=1
+raw[1529]=1
+raw[1530]=1
+
+if [ $fast -ne 2 ]; then
+#   comp "$code"
+#   comp "$title"
+    # z64dump.py doesn't have compression support rn
+    # so we'll do this ourselves
+    for f in patchme/*; do
+        ext="${f##*.}" # warning: not robust
+        dirless="${f##*/}" # warning: not robust
+        n="${dirless:0:4}"
+        if [ -n "${raw[$n]}" ] && [ "${raw[$n]}" -eq 1 ]; then
+            echo "skipping $dirless"
+        else
+            quiet=1
+            [ "$ext" == 'Yaz0' ] || comp "$dirless"
+            quiet=0
+        fi
+    done
+    dump patch/build/patchme
+    copy_rom "$out" 32
+fi

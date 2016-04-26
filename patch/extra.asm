@@ -25,7 +25,7 @@ dma_hook:
     jal     setup_hook
     nop
     pop     4, 1, ra
-    addiu   sp, sp, 0xFF58 ; original code
+    addiu   sp, 0xFF58 ; original code
     j       0x8016A2D0 ; return to scene setup function
     sw      s1, 0x30(sp) ; original code
 
@@ -41,11 +41,11 @@ set_scene_flag:
     mflo    t2
     addu    t3, t1, t2
     sll     t4, a1, 2 ; t4 = a1*sizeof(word)
-    addu    t3, t3, t4
+    addu    t3, t4
     lw      v0, (t3) ; load scene flag word
     li      t6, 1
-    sllv    t6, t6, a2
-    or      v0, v0, t6 ; set flag
+    sllv    t6, a2
+    or      v0, t6 ; set flag
     jr
     sw      v0, (t3) ; write it back
 
@@ -59,8 +59,8 @@ get_event_flag:
     addu    t2, t1, a1
     lb      v0, (t2)
     li      t6, 1
-    sllv    t6, t6, a2
-    and     v0, v0, t6
+    sllv    t6, a2
+    and     v0, t6
     beqz    v0, +
     cl      v0
     li      v0, 1
@@ -78,8 +78,8 @@ set_event_flag:
     addu    t2, t1, a1
     lb      v0, (t2)
     li      t6, 1
-    sllv    t6, t6, a2
-    or      v0, v0, t6
+    sllv    t6, a2
+    or      v0, t6
     jr
     sb      v0, (t2)
 
@@ -189,7 +189,7 @@ shuffle_all:
     lhu     t4, 0(t0)
     sh      t4, 2(t1)
     ; iterate
-    addi    s0, s0, 1
+    addi    s0, 1
     bne     s0, s1, -
     nop
 +:
@@ -343,7 +343,7 @@ setup_hook:
     push    4, a0, ra
     lw      a0, @link_save
     jal     shuffle_exit
-    andi    a0, a0, 0xFFFF
+    andi    a0, 0xFFFF
     sw      v0, @link_save
     jpop    4, a0, ra
 

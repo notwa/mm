@@ -1,3 +1,5 @@
+.push pc
+
 [DMARomToRam]: 0x80000BFC
 
 [vstart]: 0x035D0000
@@ -14,6 +16,8 @@
     .word @vstart    ; physical start (should be same as virtual start)
     .word 0          ; physical end (should be 0 for uncompressed)
 */
+
+.base 0x7F588E60 ; code file in memory
 
 .org 0xB3D9E4 ; 0x800C6844
     ; this appears to be the main game loop function
@@ -39,3 +43,5 @@
     nop
     nop
     nop
+
+.pop pc
