@@ -35,6 +35,10 @@ function Collector:push_data(datum, size)
 
     -- TODO: consider not scrunching data statements, just their tokens
 
+    if type(datum) == 'number' then
+        datum = self:token(datum)
+    end
+
     local last_statement = self.statements[#self.statements]
     local s
     if last_statement and last_statement.type == '!DATA' then
@@ -44,14 +48,23 @@ function Collector:push_data(datum, size)
         insert(self.statements, s)
     end
 
-    if type(datum) == 'string' and size == 'WORD' then
-        -- labels will be assembled to words
-        insert(s, Token('LABEL', datum))
-        return
-    end
-
     if size ~= 'BYTE' and size ~= 'HALFWORD' and size ~= 'WORD' then
         error('Internal Error: unknown data size argument')
+    end
+
+    if datum.tt == 'LABELSYM' then
+        if size == 'WORD' then
+            -- labels will be assembled to words
+            insert(s, datum)
+            return
+        else
+            self:error('labels are too large to be used in this directive')
+        end
+    elseif datum.tt == 'VARSYM' then
+        insert(s, datum:set('size', size))
+        return
+    elseif datum.tt ~= 'NUM' then
+        self:error('unsupported data type', datum.tt)
     end
 
     local sizes = size..'S'
@@ -65,7 +78,7 @@ function Collector:push_data(datum, size)
         insert(s, t)
         s:validate()
     end
-    insert(t.tok, datum)
+    insert(t.tok, datum.tok)
 end
 
 function Collector:variable()
@@ -85,6 +98,12 @@ function Collector:directive()
     end
     if name == 'ORG' or name == 'BASE' then
         add(name, self:const(nil, 'no labels'))
+    elseif name == 'PUSH' or name == 'POP' then
+        add(name, self:const())
+        while not self:is_EOL() do
+            self:optional_comma()
+            add(name, self:const())
+        end
     elseif name == 'ALIGN' or name == 'SKIP' then
         if self:is_EOL() and name == 'ALIGN' then
             add(name)
@@ -96,18 +115,31 @@ function Collector:directive()
                 self:optional_comma()
                 add(name, size, self:number())
             end
-            self:expect_EOL()
         end
     elseif name == 'BYTE' or name == 'HALFWORD' or name == 'WORD' then
-        self:push_data(self:const().tok, name)
+        self:push_data(self:const(), name)
         while not self:is_EOL() do
-            self:advance()
             self:optional_comma()
-            self:push_data(self:const().tok, name)
+            self:push_data(self:const(), name)
         end
-        self:expect_EOL()
+    elseif name == 'HEX' then
+        if self.tt ~= 'OPEN' then
+            self:error('expected opening brace for hex directive', self.tt)
+        end
+        self:advance()
+
+        while self.tt ~= 'CLOSE' do
+            if self.tt == 'EOL' then
+                self:advance()
+            else
+                self:push_data(self:const(), 'BYTE')
+            end
+        end
+        self:advance()
     elseif name == 'INC' or name == 'INCBIN' then
         -- noop, handled by lexer
+        self:string()
+        return -- don't expect EOL
     elseif name == 'ASCII' or name == 'ASCIIZ' then
         local bytes = self:string()
         for i, number in ipairs(bytes.tok) do
@@ -116,12 +148,12 @@ function Collector:directive()
         if name == 'ASCIIZ' then
             self:push_data(0, 'BYTE')
         end
-        self:expect_EOL()
     elseif name == 'FLOAT' then
         self:error('unimplemented directive', name)
     else
         self:error('unknown directive', name)
     end
+    self:expect_EOL()
 end
 
 function Collector:basic_special()
@@ -200,8 +232,8 @@ function Collector:collect(tokens, fn)
     self.statements = {}
 
     -- this works, but probably shouldn't be in this function specifically
-    if self.options.offset then
-        local s = Statement('(options)', 0, '!ORG', self.options.offset)
+    if self.options.origin then
+        local s = Statement('(options)', 0, '!ORG', self.options.origin)
         insert(self.statements, s)
     end
     if self.options.base then

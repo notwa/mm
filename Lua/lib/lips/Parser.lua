@@ -41,14 +41,25 @@ function Parser:tokenize(asm)
 end
 
 function Parser:debug_dump()
+    local boring = {
+        tt = true,
+        tok = true,
+        fn = true,
+        line = true,
+    }
     for i, s in ipairs(self.statements) do
         local values = ''
-        for j, v in ipairs(s) do
-            local tok = v.tok
+        for j, t in ipairs(s) do
+            local tok = t.tok
             if type(tok) == 'number' then
                 tok = ("$%X"):format(tok)
             end
-            values = values..'\t'..v.tt..'('..tostring(tok)..')'
+            values = values..'\t'..t.tt..'('..tostring(tok)..')'
+            for k, v in pairs(t) do
+                if not boring[k] then
+                    values = values..'['..k..'='..tostring(v)..']'
+                end
+            end
         end
         values = values:sub(2)
         print(s.line, s.type, values)
@@ -62,14 +73,17 @@ function Parser:parse(asm)
 
     local preproc = Preproc(self.options)
     self.statements = preproc:process(self.statements)
-    self.statements = preproc:expand(self.statements)
 
     if self.options.debug_pre then self:debug_dump() end
+
+    self.statements = preproc:expand(self.statements)
+
+    if self.options.debug_post then self:debug_dump() end
 
     local dumper = Dumper(self.writer, self.options)
     self.statements = dumper:load(self.statements)
 
-    if self.options.debug_dump then self:debug_dump() end
+    if self.options.debug_asm then self:debug_dump() end
 
     if self.options.labels then
         dumper:export_labels(self.options.labels)

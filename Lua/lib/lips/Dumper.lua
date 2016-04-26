@@ -1,6 +1,7 @@
 local floor = math.floor
 local format = string.format
 local insert = table.insert
+local remove = table.remove
 local unpack = unpack or table.unpack
 
 local path = string.gsub(..., "[^.]+$", "")
@@ -11,13 +12,6 @@ local Statement = require(path.."Statement")
 local Reader = require(path.."Reader")
 
 local bitrange = util.bitrange
-
-local function label_delta(from, to)
-    -- TODO: consider removing the % here since .base should handle that now
-    to = to
-    from = from
-    return floor(to/4) - 1 - floor(from/4)
-end
 
 local Dumper = Reader:extend()
 function Dumper:init(writer, options)
@@ -41,17 +35,21 @@ function Dumper:export_labels(t)
     return t
 end
 
+function Dumper:label_delta(from, to)
+    from = from % 0x80000000
+    to = to % 0x80000000
+    local rel = floor(to/4) - 1 - floor(from/4)
+    if rel > 0x8000 or rel <= -0x8000 then
+        self:error('branch too far', rel)
+    end
+    return rel % 0x10000
+end
+
 function Dumper:desym(t)
-    if t.tt == 'REL' then
-        local rel = label_delta(self:pc(), t.tok)
-        if rel > 0x8000 or rel <= -0x8000 then
-            self:error('branch too far')
-        end
-        return rel % 0x10000
+    -- note: don't run t:compute() here; let valvar handle that
+    if t.tt == 'REL' and not t.fixed then
+        return self:label_delta(self:pc(), t.tok)
     elseif type(t.tok) == 'number' then
-        if t.offset then
-            return t.tok + t.offset
-        end
         return t.tok
     elseif t.tt == 'REG' then
         assert(data.all_registers[t.tok], 'Internal Error: unknown register')
@@ -61,18 +59,11 @@ function Dumper:desym(t)
         if label == nil then
             self:error('undefined label', t.tok)
         end
-        if t.offset then
-            label = label + t.offset
-        end
         if t.tt == 'LABELSYM' then
             return label
         end
 
-        local rel = label_delta(self:pc(), label)
-        if rel > 0x8000 or rel <= -0x8000 then
-            self:error('branch too far')
-        end
-        return rel % 0x10000
+        return self:label_delta(self:pc(), label)
     end
     error('Internal Error: failed to desym')
 end
@@ -80,7 +71,7 @@ end
 function Dumper:validate(n, bits)
     local max = 2^bits
     if n == nil then
-        self:error('value is nil') -- internal error?
+        error('Internal Error: number to validate is nil', 2)
     end
     if n > max or n < 0 then
         self:error('value out of range', ("%X"):format(n))
@@ -107,34 +98,6 @@ function Dumper:write(t)
         self.writer(self.pos, b)
         self.pos = self.pos + 1
     end
-end
-
-function Dumper:dump_instruction(t)
-    local uw = 0
-    local lw = 0
-
-    local o = t[1]
-    uw = uw + o*0x400
-
-    if #t == 2 then
-        local val = self:valvar(t[2], 26)
-        uw = uw + bitrange(val, 16, 25)
-        lw = lw + bitrange(val, 0, 15)
-    elseif #t == 4 then
-        uw = uw + self:valvar(t[2], 5)*0x20
-        uw = uw + self:valvar(t[3], 5)
-        lw = lw + self:valvar(t[4], 16)
-    elseif #t == 6 then
-        uw = uw + self:valvar(t[2], 5)*0x20
-        uw = uw + self:valvar(t[3], 5)
-        lw = lw + self:valvar(t[4], 5)*0x800
-        lw = lw + self:valvar(t[5], 5)*0x40
-        lw = lw + self:valvar(t[6], 6)
-    else
-        error('Internal Error: unknown n-size')
-    end
-
-    return uw, lw
 end
 
 function Dumper:assemble_j(first, out)
@@ -172,6 +135,7 @@ function Dumper:format_in(informat)
     -- see data.lua for a guide on what all these mean
     local args = {}
     --if #informat ~= #s then error('mismatch') end
+    self.i = 0
     for i=1, #informat do
         self.i = i
         local c = informat:sub(i, i)
@@ -202,7 +166,7 @@ function Dumper:format_in(informat)
         elseif c == 'I' and not args.index then
             args.index = self:const():set('index')
         elseif c == 'k' and not args.immediate then
-            args.immediate = self:const(nil, 'no label'):set('negate')
+            args.immediate = self:const(nil, 'no label'):set('signed'):set('negate')
         elseif c == 'K' and not args.immediate then
             args.immediate = self:const(nil, 'no label'):set('signed')
         elseif c == 'b' and not args.base then
@@ -254,6 +218,9 @@ function Dumper:assemble(s)
     self.s = s
     if h[2] ~= nil then
         local args = self:format_in(h[2])
+        if self.i ~= #s then
+            self:error('expected EOL; too many arguments')
+        end
         return self:format_out(h, args)
     else
         self:error('unimplemented instruction', name)
@@ -276,6 +243,7 @@ function Dumper:pc()
 end
 
 function Dumper:load(statements)
+    local valstack = {} -- for .push/.pop directives
     local new_statements = {}
     self.pos = 0
     self.base = 0
@@ -296,13 +264,58 @@ function Dumper:load(statements)
             elseif s.type == '!BASE' then
                 self.base = s[1].tok
                 insert(new_statements, s)
+            elseif s.type == '!PUSH' or s.type == '!POP' then
+                local thistype = s.type:sub(2):lower()
+                for i, t in ipairs(s) do
+                    local name = t.tok
+                    if type(name) ~= 'string' then
+                        self:error('expected state to '..thistype, name)
+                    end
+
+                    name = name:lower()
+                    local pushing = s.type == '!PUSH'
+                    if name == 'org' then
+                        if pushing then
+                            insert(valstack, self.pos)
+                        else
+                            self.pos = remove(valstack)
+                        end
+                    elseif name == 'base' then
+                        if pushing then
+                            insert(valstack, self.base)
+                        else
+                            self.base = remove(valstack)
+                        end
+                    elseif name == 'pc' then
+                        if pushing then
+                            insert(valstack, self.pos)
+                            insert(valstack, self.base)
+                        else
+                            self.base = remove(valstack)
+                            self.pos = remove(valstack)
+                        end
+                    else
+                        self:error('unknown state to '..thistype, name)
+                    end
+
+                    if self.pos == nil or self.base == nil then
+                        self:error('ran out of values to pop')
+                    end
+
+                    if not pushing then
+                        local s = Statement(self.fn, self.line, '!ORG', self.pos)
+                        insert(new_statements, s)
+                        local s = Statement(self.fn, self.line, '!BASE', self.base)
+                        insert(new_statements, s)
+                    end
+                end
             elseif s.type == '!ALIGN' or s.type == '!SKIP' then
                 local length, content
                 if s.type == '!ALIGN' then
                     local align = s[1] and s[1].tok or 2
                     content = s[2] and s[2].tok or 0
                     if align < 0 then
-                        self:error('negative alignment')
+                        self:error('negative alignment', align)
                     else
                         align = 2^align
                     end
@@ -352,13 +365,17 @@ function Dumper:load(statements)
             insert(new_statements, new)
         elseif s.type == '!DATA' then
             for i, t in ipairs(s) do
-                if t.tt == 'LABEL' then
+                if t.tt == 'LABELSYM' then
                     local label = self.labels[t.tok]
                     if label == nil then
                         self:error('undefined label', t.tok)
                     end
                     t.tt = 'WORDS'
                     t.tok = {label}
+                elseif t.tt == 'NUM' then
+                    t.tt = t.size..'S'
+                    t.tok = {t.tok}
+                    t.size = nil
                 end
             end
             self.pos = self.pos + (s.length or util.measure_data(s))

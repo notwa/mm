@@ -39,12 +39,27 @@ else -- 5.2, 5.3
     end
 end
 
+local data_sizes = {
+    BYTE = 1,
+    HALFWORD = 2,
+    WORD = 4,
+}
+
 local function measure_data(s)
     assert(s and s.type == '!DATA', 'Internal Error: expected !DATA statement')
     local n = 0
     for i, t in ipairs(s) do
-        if t.tt == 'LABEL' then
+        if t.tt == 'LABELSYM' then
             n = n + 4
+        elseif t.tt == 'NUM' then
+            if t.size == nil then
+                error('Internal Error: unspecified data size in NUM')
+            end
+            local size = data_sizes[t.size]
+            if size == nil then
+                error('Internal Error: unknown data size in NUM, got '..tostring(t.size))
+            end
+            n = n + size
         elseif t.tt == 'WORDS' then
             n = n + #t.tok * 4
         elseif t.tt == 'HALFWORDS' then
@@ -52,7 +67,7 @@ local function measure_data(s)
         elseif t.tt == 'BYTES' then
             n = n + #t.tok * 1
         else
-            error('Internal Error: unknown data type in !DATA')
+            error('Internal Error: unknown data type in !DATA, got '..tostring(t.tt))
         end
     end
     return n

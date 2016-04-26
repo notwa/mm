@@ -53,6 +53,7 @@ function lips.assemble(fn_or_asm, writer, options)
             options.origin = options.offset
             options.base = 0
         else
+            options.origin = options.origin or 0
             options.base = options.base or 0x80000000
         end
 

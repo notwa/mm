@@ -68,11 +68,15 @@ function Token:set(key, value)
     return self
 end
 
-function Token:compute()
-    assert(self.tt == 'NUM', 'Internal Error: cannot compute a non-number token')
-    local n = self.tok
+function Token:compute(n)
+    local n = n or self.tok
+    assert(n or self.tt == 'NUM', 'Internal Error: cannot compute a non-number token')
+
+    if self.offset then
+        n = n + self.offset
+    end
+
     if self.index then
-        -- TODO: should this still be here now that we have .base?
         n = n % 0x80000000
         n = floor(n/4)
     end
@@ -94,7 +98,7 @@ function Token:compute()
         n = upper
     end
 
-    if self.negate or self.signed then
+    if self.signed then
         if n >= 0x10000 or n < -0x8000 then
             return n, 'value out of range'
         end

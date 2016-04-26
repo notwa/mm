@@ -27,7 +27,8 @@ end
 function Reader:expect(tts)
     local t = self.s[self.i]
     if t == nil then
-        self:error("expected another argument") -- TODO: more verbose
+        local err = ("expected another argument for %s at position %i"):format(self.s.type, self.i)
+        self:error(err)
     end
 
     self.fn = t.fn
@@ -39,8 +40,12 @@ function Reader:expect(tts)
         end
     end
 
-    --local err = ("argument %i of %s expected type %s"):format(self.i, self.s.type, tt)
-    local err = ("unexpected type for argument %i of %s"):format(self.i, self.s.type)
+    local err
+    if #tts == 1 then
+        err = ("argument %i of %s expected type %s"):format(self.i, self.s.type, tts[1])
+    else
+        err = ("unexpected type for argument %i of %s"):format(self.i, self.s.type)
+    end
     self:error(err, t.tt)
 end
 
@@ -49,7 +54,7 @@ function Reader:register(registers)
     local t = self.s[self.i]
     local numeric = registers[t.tok]
     if not numeric then
-        self:error('wrong type of register')
+        self:error('wrong type of register', t.tok)
     end
     local new = Token(t)
     return new
@@ -63,7 +68,7 @@ function Reader:const(relative, no_label)
         self:expect{'NUM', 'LABELREL'}
     end
     local new = Token(t)
-    if relative then
+    if relative then -- you probably shouldn't use this in Preproc
         if t.tt == 'LABELSYM' then
             new.tt = 'LABELREL'
         elseif t.tt == 'NUM' then
