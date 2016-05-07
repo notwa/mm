@@ -2,3 +2,4 @@
 *.py text eol=lf
 *.pyx text eol=lf
 *.pyxbld text eol=lf
+*.txt text eol=lf
