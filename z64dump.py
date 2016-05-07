@@ -145,8 +145,17 @@ def dump_rom(fn, uncompress=True):
             f.seek(0xBE80)
             names = f.read(0x6490).split(b'\x00')
             names = [str(n, 'utf-8') for n in names if n != b'']
-        if romhash in ('ad69c91157f6705e8ab06c79fe08aad47bb57ba7',
-                       'c892bbda3993e66bd0d56a10ecd30b1ee612210f'):
+        if romhash in (
+                       # NTSC 1.0 (U) and (J)
+                       'ad69c91157f6705e8ab06c79fe08aad47bb57ba7',
+                       'c892bbda3993e66bd0d56a10ecd30b1ee612210f',
+                       # NTSC 1.1 (U) and (J)
+                       'd3ecb253776cd847a5aa63d859d8c89a2f37b364',
+                       'dbfc81f655187dc6fefd93fa6798face770d579d',
+                       # NTSC 1.2 (U) and (J)
+                       '41b3bdc48d98c48529219919015a1af22f5057c2',
+                       'fa5f5942b27480d60243c2d52c0e93e26b9e6b86',
+                      ):
             # filenames inferred from debug rom
             with open('fn O US10.txt') as f2:
                 names = f2.readlines()
