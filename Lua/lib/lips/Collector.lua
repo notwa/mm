@@ -108,12 +108,12 @@ function Collector:directive()
         if self:is_EOL() and name == 'ALIGN' then
             add(name)
         else
-            local size = self:number()
+            local size = self:const(nil, 'no label')
             if self:is_EOL() then
                 add(name, size)
             else
                 self:optional_comma()
-                add(name, size, self:number())
+                add(name, size, self:const(nil, 'no label'))
             end
         end
     elseif name == 'BYTE' or name == 'HALFWORD' or name == 'WORD' then

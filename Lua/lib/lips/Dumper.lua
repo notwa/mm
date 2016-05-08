@@ -139,40 +139,23 @@ function Dumper:format_in(informat)
     for i=1, #informat do
         self.i = i
         local c = informat:sub(i, i)
-        if c == 'd' and not args.rd then
-            args.rd = self:register(data.registers)
-        elseif c == 's' and not args.rs then
-            args.rs = self:register(data.registers)
-        elseif c == 't' and not args.rt then
-            args.rt = self:register(data.registers)
-        elseif c == 'D' and not args.fd then
-            args.fd = self:register(data.fpu_registers)
-        elseif c == 'S' and not args.fs then
-            args.fs = self:register(data.fpu_registers)
-        elseif c == 'T' and not args.ft then
-            args.ft = self:register(data.fpu_registers)
-        elseif c == 'X' and not args.rd then
-            args.rd = self:register(data.sys_registers)
-        elseif c == 'Y' and not args.rs then
-            args.rs = self:register(data.sys_registers)
-        elseif c == 'Z' and not args.rt then
-            args.rt = self:register(data.sys_registers)
-        elseif c == 'o' and not args.offset then
-            args.offset = self:const():set('signed')
-        elseif c == 'r' and not args.offset then
-            args.offset = self:const('relative'):set('signed')
-        elseif c == 'i' and not args.immediate then
-            args.immediate = self:const(nil, 'no label')
-        elseif c == 'I' and not args.index then
-            args.index = self:const():set('index')
-        elseif c == 'k' and not args.immediate then
-            args.immediate = self:const(nil, 'no label'):set('signed'):set('negate')
-        elseif c == 'K' and not args.immediate then
-            args.immediate = self:const(nil, 'no label'):set('signed')
-        elseif c == 'b' and not args.base then
-            args.base = self:deref():set('tt', 'REG')
-        else
-            error('Internal Error: invalid input formatting string')
+        if     c == 'd' then args.rd = self:register(data.registers)
+        elseif c == 's' then args.rs = self:register(data.registers)
+        elseif c == 't' then args.rt = self:register(data.registers)
+        elseif c == 'D' then args.fd = self:register(data.fpu_registers)
+        elseif c == 'S' then args.fs = self:register(data.fpu_registers)
+        elseif c == 'T' then args.ft = self:register(data.fpu_registers)
+        elseif c == 'X' then args.rd = self:register(data.sys_registers)
+        elseif c == 'Y' then args.rs = self:register(data.sys_registers)
+        elseif c == 'Z' then args.rt = self:register(data.sys_registers)
+        elseif c == 'o' then args.offset = self:const():set('signed')
+        elseif c == 'r' then args.offset = self:const('relative'):set('signed')
+        elseif c == 'i' then args.immediate = self:const(nil, 'no label')
+        elseif c == 'I' then args.index = self:const():set('index')
+        elseif c == 'k' then args.immediate = self:const(nil, 'no label'):set('signed'):set('negate')
+        elseif c == 'K' then args.immediate = self:const(nil, 'no label'):set('signed')
+        elseif c == 'b' then args.base = self:deref():set('tt', 'REG')
+        else error('Internal Error: invalid input formatting string')
         end
     end
     return args
@@ -188,7 +171,7 @@ function Dumper:format_out_raw(outformat, first, args, const, formatconst)
     local out = {}
     for i=1, #outformat do
         local c = outformat:sub(i, i)
-        if c == 'd' then out[#out+1] = args.rd
+        if     c == 'd' then insert(out, args.rd)
         elseif c == 's' then insert(out, args.rs)
         elseif c == 't' then insert(out, args.rt)
         elseif c == 'D' then insert(out, args.fd)

@@ -76,6 +76,7 @@ copy_rom() {
 cp *.lua build/
 cp "$inject"/*.asm build/
 cp *.asm build/
+cp *.bin build/
 cd build
 
 # don't copy entire dir; avoid copying dotfiles (.git)

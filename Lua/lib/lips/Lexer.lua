@@ -300,7 +300,10 @@ function Lexer:lex_include(_yield)
     if self.options.path then
         fn = self.options.path..fn
     end
-    local sublexer = Lexer(util.readfile(fn), fn, self.options)
+
+    local new_options = setmetatable({}, {__index=self.options})
+    new_options.path = fn:match(".*/")
+    local sublexer = Lexer(util.readfile(fn), fn, new_options)
     sublexer:lex(_yield)
 end
 

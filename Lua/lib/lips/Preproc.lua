@@ -146,6 +146,9 @@ function Preproc:process(statements)
                 end
                 insert(new_statements, s)
             else
+                for j, t in ipairs(s) do
+                    self:lookup(t)
+                end
                 insert(new_statements, s)
             end
         else
@@ -191,7 +194,7 @@ end
 function Preproc:pop(kind)
     local ret
     if kind == nil then
-        -- noop
+        ret = self.s[self.i]
     elseif kind == 'CPU' then
         ret = self:register(data.registers)
     elseif kind == 'DEREF' then

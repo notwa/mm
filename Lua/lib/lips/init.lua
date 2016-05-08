@@ -14,26 +14,7 @@ local path = string.gsub(..., "%.init$", "").."."
 local util = require(path.."util")
 local Parser = require(path.."Parser")
 
-function lips.word_writer()
-    local buff = {}
-    local max = -1
-    return function(pos, b)
-        if pos then
-            buff[pos] = ("%02X"):format(b)
-            if pos > max then
-                max = pos
-            end
-        elseif max >= 0 then
-            for i=0, max, 4 do
-                local a = buff[i+0] or '00'
-                local b = buff[i+1] or '00'
-                local c = buff[i+2] or '00'
-                local d = buff[i+3] or '00'
-                print(a..b..c..d)
-            end
-        end
-    end
-end
+lips.writers = require(path.."writers")
 
 function lips.assemble(fn_or_asm, writer, options)
     -- assemble MIPS R4300i assembly code.
@@ -41,7 +22,7 @@ function lips.assemble(fn_or_asm, writer, options)
     -- returns error message on error, or nil on success.
     fn_or_asm = tostring(fn_or_asm)
     local default_writer = not writer
-    writer = writer or lips.word_writer()
+    writer = writer or lips.writers.make_word()
     options = options or {}
 
     local function main()

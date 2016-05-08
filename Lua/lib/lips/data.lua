@@ -2,10 +2,10 @@ local data = {}
 
 data.registers = {
     [0]=
-    'R0', 'AT', 'V0', 'V1', 'A0', 'A1', 'A2', 'A3',
-    'T0', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7',
-    'S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7',
-    'T8', 'T9', 'K0', 'K1', 'GP', 'SP', 'FP', 'RA',
+    'ZERO', 'AT', 'V0', 'V1', 'A0', 'A1', 'A2', 'A3',
+    'T0',   'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7',
+    'S0',   'S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7',
+    'T8',   'T9', 'K0', 'K1', 'GP', 'SP', 'FP', 'RA',
 }
 
 data.sys_registers = {
@@ -70,13 +70,11 @@ revtable(data.all_registers)
 revtable(data.all_directives)
 
 -- alternate register names
-data.registers['ZERO'] = 0
-data.all_registers['ZERO'] = 0
 data.registers['S8'] = 30
 data.all_registers['S8'] = 30
 
 for i=0, 31 do
-    local r = 'REG'..tostring(i)
+    local r = 'R'..tostring(i)
     data.registers[r] = i
     data.all_registers[r] = i
 end
@@ -388,6 +386,10 @@ data.instructions = {
     BNEZL   = {21, 'sr', 's0o'},        -- BNEL RS, R0, offset
     CL      = { 0, 'd', '00d0C', 37},   -- OR RD, R0, R0
     MOV     = { 0, 'ds', 's0d0C', 37},  -- OR RD, RS, R0
+    DMOV    = { 0, 'ds', 's0d0C', 45},  -- DADDU RD, RS, R0
+-- bass does it this way
+--  MOV     = { 0, 'dt', '0td0C', 33},  -- ADDU RD, R0, RT
+--  DMOV    = { 0, 'dt', '0td0C', 45},  -- DADDU RD, R0, RT
     NEG     = { 0, 'dt', '0td0C', 34},  -- SUB RD, R0, RT
     NEGU    = { 0, 'dt', '0td0C', 35},  -- SUBU RD, R0, RT
     NOP     = { 0, '', '0'},            -- SLL R0, R0, 0
@@ -397,6 +399,11 @@ data.instructions = {
     SUBI    = { 8, 'tsk', 'sti'},       -- ADDI RT, RS, -immediate
     SUBIU   = { 9, 'tsk', 'sti'},       -- ADDIU RT, RS, -immediate
 
+    L_D     = {53, 'Tob', 'bTo'}, -- LDC1
+    L_S     = {49, 'Tob', 'bTo'}, -- LWC1
+    S_D     = {61, 'Tob', 'bTo'}, -- SDC1
+    S_S     = {57, 'Tob', 'bTo'}, -- SWC1
+
     -- ...that expand to multiple instructions
     LI      = __, -- only one instruction for values < 0x10000
     LA      = __,
@@ -404,7 +411,9 @@ data.instructions = {
     -- variable arguments
     PUSH    = __,
     POP     = __,
-    JPOP    = __,
+    JPOP    = __, -- deprecated alias of RET
+    CALL    = __,
+    RET     = __,
 --  CL      = __, overridden to take varargs
 
     ABS     = o1, -- SRA XOR SUBU
@@ -434,12 +443,13 @@ data.instructions = {
     BLT     = o1, BLTU    = o1,
     BGT     = o1, BGTU    = o1,
 
-    BEQI    = __, BEQIL   = __,
-    BGEI    = __, BGEIL   = __,
-    BGTI    = __, BGTIL   = __,
-    BLEI    = __, BLEIL   = __,
-    BLTI    = __, BLTIL   = __,
-    BNEI    = __, BNEIL   = __,
+    -- note: signedness of BEQI/BNEI determines how the immediate is loaded
+    BEQI    = __, BEQIU   = __, BEQIL   = __, BEQIUL  = __,
+    BGEI    = __, BGEIU   = __, BGEIL   = __, BGEIUL  = __,
+    BGTI    = __, BGTIU   = __, BGTIL   = __, BGTIUL  = __,
+    BLEI    = __, BLEIU   = __, BLEIL   = __, BLEIUL  = __,
+    BLTI    = __, BLTIU   = __, BLTIL   = __, BLTIUL  = __,
+    BNEI    = __, BNEIU   = __, BNEIL   = __, BNEIUL  = __,
 
     BGEL    = o1, BGEUL   = o1,
     BGTL    = o1, BGTUL   = o1,

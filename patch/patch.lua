@@ -1,8 +1,6 @@
 #!/usr/bin/env luajit
-package.path = package.path..";./?/init.lua"
-
 --require "test.strict"
-local assemble = require "lips"
+local assemble = require "lips.init"
 local cereal = require "serialize"
 local argparse = require "argparse"
 
@@ -34,6 +32,8 @@ local function make_verbose_writer()
                 max = pos
             end
         elseif max >= 0 then
+            -- TODO: optimize. iterating 536,870,912 times to reach 0x800000000
+            -- isn't the fastest thing, as you can imagine.
             for i=0, max, 4 do
                 local a = buff[i+0] or nil
                 local b = buff[i+1] or nil
@@ -60,7 +60,7 @@ local function inject(args)
     if args.output then
         f = io.open(args.output, 'r+b')
         if not f then
-            lament("file not found:", args.output)
+            lament("file not found: ", args.output)
             return
         end
     end
