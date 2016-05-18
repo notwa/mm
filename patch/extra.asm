@@ -22,8 +22,7 @@ rng_seed:
 
 dma_hook:
     push    4, 1, ra
-    jal     setup_hook
-    nop
+    call    setup_hook
     pop     4, 1, ra
     addiu   sp, 0xFF58 ; original code
     j       0x8016A2D0 ; return to scene setup function
@@ -113,37 +112,34 @@ load_hook:
     ; first time setup
     sb      t0, @has_completed_intro(s0)
     sb      t0, @have_tatl(s0)
-    li      a0, 0x001A ; deku intro area
-    li      a1, 2
-    jal     set_scene_flag
-    li      a2, 2 ; "Hey, you! C'mon! Press Z and talk to me!"
-    li      a0, 0x0063 ; inside clock tower
-    li      a1, 1 ; second word
-    jal     set_scene_flag
-    li      a2, 0 ; first bit ("You've met with a terrible fate")
-    li      a0, @week_event_reg
-    li      a1, 31
-    jal     set_event_flag
-    li      a2, 2 ; Tatl reminding you about the four directions
-    li      a0, @week_event_reg
-    li      a1, 93
-    jal     set_event_flag
-    li      a2, 3 ; woken turtle once (shortens cutscene)
-    li      a0, @week_event_reg
-    li      a1, 53
-    jal     set_event_flag
-    li      a2, 6 ; taken turtle once (skips pirates getting wrekt)
+
+    ; deku intro area
+    ; "Hey, you! C'mon! Press Z and talk to me!"
+    call    set_scene_flag, 0x001A, 2, 2
+
+    ; inside clock tower
+    ; second word
+    ; first bit ("You've met with a terrible fate")
+    call    set_scene_flag, 0x0063, 1, 0
+
+    ; Tatl reminding you about the four directions
+    call    set_event_flag, @week_event_reg, 31, 2
+
+    ; woken turtle once (shortens cutscene)
+    call    set_event_flag, @week_event_reg, 93, 3
+
+    ; taken turtle once (skips pirates getting wrekt)
+    call    set_event_flag, @week_event_reg, 53, 6
+
 +:
     addi    a0, s0, @player_name
-    li      a2, 0xFFFFFFFF
-    jal     crc32
-    li      a1, 8
+    call    crc32, a0, 8, 0xFFFFFFFF
+
     not     v0, v0
     sw      v0, hash
     sw      v0, rng_seed
-    jal     shuffle_all
-    nop
-    jpop    4, s0, s1, ra, 1
+    call    shuffle_all
+    ret     4, s0, s1, ra, 1
 
 prng:
     ; just a reimplementation of the PRNG the game uses.
@@ -166,7 +162,7 @@ randint:
     addi    s0, a0, 1
     divu    v0, s0
     mfhi    v0
-    jpop    4, s0, ra
+    ret     4, s0, ra
 
 shuffle_all:
     push    4, s0, s1, s2, ra
@@ -175,8 +171,7 @@ shuffle_all:
     li      s1, @entries
     la      s2, shuffles
 -:
-    jal     randint
-    mov     a0, s0
+    call    randint, s0
     ; s0 is i, v0 is j
     sll     t0, s0, 2 ; 1<<2 == 2*sizeof(half)
     sll     t1, v0, 2 ; likewise
@@ -193,7 +188,7 @@ shuffle_all:
     bne     s0, s1, -
     nop
 +:
-    jpop    4, s0, s1, s2, ra
+    ret     4, s0, s1, s2, ra
 
 shuffle_get:
     ; a0: exit value
@@ -216,7 +211,7 @@ shuffle_get:
 +:
     lhu     v0, 2(t4)
 +return:
-    jpop    4, ra, 1
+    ret     4, ra, 1
 
 unset_alt_scene:
     andi    t9, a0, 0x01FF
@@ -250,10 +245,7 @@ set_alt_scene:
     push    4, s0, ra
     mov     s0, a0
     ; use clean swamp when odolwa is beaten
-    li      a0, @week_event_reg
-    li      a1, 20
-    jal     get_event_flag
-    li      a2, 1
+    call    get_event_flag, @week_event_reg, 20, 1
     beqz    v0, +
     nop
     andi    t9, s0, 0x01FF
@@ -265,10 +257,7 @@ set_alt_scene:
     addu    s0, t9, at
 +:
     ; use unfrozen mountain when goht is beaten
-    li      a0, @week_event_reg
-    li      a1, 33
-    jal     get_event_flag
-    li      a2, 7
+    call    get_event_flag, @week_event_reg, 33, 7
     beqz    v0, +return
     nop
     andi    t9, s0, 0x01FF
@@ -290,7 +279,7 @@ set_alt_scene:
 +:
 +return:
     mov     v0, s0
-    jpop    4, s0, ra
+    ret     4, s0, ra
 
 shuffle_exit:
     push    4, s0, ra
@@ -318,26 +307,19 @@ shuffle_exit:
     lh      t2, @exit_mod_setter(t0)
     bnei    t2, 0xFFEF, +
     nop
-    ; implicitly passes a0
-    jal     unset_alt_scene
-    nop
-    jal     shuffle_get
-    mov     a0, v0
-    jal     set_alt_scene
-    mov     a0, v0
+    call    unset_alt_scene, a0
+    call    shuffle_get, v0
+    call    set_alt_scene, v0
     mov     s0, v0
     sh      v0, new_exit
     ; set woodfall temple as raised after beating odolwa
     ; otherwise the swamp won't be cleansed
     li      at, 0x8601
     bne     s0, at, +
-    li      a1, 20
-    li      a0, @week_event_reg
-    jal     set_event_flag
-    li      a2, 0
+    call    set_event_flag, @week_event_reg, 20, 0
 +:
     mov     v0, s0
-    jpop    4, s0, ra
+    ret     4, s0, ra
 
 setup_hook:
     push    4, a0, ra
@@ -345,6 +327,6 @@ setup_hook:
     jal     shuffle_exit
     andi    a0, 0xFFFF
     sw      v0, @link_save
-    jpop    4, a0, ra
+    ret     4, a0, ra
 
 .word 0xDEADBEEF

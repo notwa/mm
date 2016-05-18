@@ -22,10 +22,7 @@
     li      s0, 0x801BD910 ; original code
     ; pushes removed here
     ; 6 instructions to work with
-    li      a1, @vstart         ; 2
-    li      a2, @size           ; 2
-    jal     @DMARomToRam        ; 1
-    li      a0, @start          ; 1 (just ensure @start can be a LUI!)
+    call    @DMARomToRam, @start, @vstart, @size
 
 .org @dma_overwrite
     j       dma_hook            ; 1

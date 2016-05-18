@@ -32,14 +32,12 @@ spawn:
 +: // handle dpad
     bnez    s4, +
     mov     a1, s2
-    jal     dpad_control
-    mov     a0, s0
+    call    dpad_control, s0, a1
     mov     s0, v0
     b       ++
     nop
 +:
-    jal     dpad_control
-    mov     a0, s3
+    call    dpad_control, s3, a1
     andi    s3, v0, 0xFFFF
 +: // set min/max on actor number
     subi    t4, s0, @min_actor_no
@@ -61,25 +59,15 @@ spawn:
     nop
 return:
 // render actor number
-    li      a0, 0x0001001C // xy
-    li      a1, 0x88CCFFFF // rgba
-    la      a2, fmt
-    mov     a3, s0
-    jal     simple_text
-    nop
+    call    simple_text, 0x0001001C, 0x88CCFFFF, fmt, s0
 // render actor variable
-    li      a0, 0x0006001C // xy
-    li      a1, 0xFFCC88FF // rgba
-    la      a2, fmt
-    mov     a3, s3
-    jal     simple_text
-    nop
+    call    simple_text, 0x0006001C, 0xFFCC88FF, fmt, s3
 // done
     sh      s0, anum
     sw      s1, hold_delay
     sh      s3, avar
     sw      s4, selected
-    jpop    4, s0, s1, s2, s3, s4, ra,
+    ret     4, s0, s1, s2, s3, s4, ra,
 
 anum:
     .word 0
@@ -108,8 +96,7 @@ object_spawn_wrap:
     nop
     beqi    a0, 2, +
     nop
-    jal     @object_spawn
-    nop
+    call    @object_spawn, a0, a1
 +:
     jr
     nop
@@ -135,8 +122,7 @@ object_spawn_wrap:
     addi    t0, t0, 68
     bnez    t1, -
     nop
-    jal     @object_spawn
-    nop
+    call    @object_spawn, a0, a1
     //subiu   v0, r0, -1 // original code
 +:
-    jpop    4, ra, 1
+    ret     4, ra, 1

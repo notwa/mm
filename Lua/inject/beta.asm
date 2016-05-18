@@ -206,7 +206,7 @@ load_hook:
     sw      v0, rng_seed
     jal     shuffle_all
     nop
-    jpop    4, s0, s1, ra, 1
+    ret     4, s0, s1, ra, 1
 
 prng:
     // just a reimplementation of the PRNG the game uses.
@@ -232,7 +232,7 @@ randint:
     addi    s0, a0, 1
     divu    v0, s0
     mfhi    v0
-    jpop    4, s0, ra
+    ret     4, s0, ra
 
 shuffle_all:
     push    4, s0, s1, s2, ra
@@ -259,7 +259,7 @@ shuffle_all:
     bne     s0, s1, -
     nop
 +:
-    jpop    4, s0, s1, s2, ra
+    ret     4, s0, s1, s2, ra
 
 shuffle_get:
     // a0: exit value
@@ -282,7 +282,7 @@ shuffle_get:
 +:
     lhu     v0, 2(t4)
 shuffle_get_return:
-    jpop    4, ra, 1
+    ret     4, ra, 1
 
 unset_alt_scene:
     andi    t9, a0, 0x01FF
@@ -356,7 +356,7 @@ set_alt_scene:
 +:
 set_alt_scene_return:
     mov     v0, s0
-    jpop    4, s0, ra
+    ret     4, s0, ra
 
 shuffle_exit:
     push    4, s0, ra
@@ -403,7 +403,7 @@ shuffle_exit:
     li      a2, 0
 +:
     mov     v0, s0
-    jpop    4, s0, ra
+    ret     4, s0, ra
 
 setup_hook:
     push    4, a0, ra

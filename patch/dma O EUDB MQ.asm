@@ -30,11 +30,8 @@
     li      s0, 0x8011F830 ; original code
     ; pushes removed here
     ; 9 instructions to work with?
-    ; dma args are backwards compared to MM?
-    li      a1, @start
-    li      a2, @size
-    jal     @DMARomToRam
-    li      a0, @vstart
+    ; a0 and a1 are backwards compared to MM?
+    call    @DMARomToRam, @vstart, @start, @size
     lui     a0 0x8014 ; original code
     cl      a1
     cl      a2

@@ -70,7 +70,7 @@ continue:
     bne     s4, t0, typeloop
     addi    s3, s3, @actorlist_dead_space
 
-    jpop    4, s1, s3, s4, ra
+    ret     4, s1, s3, s4, ra
 
 process_actor: // args: a0. returns nothing.
     // TODO: ignore bomb explosions, they share the same type
@@ -127,7 +127,7 @@ process_actor: // args: a0. returns nothing.
     sw      t5, current_rotation
 
 +:
-    jpop    4, s0, s1, ra
+    ret     4, s0, s1, ra
 
 rotations:
     .word 0x00000000 // pi*0/6

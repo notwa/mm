@@ -7,7 +7,7 @@ start:
     jal     adjust_dlist
     lw      a0, 4(t0) ; HUD display list start
 
-    jpop    4, 1, ra
+    ret     4, 1, ra
 
 adjust_dlist:
     ; args: pointer to start of dlist
@@ -50,8 +50,7 @@ recurse:
     bne     t3, t9, next
     nop
     sw      a0, debug
-    jal     adjust_dlist
-    nop
+    call    adjust_dlist, a0
     b       next
     nop
 
@@ -72,16 +71,13 @@ texscale:
     andi    s4, t3, 0xFFFF ; get x scale
 
 ; scale coordinates
-    jal     scale_xy
-    mov     a0, s0
+    call    scale_xy, s0
     mov     s0, v0
-    jal     scale_xy
-    mov     a0, s2
+    call    scale_xy, s2
     mov     s2, v0
 
 ; scale pixel steps
-    jal     scale_step
-    mov     a0, s4
+    call    scale_step, s4
     mov     s4, v0
 
 ; reconstruct commands
@@ -152,7 +148,7 @@ setscissor:
 ;80167FB0
 
 +return:
-    jpop    4, s0, s1, s2, s3, s4, s5, s6, s7, s8, ra
+    ret     4, s0, s1, s2, s3, s4, s5, s6, s7, s8, ra
 
 .align 4
     .word 0xDEADBEEF

@@ -31,7 +31,7 @@
     sw      t0, buffer_pos
 // and set the string to null
     sb      r0, 0(t0)
-    jpop    4, 1, ra
+    ret     4, 1, ra
 
 fmt:
     .asciiz "%s"

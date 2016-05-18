@@ -41,7 +41,7 @@
     jal     0x800BB2D0 // original code
     nop
 +:
-    jpop    5, ra
+    ret     5, ra
 
 .org 0x800B9430 // part of scene actor loading routine
     jal     @whatever

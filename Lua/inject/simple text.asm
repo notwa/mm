@@ -28,33 +28,24 @@ simple_text:
     lw      s1, 0(t0)
     lw      t2, @dlist_offset(s1)
 
-    mov     a0, s0
-    mov     a1, t2
-    jal     @DoTxtStruct
-    nop
+    call    @DoTxtStruct, s0, t2
 
     lbu     a1, 36(sp)
     lbu     a2, 37(sp)
     lbu     a3, 38(sp)
     lbu     t1, 39(sp)
-    sw      t1, 0x10(sp)
-    jal     @SetTextRGBA
-    mov     a0, s0
+    call    @SetTextRGBA, s0, a1, a2, a3, t1
 
     lh      a1, 32(sp)
     lh      a2, 34(sp)
-    jal     @SetTextXY
-    mov     a0, s0
+    call    @SetTextXY, s0, a1, a2
 
     lw      a1, 40(sp)
     lw      a2, 44(sp)
-    jal     @SetTextString
-    mov     a0, s0
+    call    @SetTextString, s0, a1, a2
 
-    mov     a0, s0
-    jal     @UpdateTxtStruct
-    nop
+    call    @UpdateTxtStruct, s0
 
     sw      v0, @dlist_offset(s1)
 
-    jpop    4, 1, s0, s1, ra
+    ret     4, 1, s0, s1, ra

@@ -31,4 +31,4 @@ simple_spawn:
     sw      t9, 0x30(sp) // unknown
     jal     @actor_spawn
     nop
-    jpop    4, 9, ra
+    ret     4, 9, ra
