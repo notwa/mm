@@ -51,6 +51,23 @@ for f in \
     echo "deleted $f"
 done
 
+# get rid of some skyboxes for now
+for f in \
+    "0961 V01B7A000 vr_MDVR_static" \
+    "0963 V01BBB000 vr_MNVR_static" \
+    "0965 V01BFC000 vr_RUVR_static" \
+    "0967 V01C3D000 vr_LHVR_static" \
+    "0969 V01C7E000 vr_KHVR_static" \
+    "0979 V01D73000 vr_MLVR_static" \
+    "0981 V01DB4000 vr_KKRVR_static" \
+    "0985 V01E26000 vr_IPVR_static" \
+    "0999 V01F2D000 vr_LBVR_static" \
+; do
+    rm patchme/"$f"
+    touch patchme/"$f"
+    echo "deleted $f"
+done
+
 declare -A raw
 # must be uncompressed
 raw[0000]=1
