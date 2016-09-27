@@ -17,7 +17,7 @@ spawn:
 // set selected
 //  andi    t2, s2, @button_R
     srl     s4, s2, 4
-    andi    s4, s4, 1
+    andi    s4, 1
 // handle hold delay
     andi    t4, s2, @button_any
     bnez    t4, +
@@ -69,6 +69,9 @@ return:
     sw      s4, selected
     ret     4, s0, s1, s2, s3, s4, ra,
 
+.word 0xDEADBEEF
+.word textdata
+
 anum:
     .word 0
 avar:
@@ -80,6 +83,76 @@ fmt:
     .asciiz "%04X"
 .align
 
+/* old version that didn't account for negative arguments
+object_index_hook:
+    push    4, 1, ra
+    mov     t0, a0
+    lbu     t1, 8(a0) // remaining items
+    cl      v0
+    sll     a1, 0x10
+    sra     a1, 0x10
+    abs     a1
+-:
+    lhu     t2, 12(t0) // item's object number
+    abs     t2
+    beq     a1, t2, +
+    subi    t1, 1
+    addiu   v0, 1
+    bnez    t1, -
+    addi    t0, 68
+    call    @object_spawn, a0, a1
+;   subiu   v0, r0, -1 // original code
++:
+    ret     4, 1, ra
+*/
+
+; based on game code
+object_index_hook:
+    // a0: object table
+    // a1: object number
+    sll     t1, a1, 0x10
+    sra     t1, 0x10
+    lbu     t3, 8(a0)
+    cl      v0
+    mov     t2, a0
+    blez    t3, +give_up ; interesting: give up if object number read is <= 0
+-:
+    lh      t0, 12(t2)
+    abs     t0
+    bne     t0, t1, +
+    nop
+    jr      ra
+    nop
++:
+    addiu   v0, 1
+    blt     v0, t3, - ; if we still have some left... v0 is number of objects
+    addiu   t2, 68
++give_up:
+;   ; dump failed object number to ram
+;   la      t0, DEBUG
+;   lw      t2, (t0)
+;   addiu   t2, 1
+;   sw      t2, (t0)
+;   sll     t1, t2, 2
+;   addu    t1, t0
+;   sw      a1, (t1)
+;   beqi    t2, 2, +
+    push    4, s0, s1, 1, ra
+    mov     s1, a0
+    lbu     s0, 9(s1)
+    call    @object_spawn, a0, a1
+    sb      s0, 9(s1)
+    ret     4, s0, s1, 1, ra
++:
+    jr
+    li      v0, -1
+
+/*
+.word 0xDEADBEEF
+DEBUG:
+.skip 0x100 0
+*/
+
 .include "dpad control.asm"
 .include "simple spawn.asm"
 .include "simple text.asm"
@@ -87,42 +160,9 @@ fmt:
 hold_delay:
     .word 0
 
-object_spawn_wrap:
-    // a0: object table
-    // a1: object number
-    beqz    a0, +
-    nop
-    beqi    a0, 1, +
-    nop
-    beqi    a0, 2, +
-    nop
-    call    @object_spawn, a0, a1
-+:
-    jr
-    nop
-
 .org @object_index
     // a0: object table
     // a1: object number
     // we have space for 22 instructions (on debug, 23 on 1.0?)
-    push    4, ra, 1
-    mov     t0, a0
-    lbu     t1, 8(a0) // remaining items
-    cl      v0
--:
-    lh      t2, 12(t0) // item's object number
-// t2 = abs(t2)
-    bgez    t2, +
+    j       object_index_hook
     nop
-    subu    t2, r0, t2
-+:
-    beq     a1, t2, +
-    subi    t1, t1, 1
-    addiu   v0, v0, 1
-    addi    t0, t0, 68
-    bnez    t1, -
-    nop
-    call    @object_spawn, a0, a1
-    //subiu   v0, r0, -1 // original code
-+:
-    ret     4, ra, 1
