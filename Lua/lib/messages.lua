@@ -4,7 +4,7 @@ local function T(x, y, color, pos, s, ...)
     if #{...} > 0 then
         s = s:format(...)
     end
-    gui.text(10*x + 2, 16*y + 4, s, color or "white", nil, pos or "bottomright")
+    gui.text(10*x + 2, 16*y + 4, s, color or "white", pos or "bottomright")
 end
 
 local function T_BR(x, y, color, ...) T(x, y, color, "bottomright", ...) end
