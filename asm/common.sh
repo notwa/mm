@@ -3,7 +3,6 @@ fast=0
 [[ "$1" == "fast" ]] && fast=1 && shift || [[ "$1" == "test" ]] && fast=2 && shift
 args="$@"
 
-inject="$(readlink -f ../Lua/inject)"
 lips="$(readlink -f ../Lua/lib/lips)"
 YAZ0="$(readlink -f ../z64yaz0)"
 DUMP="$(readlink -f ../z64dump.py)"
@@ -74,9 +73,8 @@ copy_rom() {
 }
 
 cp *.lua build/
-cp "$inject"/*.asm build/
 cp *.asm build/
-cp *.bin build/
+#cp *.bin build/
 cd build
 
 # don't copy entire dir; avoid copying dotfiles (.git)

@@ -76,7 +76,7 @@ start:
 ]]
 
 local function inject(fn, dumb)
-    local asm_dir = bizstring and 'inject/' or './mm/Lua/inject/'
+    local asm_dir = bizstring and '../patch/' or './mm/patch/'
     local asm_path = asm_dir..fn
 
     local point = dumb and no_point or injection_points[version]

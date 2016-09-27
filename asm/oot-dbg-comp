@@ -325,6 +325,6 @@ if [ $fast -ne 2 ]; then
             quiet=0
         fi
     done
-    dump patch/build/patchme
+    dump asm/build/patchme
     copy_rom "$out" 32
 fi
