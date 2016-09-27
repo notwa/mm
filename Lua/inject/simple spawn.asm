@@ -10,6 +10,23 @@ simple_spawn:
     lw      t1, @actor_x(t0)
     lw      t2, @actor_y(t0)
     lw      t3, @actor_z(t0)
+    lhu     t7, @actor_horiz_angle(t0)
+    call    @actor_spawn a0, a1, a2, t1, t2, t3, 0, t7, 0, t4, 0x7F, 0x3FF, 0
+    ret     4, 9, ra
+
+/* old version (before call pseudo-instruction existed) with comments
+simple_spawn:
+    // a0: actor number
+    // a1: actor variable
+    push    4, 9, ra
+    mov     a2, a0
+    mov     t4, a1
+    li      a1, @global_context
+    addi    a0, a1, @actor_spawn_offset
+    li      t0, @link_actor
+    lw      t1, @actor_x(t0)
+    lw      t2, @actor_y(t0)
+    lw      t3, @actor_z(t0)
     mov     a3, t1 // X position
     sw      t2, 0x10(sp) // Y position
     sw      t3, 0x14(sp) // Z position
@@ -32,3 +49,4 @@ simple_spawn:
     jal     @actor_spawn
     nop
     ret     4, 9, ra
+*/
