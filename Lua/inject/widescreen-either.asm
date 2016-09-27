@@ -25,6 +25,7 @@ adjust_dlist:
     beq     t1, t9, +return ; jumps count as ends too
     li      t9, 0xDC080008
     beq     t1, t9, screen_dim ; check if these are screen dimensions
+
     li      t9, 0xFF000000
     and     t3, t1, t9
     li      t9, 0xE4000000
