@@ -214,7 +214,7 @@ return {[0]=
 
     {name="Town Shooting Gallery",
     [0]="main door",
-    --  "main door (duplicate)",
+        "main door (no title, unused?)",
     },
 
     {name="Snowhead Temple",
@@ -259,7 +259,7 @@ return {[0]=
 
     {name="Pinnacle Rock",
     [0]="from Great Bay",
-    --  "from Great Bay (duplicate)",
+        "from voiding out",
     },
 
     {name="Fairy's Fountain",
