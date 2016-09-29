@@ -31,7 +31,11 @@ lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 dma_sig = b"\x00\x00\x00\x00\x00\x00\x10\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x60"
 
 def dump_wrap(data, fn, size):
-    kind = detect_format(BytesIO(data), fn)
+    try:
+        kind = detect_format(BytesIO(data), fn)
+    except Exception as e:
+        lament(fn, e)
+        kind = None
     if kind is not None:
         fn += '.' + kind
     dump_as(data, fn, size)
@@ -188,7 +192,7 @@ def z_read_file(path, fn=None):
 
 def z_write_dma(f, dma):
     dma.sort(key=lambda vf: vf[0]) # sort by vs
-    assert(len(dma) > 2)
+    assert len(dma) > 2
     dma_entry = dma[2] # assumption
     vs, ve, ps, pe = dma_entry
 
@@ -205,7 +209,7 @@ def z_write_dma(f, dma):
         f.write(W4(ve))
         f.write(W4(ps))
         f.write(W4(pe))
-    assert(f.tell() <= (pe or ve))
+    assert f.tell() <= (pe or ve)
 
 def fix_rom(f):
     bootcode = n64.bootcode_version(f)
@@ -273,10 +277,17 @@ def create_rom(d, compress=False):
                 pe = 0xFFFFFFFF
                 ve = vs
 
-            assert(start_v <= rom_size)
-            assert(start_v + size_v <= rom_size)
-            assert(vs < rom_size)
-            assert(ve <= rom_size)
+            assert start_v <= rom_size
+            assert start_v + size_v <= rom_size
+            assert vs < rom_size
+            assert ve <= rom_size
+
+            # TODO: do we really want to do any of this?
+            # i'm not sure how picky the game is with the dmatable.
+            #ve = align(ve)
+            #print(fn)
+            assert vs % 0x10 == 0
+            assert ve % 0x10 == 0
 
             if unempty:
                 f.seek(start_p)
