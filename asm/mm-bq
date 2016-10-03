@@ -25,6 +25,6 @@ rm extra
 if [ $fast -ne 2 ]; then
     comp "$code"
     comp "$extra"
-    dump patch/build/patchme
+    dump asm/build/patchme
     copy_rom "$out" 32
 fi
