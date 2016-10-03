@@ -99,7 +99,7 @@ where:
 * [two digits]: version number of a release build for the N64
 * GC: Gamecube
 * DE: Demo (includes Debug features)
-* DE: Debug
+* DB: Debug
 * MQ: Master Quest
 
 ### menus/\*

@@ -3,7 +3,7 @@
 These are written for
 [the latest revision of Bizhawk.][biz]
 
-[biz]: https://github.com/TASVideos/bizhawk/
+[biz]: //github.com/TASVideos/bizhawk/
 
 Note that some scripts lack full support for Ocarina of Time.
 
@@ -63,7 +63,7 @@ TODO
 #### monitor epona.lua
 used to investigate [this glitch with unloading Epona.][eponaglitch]
 
-[eponaglitch]: https://www.youtube.com/watch?v=kX0ZcIS8P84
+[eponaglitch]: //www.youtube.com/watch?v=kX0ZcIS8P84
 
 #### monitor event flags.lua
 Monitors event flags,
@@ -78,7 +78,7 @@ using human-readable English names.
 Provides the function `dump_all_exits(fn)`
 which produces [a large csv file.][csv]
 
-[csv]: https://eaguru.guru/t/_exits.csv
+[csv]: //eaguru.guru/t/_exits.csv
 
 #### monitor misc.lua
 Monitors unknown regions of memory.
