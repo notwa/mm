@@ -21,7 +21,7 @@ end
 
 local function dump_room(start, addr)
     local addr = addr or start
-    printf("start:  %06X", start)
+    printf("start:  %06X", addr)
 
     local object_n, objects
     local actor_n, actors
