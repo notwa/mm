@@ -1,4 +1,4 @@
-# Miscellaneous Zelda 64 Resources
+# Zelda 64 Resources
 
 i like to muck around in the memory of these games.
 
@@ -26,7 +26,7 @@ and another for [the library files][librm] that the scripts use.
 [luarm]: /Lua/README.md
 [librm]: /Lua/lib/README.md
 
-of these, you probably came for `cheat menu.lua`
+of these, you probably came for `cheat menu.lua`.
 this script will bind your L button to open an on-screen menu
 allowing you to control many aspects of the game.
 
