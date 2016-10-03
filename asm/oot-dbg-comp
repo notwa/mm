@@ -46,8 +46,8 @@ for f in \
   "1516 V035B3000 test01_scene" \
   "1517 V035B7000 test01_room_0" \
 ; do
-    rm patchme/"$f"
-    touch patchme/"$f"
+    rm "$patchme"/"$f"
+    touch "$patchme"/"$f"
     echo "deleted $f"
 done
 
@@ -63,8 +63,8 @@ for f in \
     "0985 V01E26000 vr_IPVR_static" \
     "0999 V01F2D000 vr_LBVR_static" \
 ; do
-    rm patchme/"$f"
-    touch patchme/"$f"
+    rm "$patchme"/"$f"
+    touch "$patchme"/"$f"
     echo "deleted $f"
 done
 
@@ -313,7 +313,7 @@ if [ $fast -ne 2 ]; then
 #   comp "$title"
     # z64dump.py doesn't have compression support rn
     # so we'll do this ourselves
-    for f in patchme/*; do
+    for f in "$patchme"/*; do
         ext="${f##*.}" # warning: not robust
         dirless="${f##*/}" # warning: not robust
         n="${dirless:0:4}"
@@ -325,6 +325,6 @@ if [ $fast -ne 2 ]; then
             quiet=0
         fi
     done
-    dump asm/build/patchme
+    dump "$patchme"
     copy_rom "$out" 32
 fi

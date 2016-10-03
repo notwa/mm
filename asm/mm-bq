@@ -2,7 +2,6 @@
 set -e
 
 sha1=d6133ace5afaa0882cf214cf88daba39e266c078
-#extracted=../dump/mm-US10-"$sha1"
 rom=../../roms/everything/"Legend of Zelda, The - Majora's Mask (U) [!].z64"
 out=mm-bq.z64
 
@@ -15,16 +14,16 @@ unc "$code"
 
 dd if=/dev/zero of=extra bs=370688 count=1 2>/dev/null
 
-luajit patch.lua -e labels.lua -b 0x80780000 "$@" extra.asm extra
-luajit patch.lua -i labels.lua "$@" code.asm patchme/"$code"
+luajit patch.lua -e build/labels.lua -b 0x80780000 "$@" extra.asm extra
+luajit patch.lua -i build/labels.lua "$@" code.asm build/patchme/"$code"
 
 # ensure the file is the proper size (Lua seems to expand it?)
-dd if=extra of=patchme/"$extra" bs=370688 count=1 2>/dev/null
+dd if=extra of=build/patchme/"$extra" bs=370688 count=1 2>/dev/null
 rm extra
 
 if [ $fast -ne 2 ]; then
     comp "$code"
     comp "$extra"
-    dump asm/build/patchme
-    copy_rom "$out" 32
+    dump "$patchme"
+    copy_rom "build/$out" 32
 fi

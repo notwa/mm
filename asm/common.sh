@@ -13,17 +13,20 @@ rom="$(readlink -f "$rom")"
 mkdir -p build
 quiet=0
 
-[ ! -s "$YAZ0" ] && cc -O3 "${YAZ0}.c" -o "$YAZ0"
+patchme="build/patchme"
+
+#[ ! -s "$YAZ0" ] && cc -O3 "${YAZ0}.c" -o "$YAZ0"
 
 dump() {
-    (cd "$(dirname "$DUMP")"; ./z64dump.py "$@")
+    #(cd "$(dirname "$DUMP")"; ./z64dump.py "$@")
+    "$DUMP" "$@"
 }
 
-if [ $fast -eq 0 ] || [ ! -d patchme ]; then
+if [ $fast -eq 0 ] || [ ! -d "$patchme" ]; then
     if [ -n "$sha1" ]; then
-        [ -d build/patchme ] && rm -r build/patchme
+        [ -d "$patchme" ] && rm -r "$patchme"
         dump -c "$rom"
-        mv ../"$sha1" build/patchme
+        mv "$sha1" "$patchme"
     else
         cp "$rom" "build/$out"
     fi
@@ -34,7 +37,7 @@ ratio() {
     local len2="$(wc -c < "$2")"
 
     if [ $len1 -eq 0 ]; then
-        [ $quiet -le 0 ] && echo emptIy
+        [ $quiet -le 0 ] && echo empty
     else
         let percent=(len2*100)/len1
         [ $quiet -le 0 ] && echo "ratio: $percent%"
@@ -43,19 +46,19 @@ ratio() {
 }
 
 unc() {
-    local in=patchme/"$1".Yaz0
-    local out=patchme/"$1"
+    local in="$patchme"/"$1".Yaz0
+    local out="$patchme"/"$1"
 
     [ -e "$in" ] || return 0
     "$YAZ0" "$in" > "$out"
     [ $quiet -le 0 ] && echo "uncompressed $1"
     ratio "$out" "$in" || true
-    rm patchme/"$1".Yaz0
+    rm "$patchme"/"$1".Yaz0
 }
 
 comp() {
-    local in=patchme/"$1"
-    local out=patchme/"$1".Yaz0
+    local in="$patchme"/"$1"
+    local out="$patchme"/"$1".Yaz0
 
     [ -e "$in" ] || return 0
     "$YAZ0" "$in" > "$out"
@@ -69,13 +72,8 @@ comp() {
 }
 
 copy_rom() {
-    dd if=patchme.z64 of="$1" bs=$((1024*1024)) count="${2:-32}" status=none
+    dd if="$patchme".z64 of="$1" bs=$((1024*1024)) count="${2:-32}" status=none
 }
-
-cp *.lua build/
-cp *.asm build/
-#cp *.bin build/
-cd build
 
 # don't copy entire dir; avoid copying dotfiles (.git)
 mkdir -p lips

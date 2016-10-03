@@ -9,6 +9,6 @@ out=oot-spawner.z64
 
 luajit patch.lua \
   -O 0x035D0000 -b $((0x80700000 - 0x035D0000)) \
-  'spawn O EUDB MQ.asm' "$out"
+  'spawn O EUDB MQ.asm' "build/$out"
 
-dump -f asm/build/"$out"
+dump -f "build/$out"
