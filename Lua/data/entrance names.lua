@@ -652,7 +652,7 @@ return {
         "from Ikana Castle",
     },
 
-    {name="(Zora Band Member Rooms)",
+    {name="(Zora Hall Rooms)",
     [0]="Tijo's room",
         "Japas' room",
         "Mikau's room",
