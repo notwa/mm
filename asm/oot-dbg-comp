@@ -326,5 +326,5 @@ if [ $fast -ne 2 ]; then
         fi
     done
     dump "$patchme"
-    copy_rom "$out" 32
+    copy_rom "build/$out" 32
 fi
