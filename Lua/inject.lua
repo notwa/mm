@@ -76,7 +76,7 @@ start:
 ]]
 
 local function inject(fn, dumb)
-    local asm_dir = bizstring and '../patch/' or './mm/patch/'
+    local asm_dir = bizstring and '../asm/' or './mm/asm/'
     local asm_path = asm_dir..fn
 
     local point = dumb and no_point or injection_points[version]
@@ -163,7 +163,8 @@ local asms = {
     ['O US10'] = {'spawn oot.asm'},
     ['O JP10'] = {'spawn oot.asm'},
 --  ['O EUDB MQ'] = {'widescreen.asm'},
-    ['O EUDB MQ'] = {'widescreen-inline.asm', true},
+--  ['O EUDB MQ'] = {'widescreen-inline.asm', true},
+    ['O EUDB MQ'] = {'print.asm'},
 
     ['M US10'] = {'beta.asm'},
     ['M JP10'] = {'spawn mm early.asm'},
