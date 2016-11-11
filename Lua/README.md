@@ -107,6 +107,6 @@ Any data (that isn't provided by the games themselves)
 is located in the data directory.
 
 Much of this should be self-explanitory. However,
-files beginning with an underscores contain serialized tables
+files beginning with an underscore contain serialized tables
 (generally from monitor scripts)
 and usually won't make sense out of context.

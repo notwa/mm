@@ -5,7 +5,11 @@ i like to muck around in the memory of these games.
 those who are more interested in the ROM may find [the binary template repo][bt]
 more resourceful.
 
+there is also a great deal of general [documentation and notes
+on the wikis][cm] hosted at CloudModding.
+
 [bt]: //github.com/EntranceJew/zelda-binary-templates
+[cm]: http://cloudmodding.com/wiki
 
 ## Lua Scripts
 
@@ -114,7 +118,8 @@ refer to the spreadsheets or Lua tables for their equivalent in other versions.
 
 ## spreadsheets
 
-some sheets have been put together to dump data in. some of them can be used to predict the result of glitches.
+some sheets have been put together to dump data in.
+some of them can be used to predict the result of glitches.
 
 * [Event Flags][eventflags]
   are being documented here.
@@ -146,6 +151,8 @@ some sheets have been put together to dump data in. some of them can be used to 
 save contents are mostly documented by [the save file binary templates.][savebt]
 
 [savebt]: //github.com/EntranceJew/zelda-binary-templates/tree/master/filetypes/Save
+
+*note: the following text is specific to MM; OoT is slightly different.*
 
 in the versions of the game with owl saves,
 regular saves are 0x100C in size, and owl saves are 0x3CA0.
@@ -193,12 +200,23 @@ sometime i'll bother checking what the bombers/lottery codes are for these.
 * [Bizhawk US 1.0 race file](//eaguru.guru/t/MM%20US%20Race%20File%20for%20Bizhawk.zip )
 * [mupen64plus US 1.0 race file](//eaguru.guru/t/Legend%20of%20Zelda%2C%20The%20-%20Majora%27s%20Mask%20%28U%29%20%5B%21%5D.zip)
 
+you can make your own by using [the provided setup race file script.][racelua]
+simply run the script and play Song of Time after South Clock Town has loaded.
+
+using this script will also set the bombers code to 12345,
+set the daily lottery numbers to 123, 456, 789,
+and set the Oceanside Spider House puzzle solution to
+Red, Blue, Red, Blue, Red, Blue.
+
+[racelua]: /Lua/setup%20race%20file.lua
+
 ## bitfields
 
 ### scene flags
 
 two regions of 0x960 bytes are allocated for all the scene flags in the game.
-the first (801EFAE0) is loaded from save files, the second (801F35D8) is used for in-game changes.
+the first at `801EFAE0` is loaded from save files,
+the second at `801F35D8` is used for in-game changes.
 basically, edit the first for save hacking, and the second for in-game hacking.
 
 each scene in the game uses 0x14 bytes of scene flags.
@@ -208,11 +226,11 @@ the current scene's flags are always copied into the same place in memory.
 they appear in a different order than in save files, however.
 
 (four bytes each)  
-803E8978 corresponds to offset 0x4 in the save file.  
-803E897C corresponds to offset 0x8.  
-803E8988 corresponds to offset 0x0.  
-803E898C corresponds to offset 0xC.  
-803E8994 corresponds to offset 0x10.  
+`803E8978` corresponds to offset 0x04 in the save file.  
+`803E897C` corresponds to offset 0x08.  
+`803E8988` corresponds to offset 0x00.  
+`803E898C` corresponds to offset 0x0C.  
+`803E8994` corresponds to offset 0x10.  
 
 ### Link's status
 
