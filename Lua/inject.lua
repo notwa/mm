@@ -166,7 +166,8 @@ local asms = {
 --  ['O EUDB MQ'] = {'widescreen-inline.asm', true},
     ['O EUDB MQ'] = {'print.asm'},
 
-    ['M US10'] = {'beta.asm'},
+--  ['M US10'] = {'beta.asm'},
+    ['M US10'] = {'spawn mm.asm'},
     ['M JP10'] = {'spawn mm early.asm'},
 }
 
