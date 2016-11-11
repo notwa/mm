@@ -243,6 +243,10 @@ function Dumper:load(statements)
         self.fn = s.fn
         self.line = s.line
         if s.type:sub(1, 1) == '!' then
+            if s[1] and s[1].tt == 'EXPR' then
+                self:error('unevaluated expression')
+            end
+
             if s.type == '!LABEL' then
                 self.labels[s[1].tok] = self:pc()
             elseif s.type == '!DATA' then
@@ -255,6 +259,7 @@ function Dumper:load(statements)
             elseif s.type == '!BASE' then
                 self.base = s[1].tok
                 insert(new_statements, s)
+
             elseif s.type == '!PUSH' or s.type == '!POP' then
                 local thistype = s.type:sub(2):lower()
                 for i, t in ipairs(s) do
@@ -300,6 +305,7 @@ function Dumper:load(statements)
                         insert(new_statements, s)
                     end
                 end
+
             elseif s.type == '!ALIGN' or s.type == '!SKIP' then
                 local length, content
                 if s.type == '!ALIGN' then
@@ -332,6 +338,7 @@ function Dumper:load(statements)
                 else
                     -- length is 0, noop
                 end
+
             else
                 error('Internal Error: unknown statement, got '..s.type)
             end

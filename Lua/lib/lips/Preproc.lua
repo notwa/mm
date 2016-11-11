@@ -5,6 +5,7 @@ local data = require(path.."data")
 local overrides = require(path.."overrides")
 local Statement = require(path.."Statement")
 local Reader = require(path.."Reader")
+local Expression = require(path.."Expression")
 
 local abs = math.abs
 
@@ -172,6 +173,24 @@ function Preproc:process(statements)
         end
     end
 
+    -- third pass: evaluate constant expressions
+    for i=1, #new_statements do
+        local s = new_statements[i]
+        self.fn = s.fn
+        self.line = s.line
+        for j, t in ipairs(s) do
+            if t.tt == 'EXPR' then
+                local expr = Expression()
+                local result, err = expr:eval(t.tok)
+                if err then
+                    self:error('failed to evaulate ('..t.tok..')', err)
+                end
+                t.tt = 'NUM'
+                t.tok = result
+            end
+        end
+    end
+
     return new_statements
 end
 
@@ -214,7 +233,7 @@ function Preproc:pop(kind)
 end
 
 function Preproc:expand(statements)
-    -- third pass: expand pseudo-instructions and register arguments
+    -- fourth pass: expand pseudo-instructions and register arguments
     self.statements = {}
     for i=1, #statements do
         local s = statements[i]

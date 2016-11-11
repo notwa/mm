@@ -115,7 +115,13 @@ function Muncher:deref()
 end
 
 function Muncher:const(relative, no_label)
-    if self.tt ~= 'NUM' and self.tt ~= 'VARSYM' and self.tt ~= 'LABELSYM' then
+    local good = {
+        NUM = true,
+        EXPR = true,
+        VARSYM = true,
+        LABELSYM = true,
+    }
+    if not good[self.tt] then
         self:error('expected constant', self.tt)
     end
     if no_label and self.tt == 'LABELSYM' then
