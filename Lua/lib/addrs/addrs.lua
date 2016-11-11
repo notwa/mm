@@ -20,7 +20,7 @@ return function(hash)
     local rv = same[version] or version
 
     local b = basics[rv]
-    local function AL(a, s) return A(b.link + a, s) end
+    local function AL(a, s) return A(b.save + a, s) end
     local function AG(a, s)
         if rv == 'M JP10' or rv == 'M JP11' then
             if a >= 0x17000 then -- approximate
