@@ -1,29 +1,24 @@
 local insert = table.insert
 
 local path = string.gsub(..., "[^.]+$", "")
+local Base = require(path.."Base")
 local Token = require(path.."Token")
+local TokenIter = require(path.."TokenIter")
 local Statement = require(path.."Statement")
-local Muncher = require(path.."Muncher")
 
-local arg_types = { -- for instructions
-    NUM = true,
-    REG = true,
-    VARSYM = true,
-    LABELSYM = true,
-    RELLABELSYM = true,
-}
-
-local Collector = Muncher:extend()
+local Collector = Base:extend()
 function Collector:init(options)
     self.options = options or {}
 end
 
 function Collector:statement(...)
-    local s = Statement(self.fn, self.line, ...)
+    local I = self.iter
+    local s = Statement(I.fn, I.line, ...)
     return s
 end
 
 function Collector:push_data(datum, size)
+    local I = self.iter
     --[[ pseudo-example:
     Statement{type='!DATA',
         {tt='BYTES', tok={0, 1, 2}},
@@ -33,10 +28,12 @@ function Collector:push_data(datum, size)
     }
     --]]
 
+    -- FIXME: optimize the hell out of this garbage, preferably in the lexer
     -- TODO: consider not scrunching data statements, just their tokens
+    -- TODO: concatenate strings; use !BIN instead of !DATA
 
     if type(datum) == 'number' then
-        datum = self:token(datum)
+        datum = I:token(datum)
     end
 
     local last_statement = self.statements[#self.statements]
@@ -58,13 +55,13 @@ function Collector:push_data(datum, size)
             insert(s, datum)
             return
         else
-            self:error('labels are too large to be used in this directive')
+            I:error('labels are too large to be used in this directive')
         end
     elseif datum.tt == 'VARSYM' then
         insert(s, datum:set('size', size))
         return
     elseif datum.tt ~= 'NUM' then
-        self:error('unsupported data type', datum.tt)
+        I:error('unsupported data type', datum.tt)
     end
 
     local sizes = size..'S'
@@ -74,74 +71,67 @@ function Collector:push_data(datum, size)
     if last_token and last_token.tt == sizes then
         t = last_token
     else
-        t = self:token(sizes, {})
+        t = I:token(sizes, {})
         insert(s, t)
         s:validate()
     end
     insert(t.tok, datum.tok)
 end
 
-function Collector:variable()
-    local t = self.t
-    local t2 = self:advance()
-
-    local s = self:statement('!VAR', t, t2)
-    insert(self.statements, s)
-    self:advance()
-end
-
-function Collector:directive()
-    local name = self.tok
-    self:advance()
+function Collector:directive(name)
+    local I = self.iter
     local function add(kind, ...)
         insert(self.statements, self:statement('!'..kind, ...))
     end
+
     if name == 'ORG' or name == 'BASE' then
-        add(name, self:const(nil, 'no labels'))
+        add(name, I:const(nil, 'no labels'))
     elseif name == 'PUSH' or name == 'POP' then
-        add(name, self:const())
-        while not self:is_EOL() do
-            self:optional_comma()
-            add(name, self:const())
+        add(name, I:const())
+        while not I:is_EOL() do
+            I:eat_comma()
+            add(name, I:const())
         end
     elseif name == 'ALIGN' or name == 'SKIP' then
-        if self:is_EOL() and name == 'ALIGN' then
+        if I:is_EOL() and name == 'ALIGN' then
             add(name)
         else
-            local size = self:const(nil, 'no label')
-            if self:is_EOL() then
+            local size = I:const(nil, 'no label')
+            if I:is_EOL() then
                 add(name, size)
             else
-                self:optional_comma()
-                add(name, size, self:const(nil, 'no label'))
+                I:eat_comma()
+                add(name, size, I:const(nil, 'no label'))
             end
         end
+    elseif name == 'BIN' then
+        -- FIXME: not a real directive, just a workaround
+        add(name, I:string())
     elseif name == 'BYTE' or name == 'HALFWORD' or name == 'WORD' then
-        self:push_data(self:const(), name)
-        while not self:is_EOL() do
-            self:optional_comma()
-            self:push_data(self:const(), name)
+        self:push_data(I:const(), name)
+        while not I:is_EOL() do
+            I:eat_comma()
+            self:push_data(I:const(), name)
         end
     elseif name == 'HEX' then
-        if self.tt ~= 'OPEN' then
-            self:error('expected opening brace for hex directive', self.tt)
+        if I.tt ~= 'OPEN' then
+            I:error('expected opening brace for hex directive', I.tt)
         end
-        self:advance()
+        I:next()
 
-        while self.tt ~= 'CLOSE' do
-            if self.tt == 'EOL' then
-                self:advance()
+        while I.tt ~= 'CLOSE' do
+            if I.tt == 'EOL' then
+                I:next()
             else
-                self:push_data(self:const(), 'BYTE')
+                self:push_data(I:const(), 'BYTE')
             end
         end
-        self:advance()
+        I:next()
     elseif name == 'INC' or name == 'INCBIN' then
         -- noop, handled by lexer
-        self:string()
-        return -- don't expect EOL
+        I:string()
     elseif name == 'ASCII' or name == 'ASCIIZ' then
-        local bytes = self:string()
+        local bytes = I:string()
         for i, number in ipairs(bytes.tok) do
             self:push_data(number, 'BYTE')
         end
@@ -149,85 +139,61 @@ function Collector:directive()
             self:push_data(0, 'BYTE')
         end
     elseif name == 'FLOAT' then
-        self:error('unimplemented directive', name)
+        I:error('unimplemented directive', name)
     else
-        self:error('unknown directive', name)
+        I:error('unknown directive', name)
     end
-    self:expect_EOL()
+
+    I:expect_EOL()
 end
 
-function Collector:basic_special()
-    local name, args = self:special()
-
-    local portion
-    if name == 'hi' then
-        portion = 'upperoff'
-    elseif name == 'up' then
-        portion = 'upper'
-    elseif name == 'lo' then
-        portion = 'lower'
-    else
-        self:error('unknown special', name)
-    end
-
-    if #args ~= 1 then
-        self:error(name..' expected one argument', #args)
-    end
-
-    local t = self:token(args[1]):set('portion', portion)
-    return t
-end
-
-function Collector:instruction()
-    local s = self:statement(self.tok)
+function Collector:instruction(name)
+    local I = self.iter
+    local s = self:statement(name)
     insert(self.statements, s)
-    self:advance()
 
-    while self.tt ~= 'EOL' do
-        local t = self.t
-        if self.tt == 'OPEN' then
-            t = self:deref()
-            t.tt = 'DEREF' -- TODO: should just be returned by :deref
-            insert(s, t)
-        elseif self.tt == 'UNARY' then
-            local peek = self.tokens[self.i + 1]
+    while I.tt ~= 'EOL' do
+        local t = I.t
+        if I.tt == 'OPEN' then
+            insert(s, I:deref())
+        elseif I.tt == 'UNARY' then
+            local peek = assert(I:peek())
             if peek.tt == 'VARSYM' then
                 local negate = t.tok == -1
-                t = self:advance()
+                t = I:next()
                 t = Token(t):set('negate', negate)
                 insert(s, t)
-                self:advance()
+                I:next()
             elseif peek.tt == 'EOL' or peek.tt == 'SEP' then
                 local tok = t.tok == 1 and '+' or t.tok == -1 and '-'
-                t = Token(self.fn, self.line, 'RELLABELSYM', tok)
+                t = Token(I.fn, I.line, 'RELLABELSYM', tok)
                 insert(s, t)
-                self:advance()
+                I:next()
             else
-                self:error('unexpected token after unary operator', peek.tt)
+                I:error('unexpected token after unary operator', peek.tt)
             end
-        elseif self.tt == 'SPECIAL' then
-            t = self:basic_special()
+        elseif I.tt == 'SPECIAL' then
+            t = I:basic_special()
             insert(s, t)
-            self:advance()
-        elseif self.tt == 'SEP' then
-            self:error('extraneous comma')
-        elseif not arg_types[self.tt] then
-            self:error('unexpected argument type in instruction', self.tt)
+            I:next()
+        elseif I.tt == 'SEP' then
+            I:error('extraneous comma')
+        elseif not I.arg_types[I.tt] then
+            I:error('unexpected argument type in instruction', I.tt)
         else
             insert(s, t)
-            self:advance()
+            I:next()
         end
-        self:optional_comma()
+        I:eat_comma()
     end
 
-    self:expect_EOL()
+    I:expect_EOL()
     s:validate()
 end
 
 function Collector:collect(tokens, fn)
-    self.tokens = tokens
-    self.fn = fn or '(string)'
-    self.main_fn = self.fn
+    self.iter = TokenIter(tokens)
+    local I = self.iter
 
     self.statements = {}
 
@@ -241,29 +207,27 @@ function Collector:collect(tokens, fn)
         insert(self.statements, s)
     end
 
-    self.i = 0 -- set up Muncher iteration
-    self:advance() -- load up the first token
-    while true do
-        if self.tt == 'EOF' then
-            -- don't break if this is an included file's EOF
-            if self.fn == self.main_fn then
-                break
-            end
-            self:advance()
-        elseif self.tt == 'EOL' then
-            -- empty line
-            self:advance()
-        elseif self.tt == 'VAR' then
-            self:variable() -- handles advancing
-        elseif self.tt == 'LABEL' or self.tt == 'RELLABEL' then
-            insert(self.statements, self:statement('!LABEL', self.t))
-            self:advance()
-        elseif self.tt == 'DIR' then
-            self:directive() -- handles advancing
-        elseif self.tt == 'INSTR' then
-            self:instruction() -- handles advancing
+    for t in I do
+        if t.tt == 'EOF' then
+            -- noop
+        elseif t.tt == 'EOL' then
+            -- noop; empty line
+        elseif t.tt == 'LABEL' or t.tt == 'RELLABEL' then
+            insert(self.statements, self:statement('!LABEL', t))
+        elseif t.tt == 'VAR' then
+            local t2 = I:next()
+            I:next()
+            local s = self:statement('!VAR', t, t2)
+            insert(self.statements, s)
+            I:expect_EOL()
+        elseif t.tt == 'DIR' then
+            I:next()
+            self:directive(t.tok)
+        elseif t.tt == 'INSTR' then
+            I:next()
+            self:instruction(t.tok)
         else
-            self:error('expected starting token for statement', self.tt)
+            I:error('expected starting token for statement', t.tt)
         end
     end
 

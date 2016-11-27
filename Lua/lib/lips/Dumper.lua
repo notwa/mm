@@ -1,3 +1,4 @@
+local byte = string.byte
 local floor = math.floor
 local format = string.format
 local insert = table.insert
@@ -253,6 +254,10 @@ function Dumper:load(statements)
                 s.length = util.measure_data(s) -- cache for next pass
                 self.pos = self.pos + s.length
                 insert(new_statements, s)
+            elseif s.type == '!BIN' then
+                s.length = #s[1].tok
+                self.pos = self.pos + s.length
+                insert(new_statements, s)
             elseif s.type == '!ORG' then
                 self.pos = s[1].tok
                 insert(new_statements, s)
@@ -378,6 +383,9 @@ function Dumper:load(statements)
             end
             self.pos = self.pos + (s.length or util.measure_data(s))
             insert(new_statements, s)
+        elseif s.type == '!BIN' then
+            self.pos = self.pos + s.length
+            insert(new_statements, s)
         elseif s.type == '!ORG' then
             self.pos = s[1].tok
             insert(new_statements, s)
@@ -422,6 +430,12 @@ function Dumper:dump()
                 else
                     error('Internal Error: unknown !DATA token')
                 end
+            end
+        elseif s.type == '!BIN' then
+            local data = s[1].tok
+            for i=1, #data do
+                self.writer(self.pos, byte(data, i))
+                self.pos = self.pos + 1
             end
         elseif s.type == '!ORG' then
             self.pos = s[1].tok

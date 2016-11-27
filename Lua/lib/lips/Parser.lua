@@ -6,6 +6,7 @@ local Token = require(path.."Token")
 local Lexer = require(path.."Lexer")
 local Collector = require(path.."Collector")
 local Preproc = require(path.."Preproc")
+local Expander = require(path.."Expander")
 local Dumper = require(path.."Dumper")
 
 local Parser = Base:extend()
@@ -37,53 +38,28 @@ function Parser:tokenize(asm)
     assert(#tokens > 0, 'Internal Error: no tokens after preprocessing')
 
     local collector = Collector(self.options)
-    self.statements = collector:collect(tokens, self.main_fn)
+    return collector:collect(tokens, self.main_fn)
 end
 
-function Parser:debug_dump()
-    local boring = {
-        tt = true,
-        tok = true,
-        fn = true,
-        line = true,
-    }
+function Parser:dump()
     for i, s in ipairs(self.statements) do
-        local values = ''
-        for j, t in ipairs(s) do
-            local tok = t.tok
-            if type(tok) == 'number' then
-                tok = ("$%X"):format(tok)
-            end
-            values = values..'\t'..t.tt..'('..tostring(tok)..')'
-            for k, v in pairs(t) do
-                if not boring[k] then
-                    values = values..'['..k..'='..tostring(v)..']'
-                end
-            end
-        end
-        values = values:sub(2)
-        print(s.line, s.type, values)
+        print(s.line, s.type, s:dump())
     end
 end
 
 function Parser:parse(asm)
-    self:tokenize(asm)
+    self.statements = self:tokenize(asm)
+    if self.options.debug_token then self:dump() end
 
-    if self.options.debug_token then self:debug_dump() end
+    self.statements = Preproc(self.options):process(self.statements)
+    if self.options.debug_pre then self:dump() end
 
-    local preproc = Preproc(self.options)
-    self.statements = preproc:process(self.statements)
-
-    if self.options.debug_pre then self:debug_dump() end
-
-    self.statements = preproc:expand(self.statements)
-
-    if self.options.debug_post then self:debug_dump() end
+    self.statements = Expander(self.options):expand(self.statements)
+    if self.options.debug_post then self:dump() end
 
     local dumper = Dumper(self.writer, self.options)
     self.statements = dumper:load(self.statements)
-
-    if self.options.debug_asm then self:debug_dump() end
+    if self.options.debug_asm then self:dump() end
 
     if self.options.labels then
         dumper:export_labels(self.options.labels)
