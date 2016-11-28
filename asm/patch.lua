@@ -13,39 +13,51 @@ local function parsenum(s)
     if type(s) == 'number' then
         return s
     end
-    if s:sub(1, 2) == '0x' then
+    if s:sub(1, 2) == '0x' or s:sub(1, 1) == '$' then
         return tonumber(s, 16)
-    elseif s:sub(1, 1) == '0' then
+    elseif s:sub(1, 2) == '0o' or s:sub(1, 1) == '0' then
         return tonumber(s, 8)
+    elseif s:sub(1, 2) == '0b' or s:sub(1, 1) == '%' then
+        return tonumber(s, 2)
     else
         return tonumber(s)
     end
 end
 
 local function make_verbose_writer()
+    -- TODO: further optimize
     local buff = {}
+    local function write(i)
+        local a = buff[i+0] or nil
+        local b = buff[i+1] or nil
+        local c = buff[i+2] or nil
+        local d = buff[i+3] or nil
+        if a or b or c or d then
+            a = a and ("%02X"):format(a) or '--'
+            b = b and ("%02X"):format(b) or '--'
+            c = c and ("%02X"):format(c) or '--'
+            d = d and ("%02X"):format(d) or '--'
+            print(('%08X    %s'):format(i, a..b..c..d))
+        end
+    end
+
     local max = -1
+    local maxp = -1
     return function(pos, b)
         if pos then
             buff[pos] = b
             if pos > max then
                 max = pos
             end
+            if pos < 0x80000000 and pos > maxp then
+                maxp = pos
+            end
         elseif max >= 0 then
-            -- TODO: optimize. iterating 536,870,912 times to reach 0x800000000
-            -- isn't the fastest thing, as you can imagine.
-            for i=0, max, 4 do
-                local a = buff[i+0] or nil
-                local b = buff[i+1] or nil
-                local c = buff[i+2] or nil
-                local d = buff[i+3] or nil
-                if a or b or c or d then
-                    a = a and ("%02X"):format(a) or '--'
-                    b = b and ("%02X"):format(b) or '--'
-                    c = c and ("%02X"):format(c) or '--'
-                    d = d and ("%02X"):format(d) or '--'
-                    print(('%08X    %s'):format(i, a..b..c..d))
-                end
+            for i=0, maxp, 4 do
+                write(i)
+            end
+            for i=0x80000000, max, 4 do
+                write(i)
             end
         end
     end
@@ -74,9 +86,6 @@ local function inject(args)
     end
 
     local function write(pos, b)
-        --if args.extra_rom and args.extra_ram and pos >= args.extra_ram then
-        --    pos = pos - args.extra_ram + args.extra_rom
-        --elseif pos >= offset then
         if pos >= offset then
             pos = pos - offset
         end
@@ -143,9 +152,7 @@ ap:flag("--dump-pre",       "(debug) dump statements to stdout after preprocessi
 ap:flag("--dump-post",      "(debug) dump statements to stdout after expanding")
 ap:flag("--dump-asm",       "(debug) dump statements to stdout after assembling")
 --ap:option("-s --state", "--import and --export to this file")
--- use -D defines instead
---ap:option("--extra-rom",    "dumb stuff"):convert(parsenum)
---ap:option("--extra-ram",    "dumb stuff"):convert(parsenum)
+-- TODO: use -D defines instead
 
 local inject_args = ap:parse()
 

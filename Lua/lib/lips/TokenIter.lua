@@ -2,11 +2,21 @@ local format = string.format
 local insert = table.insert
 
 local path = string.gsub(..., "[^.]+$", "")
-local data = require(path.."data")
-local Base = require(path.."Base")
 local Token = require(path.."Token")
 
-local arg_types = {
+local Iter = {}
+function Iter:__call()
+    return self:next(1)
+end
+
+local TokenIter = {}
+function TokenIter:init(tokens)
+    assert(tokens ~= nil)
+    self.tokens = tokens
+    self:reset()
+end
+
+TokenIter.arg_types = {
     NUM = true,
     REG = true,
     VARSYM = true,
@@ -14,17 +24,57 @@ local arg_types = {
     RELLABELSYM = true,
 }
 
-local Muncher = Base:extend()
--- no base init method
-
-function Muncher:error(msg, got)
+function TokenIter:error(msg, got)
     if got ~= nil then
         msg = msg..', got '..tostring(got)
     end
     error(format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
-function Muncher:token(t, val)
+function TokenIter:reset()
+    self.i = 0
+    self.tt = nil
+    self.tok = nil
+    self.fn = nil
+    self.line = nil
+    self.ended = false
+end
+
+function TokenIter:advance(n)
+    n = n or 0
+    if self.ended then
+        error('Internal Error: attempted to advance iterator past end', 2 + n)
+    end
+
+    self.i = self.i + 1
+    self.t = self.tokens[self.i]
+    if self.t == nil then
+        self.tt = nil
+        self.tok = nil
+        self.fn = nil
+        self.line = nil
+        self.ended = true
+    else
+        self.tt = self.t.tt
+        self.tok = self.t.tok
+        self.fn = self.t.fn
+        self.line = self.t.line
+    end
+end
+
+function TokenIter:next(n)
+    n = n or 0
+    self:advance(n + 1)
+    if self.t then return self.t end
+end
+
+function TokenIter:peek()
+    return self.tokens[self.i + 1]
+end
+
+-- now begins the parsing stuff
+
+function TokenIter:token(t, val)
     -- note: call Token directly if you want to specify fn and line manually
     if type(t) == 'table' then
         t.fn = self.fn
@@ -37,36 +87,25 @@ function Muncher:token(t, val)
     end
 end
 
-function Muncher:advance()
-    self.i = self.i + 1
-    self.t = self.tokens[self.i]
-    self.tt = self.t.tt
-    self.tok = self.t.tok
-    self.fn = self.t.fn
-    self.line = self.t.line
-    return self.t
-end
-
-function Muncher:is_EOL()
+function TokenIter:is_EOL()
     return self.tt == 'EOL' or self.tt == 'EOF'
 end
 
-function Muncher:expect_EOL()
+function TokenIter:expect_EOL()
     if self:is_EOL() then
-        self:advance()
         return
     end
     self:error('expected end of line', self.tt)
 end
 
-function Muncher:optional_comma()
+function TokenIter:eat_comma()
     if self.tt == 'SEP' and self.tok == ',' then
         self:advance()
         return true
     end
 end
 
-function Muncher:number()
+function TokenIter:number()
     if self.tt ~= 'NUM' then
         self:error('expected number', self.tt)
     end
@@ -75,7 +114,7 @@ function Muncher:number()
     return self:token(t)
 end
 
-function Muncher:string()
+function TokenIter:string()
     if self.tt ~= 'STRING' then
         self:error('expected string', self.tt)
     end
@@ -84,7 +123,7 @@ function Muncher:string()
     return self:token(t)
 end
 
-function Muncher:register(registers)
+function TokenIter:register(registers)
     registers = registers or data.registers
     if self.tt ~= 'REG' then
         self:error('expected register', self.tt)
@@ -97,7 +136,7 @@ function Muncher:register(registers)
     return self:token(t)
 end
 
-function Muncher:deref()
+function TokenIter:deref()
     if self.tt ~= 'OPEN' then
         self:error('expected opening parenthesis for dereferencing', self.tt)
     end
@@ -111,10 +150,10 @@ function Muncher:deref()
         self:error('expected closing parenthesis for dereferencing', self.tt)
     end
     self:advance()
-    return self:token(t)
+    return self:token(t):set('tt', 'DEREF')
 end
 
-function Muncher:const(relative, no_label)
+function TokenIter:const(relative, no_label)
     local good = {
         NUM = true,
         EXPR = true,
@@ -132,7 +171,7 @@ function Muncher:const(relative, no_label)
     return t
 end
 
-function Muncher:special()
+function TokenIter:special()
     if self.tt ~= 'SPECIAL' then
         self:error('expected special name to call', self.tt)
     end
@@ -145,7 +184,7 @@ function Muncher:special()
     local args = {}
     while true do
         local arg = self:advance()
-        if not arg_types[arg.tt] then
+        if not self.arg_types[arg.tt] then
             self:error('invalid argument type', arg.tt)
         else
             self:advance()
@@ -163,4 +202,39 @@ function Muncher:special()
     return name, args
 end
 
-return Muncher
+function TokenIter:basic_special()
+    local name, args = self:special()
+
+    local portion
+    if name == 'hi' then
+        portion = 'upperoff'
+    elseif name == 'up' then
+        portion = 'upper'
+    elseif name == 'lo' then
+        portion = 'lower'
+    else
+        self:error('unknown special', name)
+    end
+
+    if #args ~= 1 then
+        self:error(name..' expected one argument', #args)
+    end
+
+    local t = self:token(args[1]):set('portion', portion)
+    return t
+end
+
+-- TODO: move this boilerplate elsewhere
+
+local MetaBlah = {
+    __index = TokenIter,
+    __call = TokenIter.next,
+}
+
+local ClassBlah = {}
+function ClassBlah:__call(...)
+    local obj = setmetatable({}, MetaBlah)
+    return obj, obj:init(...)
+end
+
+return setmetatable(TokenIter, ClassBlah)

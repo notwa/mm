@@ -1,29 +1,31 @@
+local abs = math.abs
 local insert = table.insert
 
 local path = string.gsub(..., "[^.]+$", "")
-local data = require(path.."data")
-local overrides = require(path.."overrides")
-local Statement = require(path.."Statement")
-local Reader = require(path.."Reader")
+local Base = require(path.."Base")
 local Expression = require(path.."Expression")
+local util = require(path.."util")
 
-local abs = math.abs
+local signs = util.signs
 
-local function signs(s)
-    local start, end_ = s:find('[+-]+')
-    if start ~= 1 then
-        return 0
-    end
-    if s:sub(1, 1) == '+' then
-        return end_
-    elseif s:sub(1, 1) == '-' then
-        return -end_
-    end
-end
-
-local Preproc = Reader:extend()
+local Preproc = Base:extend()
 function Preproc:init(options)
     self.options = options or {}
+end
+
+function Preproc:iter(statements)
+    assert(statements)
+    local i = 0
+    return function()
+        i = i + 1
+        local s = statements[i]
+        if s == nil then return end
+        self.i = i
+        self.s = s
+        self.fn = s.fn
+        self.line = s.line
+        return s
+    end
 end
 
 function Preproc:lookup(t)
@@ -110,8 +112,6 @@ function Preproc:check(s, i, tt)
 end
 
 function Preproc:process(statements)
-    self.statements = statements
-
     self.variables = {}
     self.plus_labels = {} -- constructed forwards
     self.minus_labels = {} -- constructed backwards
@@ -119,39 +119,29 @@ function Preproc:process(statements)
 
     -- first pass: resolve variables and collect relative labels
     local new_statements = {}
-    for i=1, #self.statements do
-        local s = self.statements[i]
-        self.fn = s.fn
-        self.line = s.line
-        if s.type:sub(1, 1) == '!' then
-            -- directive, label, etc.
-            if s.type == '!VAR' then
-                local a = self:check(s, 1, 'VAR')
-                local b = self:check(s, 2, 'NUM')
-                self.variables[a] = b
-            elseif s.type == '!LABEL' then
-                if s[1].tt == 'RELLABEL' then
-                    local label = s[1].tok
-                    local rl = {
-                        index = #new_statements + 1,
-                        name = label:sub(2)
-                    }
-                    local c = label:sub(1, 1)
-                    if c == '+' then
-                        insert(self.plus_labels, rl)
-                    elseif c == '-' then
-                        insert(self.minus_labels, 1, rl) -- remember, it's backwards
-                    else
-                        error('Internal Error: unexpected token for relative label')
-                    end
+    for s in self:iter(statements) do
+        -- directive, label, etc.
+        if s.type == '!VAR' then
+            local a = self:check(s, 1, 'VAR')
+            local b = self:check(s, 2, 'NUM')
+            self.variables[a] = b
+        elseif s.type == '!LABEL' then
+            if s[1].tt == 'RELLABEL' then
+                local label = s[1].tok
+                local rl = {
+                    index = #new_statements + 1,
+                    name = label:sub(2)
+                }
+                local c = label:sub(1, 1)
+                if c == '+' then
+                    insert(self.plus_labels, rl)
+                elseif c == '-' then
+                    insert(self.minus_labels, 1, rl) -- remember, it's backwards
+                else
+                    error('Internal Error: unexpected token for relative label')
                 end
-                insert(new_statements, s)
-            else
-                for j, t in ipairs(s) do
-                    self:lookup(t)
-                end
-                insert(new_statements, s)
             end
+            insert(new_statements, s)
         else
             -- regular instruction
             for j, t in ipairs(s) do
@@ -163,21 +153,14 @@ function Preproc:process(statements)
 
     -- second pass: resolve relative labels
     self.do_labels = true
-    for i=1, #new_statements do
-        self.i = i -- make visible to :lookup
-        local s = new_statements[i]
-        self.fn = s.fn
-        self.line = s.line
+    for s in self:iter(new_statements) do
         for j, t in ipairs(s) do
             self:lookup(t)
         end
     end
 
     -- third pass: evaluate constant expressions
-    for i=1, #new_statements do
-        local s = new_statements[i]
-        self.fn = s.fn
-        self.line = s.line
+    for s in self:iter(new_statements) do
         for j, t in ipairs(s) do
             if t.tt == 'EXPR' then
                 local expr = Expression()
@@ -192,91 +175,6 @@ function Preproc:process(statements)
     end
 
     return new_statements
-end
-
-function Preproc:statement(...)
-    self.fn = self.s.fn
-    self.line = self.s.line
-    local s = Statement(self.fn, self.line, ...)
-    return s
-end
-
-function Preproc:push(s)
-    s:validate()
-    insert(self.statements, s)
-end
-
-function Preproc:push_new(...)
-    self:push(self:statement(...))
-end
-
-function Preproc:pop(kind)
-    local ret
-    if kind == nil then
-        ret = self.s[self.i]
-    elseif kind == 'CPU' then
-        ret = self:register(data.registers)
-    elseif kind == 'DEREF' then
-        ret = self:deref()
-    elseif kind == 'CONST' then
-        ret = self:const()
-    elseif kind == 'END' then
-        if self.s[self.i] ~= nil then
-            self:error('expected EOL; too many arguments')
-        end
-        return -- don't increment self.i past end of arguments
-    else
-        error('Internal Error: unknown kind, got '..tostring(kind))
-    end
-    self.i = self.i + 1
-    return ret
-end
-
-function Preproc:expand(statements)
-    -- fourth pass: expand pseudo-instructions and register arguments
-    self.statements = {}
-    for i=1, #statements do
-        local s = statements[i]
-        self.s = s
-        self.fn = s.fn
-        self.line = s.line
-        if s.type:sub(1, 1) == '!' then
-            self:push(s)
-        else
-            local name = s.type
-            local h = data.instructions[name]
-            if h == nil then
-                error('Internal Error: unknown instruction')
-            end
-
-            if data.one_register_variants[name] then
-                self.i = 1
-                local a = self:register(data.all_registers)
-                local b = s[2]
-                if b == nil or b.tt ~= 'REG' then
-                    insert(s, 2, self:token(a))
-                end
-            elseif data.two_register_variants[name] then
-                self.i = 1
-                local a = self:register(data.all_registers)
-                local b = self:register(data.all_registers)
-                local c = s[3]
-                if c == nil or c.tt ~= 'REG' then
-                    insert(s, 2, self:token(a))
-                end
-            end
-
-            if overrides[name] then
-                self.i = 1
-                overrides[name](self, name)
-                self:pop('END')
-            else
-                self:push(s)
-            end
-        end
-    end
-
-    return self.statements
 end
 
 return Preproc

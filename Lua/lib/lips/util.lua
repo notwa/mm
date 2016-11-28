@@ -14,7 +14,7 @@ local function readfile(fn, binary)
 end
 
 local function bitrange(x, lower, upper)
-    return floor(x/2^lower) % 2^(upper - lower + 1)
+    return floor(x / 2^lower) % 2^(upper - lower + 1)
 end
 
 local function parent(t)
@@ -23,6 +23,18 @@ local function parent(t)
         return nil
     end
     return mt.__index
+end
+
+local function signs(s)
+    local start, end_ = s:find('[+-]+')
+    if start ~= 1 then
+        return 0
+    end
+    if s:sub(1, 1) == '+' then
+        return end_
+    elseif s:sub(1, 1) == '-' then
+        return -end_
+    end
 end
 
 -- http://stackoverflow.com/a/9279009
@@ -77,6 +89,7 @@ return {
     readfile = readfile,
     bitrange = bitrange,
     parent = parent,
+    signs = signs,
     loadcode = loadcode,
     measure_data = measure_data,
 }

@@ -47,7 +47,7 @@ local function li(self, buffer, dest, im)
 end
 
 local overrides = {}
--- note: "self" is an instance of Preproc
+-- note: "self" is an instance of Expander
 
 local function tob_override(self, name)
     -- handle all the addressing modes for lw/sw-like instructions

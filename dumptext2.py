@@ -200,6 +200,12 @@ def parse_jp_text(f):
             bs += b'[deku highscore]'
         elif x == 0x030C:
             bs += b'[deku highscore]'
+        elif x == 0x030D:
+            bs += b'[unused name 1]'
+        elif x == 0x030E:
+            bs += b'[unused name 2]'
+        elif x == 0x030F:
+            bs += b'[unused name 3]'
         elif x == 0x0310:
             bs += b'[highscore? 0310]'
         elif x == 0x037E:

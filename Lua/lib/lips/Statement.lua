@@ -50,4 +50,28 @@ function Statement:validate(n)
     end
 end
 
+local boring = {
+    tt = true,
+    tok = true,
+    fn = true,
+    line = true,
+}
+
+function Statement:dump()
+    local values = ''
+    for j, t in ipairs(self) do
+        local tok = t.tok
+        if type(tok) == 'number' then
+            tok = ("$%X"):format(tok)
+        end
+        values = values..'\t'..t.tt..'('..tostring(tok)..')'
+        for k, v in pairs(t) do
+            if not boring[k] then
+                values = values..'['..k..'='..tostring(v)..']'
+            end
+        end
+    end
+    return values:sub(2)
+end
+
 return Statement

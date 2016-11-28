@@ -289,13 +289,25 @@ function Lexer:lex_string_naive(yield) -- no escape sequences
     yield('STRING', buff)
 end
 
-function Lexer:lex_include(_yield)
+function Lexer:lex_filename(_yield)
     self:read_spaces()
     local fn
     self:lex_string_naive(function(tt, tok)
         fn = tok
     end)
     _yield('STRING', fn, self.fn, self.line)
+
+    if self.chr ~= '\n' then
+        self:error('expected EOL after filename')
+    end
+    _yield('EOL', '\n', self.fn, self.line)
+    self:nextc()
+
+    return fn
+end
+
+function Lexer:lex_include(_yield)
+    local fn = self:lex_filename(_yield)
 
     if self.options.path then
         fn = self.options.path..fn
@@ -308,25 +320,15 @@ function Lexer:lex_include(_yield)
 end
 
 function Lexer:lex_include_binary(_yield)
-    self:read_spaces()
-    local fn
-    self:lex_string_naive(function(tt, tok)
-        fn = tok
-    end)
-    _yield('STRING', fn, self.fn, self.line)
+    local fn = self:lex_filename(_yield)
 
     -- TODO: allow optional offset and size arguments
     if self.options.path then
         fn = self.options.path..fn
     end
     local data = util.readfile(fn, true)
-
-    -- FIXME: this allocates a table for each byte.
-    --        this could easily cause performance issues on big files.
-    _yield('DIR', 'BYTE', fn, 0)
-    for b in string.gfind(data, '.') do
-        _yield('NUM', string.byte(b), fn, 0)
-    end
+    _yield('DIR', 'BIN', fn, 0)
+    _yield('STRING', data, fn, 0)
 end
 
 function Lexer:lex_expression(yield)
