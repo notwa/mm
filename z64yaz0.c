@@ -15,7 +15,6 @@ typedef unsigned int u32;
 static u32 simpleEnc(u8 *src, int size, int pos, u32 *pMatchPos)
 {
 	int startPos = pos - 0x1000;
-	int i, j;
 	u32 numBytes = 1;
 	u32 matchPos = 0;
 
@@ -26,7 +25,8 @@ static u32 simpleEnc(u8 *src, int size, int pos, u32 *pMatchPos)
 
 	if (startPos < 0)
 		startPos = 0;
-	for (i = startPos; i < pos; i++) {
+	for (int i = startPos; i < pos; i++) {
+		int j;
 		for (j = 0; j < end; j++) {
 			if (src[i + j] != src[j + pos])
 				break;
@@ -89,7 +89,7 @@ static int encodeYaz0(u8 *src, u8 *dst, int srcSize)
 	u8 buf[24]; // 8 codes * 3 bytes maximum
 
 	u32 validBitCount = 0; // number of valid bits left in "code" byte
-	u8 currCodeByte = 0;
+	u8 currCodeByte = 0; // a bitfield, set bits meaning copy, unset meaning RLE
 
 	while (srcPos < srcSize) {
 		u32 numBytes;
@@ -164,39 +164,31 @@ void decompress(u8 *src, u8 *dst, int uncompressedSize)
 	while (dstPlace < uncompressedSize) {
 		// read new "code" byte if the current one is used up
 		if (validBitCount == 0) {
-			currCodeByte = src[srcPlace];
-			++srcPlace;
+			currCodeByte = src[srcPlace++];
 			validBitCount = 8;
 		}
 
 		if ((currCodeByte & 0x80) != 0) {
 			// straight copy
-			dst[dstPlace] = src[srcPlace];
-			dstPlace++;
-			srcPlace++;
+			dst[dstPlace++] = src[srcPlace++];
 		} else {
 			// RLE part
-			u8 byte1 = src[srcPlace];
-			u8 byte2 = src[srcPlace + 1];
-			srcPlace += 2;
+			u8 byte1 = src[srcPlace++];
+			u8 byte2 = src[srcPlace++];
 
 			u32 dist = ((byte1 & 0xF) << 8) | byte2;
 			u32 copySource = dstPlace - (dist + 1);
 
 			u32 numBytes = byte1 >> 4;
 			if (numBytes == 0) {
-				numBytes = src[srcPlace] + 0x12;
-				srcPlace++;
+				numBytes = src[srcPlace++] + 0x12;
 			} else {
 				numBytes += 2;
 			}
 
 			// copy run
-			int i;
-			for(i = 0; i < numBytes; ++i) {
-				dst[dstPlace] = dst[copySource];
-				copySource++;
-				dstPlace++;
+			for(int i = 0; i < numBytes; ++i) {
+				dst[dstPlace++] = dst[copySource++];
 			}
 		}
 
