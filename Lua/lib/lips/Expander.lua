@@ -48,7 +48,7 @@ function Expander:pop(kind)
 end
 
 function Expander:expand(statements)
-    -- fourth pass: expand pseudo-instructions and register arguments
+    -- third pass: expand pseudo-instructions and register arguments
     self.statements = {}
     for i, s in ipairs(statements) do
         self.s = s

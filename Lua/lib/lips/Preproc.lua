@@ -1,4 +1,5 @@
 local abs = math.abs
+local format = string.format
 local insert = table.insert
 
 local path = string.gsub(..., "[^.]+$", "")
@@ -11,6 +12,13 @@ local signs = util.signs
 local Preproc = Base:extend()
 function Preproc:init(options)
     self.options = options or {}
+end
+
+function Preproc:error(msg, got)
+    if got ~= nil then
+        msg = msg..', got '..tostring(got)
+    end
+    error(format('%s:%d: Error: %s', self.fn, self.line, msg), 2)
 end
 
 function Preproc:iter(statements)
@@ -36,72 +44,62 @@ function Preproc:lookup(t)
         if t.tok == nil then
             self:error('undefined variable', name)
         end
-    elseif self.do_labels and t.tt == 'RELLABELSYM' or t.tt == 'RELLABEL' then
-        if t.tt == 'RELLABEL' then
-            t.tt = 'LABEL'
-            -- exploits the fact that user labels can't begin with a number
-            local name = t.tok:sub(2)
-            t.tok = tostring(self.i)..name
-        elseif t.tt == 'RELLABELSYM' then
-            local i = self.i
-            t.tt = 'LABELSYM'
+    end
+end
 
-            local rel = signs(t.tok)
-            assert(rel ~= 0, 'Internal Error: relative label without signs')
+function Preproc:resolve(t)
+    if t.tt == 'RELLABEL' then
+        t.tt = 'LABEL'
+        -- exploits the fact that user labels can't begin with a number
+        local name = t.tok:sub(2)
+        t.tok = tostring(self.i)..name
+    elseif t.tt == 'RELLABELSYM' then
+        local i = self.i
+        t.tt = 'LABELSYM'
 
-            local name = t.tok:sub(abs(rel) + 1)
-            local seen = 0
+        local rel = signs(t.tok)
+        assert(rel ~= 0, 'Internal Error: relative label without signs')
 
-            -- TODO: don't iterate over *every* label, just the ones nearby.
-            -- we could do this by popping labels as we pass over them.
-            -- (would need to iterate once forwards and once backwards
-            --  for plus and minus labels respectively)
-            if rel > 0 then
-                for _, rl in ipairs(self.plus_labels) do
-                    if rl.name == name and rl.index > i then
-                        seen = seen + 1
-                        if seen == rel then
-                            t.tok = tostring(rl.index)..name
-                            break
-                        end
-                    end
-                end
-            else
-                for _, rl in ipairs(self.minus_labels) do
-                    if rl.name == name and rl.index < i then
-                        seen = seen - 1
-                        if seen == rel then
-                            t.tok = tostring(rl.index)..name
-                            break
-                        end
+        local name = t.tok:sub(abs(rel) + 1)
+        local seen = 0
+
+        -- TODO: don't iterate over *every* label, just the ones nearby.
+        -- we could do this by popping labels as we pass over them.
+        -- (would need to iterate once forwards and once backwards
+        --  for plus and minus labels respectively)
+        if rel > 0 then
+            for _, rl in ipairs(self.plus_labels) do
+                if rl.name == name and rl.index > i then
+                    seen = seen + 1
+                    if seen == rel then
+                        t.tok = tostring(rl.index)..name
+                        break
                     end
                 end
             end
-
-            if seen ~= rel then
-                self:error('could not find appropriate relative label', t.tok)
+        else
+            for _, rl in ipairs(self.minus_labels) do
+                if rl.name == name and rl.index < i then
+                    seen = seen - 1
+                    if seen == rel then
+                        t.tok = tostring(rl.index)..name
+                        break
+                    end
+                end
             end
         end
-    else
-        return false
+
+        if seen ~= rel then
+            self:error('could not find appropriate relative label', t.tok)
+        end
     end
-    return true
 end
 
 function Preproc:check(s, i, tt)
-    s = s or self.s
-    i = i or self.i
     local t = s[i]
     if t == nil then
         local err = ("expected another argument for %s at position %i"):format(self.s.type, self.i)
         self:error(err)
-    end
-
-    self.fn = t.fn
-    self.line = t.line
-
-    if t.tt ~= tt then
-        self:lookup(t)
     end
 
     if t.tt ~= tt then
@@ -111,16 +109,30 @@ function Preproc:check(s, i, tt)
     return t.tok
 end
 
+function Preproc:evaluate(t)
+    if t.tt == 'EXPR' then
+        local result, err = self.expr:eval(t.tok)
+        if err then
+            self:error('failed to evaulate ('..t.tok..')', err)
+        end
+        t.tt = 'NUM'
+        t.tok = result
+    end
+    self:lookup(t)
+end
+
 function Preproc:process(statements)
     self.variables = {}
     self.plus_labels = {} -- constructed forwards
     self.minus_labels = {} -- constructed backwards
-    self.do_labels = false
+    self.expr = Expression(self.variables)
 
     -- first pass: resolve variables and collect relative labels
     local new_statements = {}
     for s in self:iter(statements) do
-        -- directive, label, etc.
+        for j, t in ipairs(s) do
+            self:evaluate(t)
+        end
         if s.type == '!VAR' then
             local a = self:check(s, 1, 'VAR')
             local b = self:check(s, 2, 'NUM')
@@ -143,34 +155,14 @@ function Preproc:process(statements)
             end
             insert(new_statements, s)
         else
-            -- regular instruction
-            for j, t in ipairs(s) do
-                self:lookup(t)
-            end
             insert(new_statements, s)
         end
     end
 
     -- second pass: resolve relative labels
-    self.do_labels = true
     for s in self:iter(new_statements) do
         for j, t in ipairs(s) do
-            self:lookup(t)
-        end
-    end
-
-    -- third pass: evaluate constant expressions
-    for s in self:iter(new_statements) do
-        for j, t in ipairs(s) do
-            if t.tt == 'EXPR' then
-                local expr = Expression()
-                local result, err = expr:eval(t.tok)
-                if err then
-                    self:error('failed to evaulate ('..t.tok..')', err)
-                end
-                t.tt = 'NUM'
-                t.tok = result
-            end
+            self:resolve(t)
         end
     end
 

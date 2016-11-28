@@ -4,6 +4,9 @@ local path = string.gsub(..., "[^.]+$", "")
 local Base = require(path.."Base")
 
 local Expression = Base:extend()
+function Expression:init(variables)
+    self.variables = variables or {}
+end
 
 Expression.precedence = {
     -- python-ish precedence
@@ -80,6 +83,7 @@ Expression.binary_ops = {
 local operators = {}
 local operators_maxlen = 0
 do
+    -- reorder operators so we can match the longest strings first
     for k, v in pairs(Expression.precedence) do
         if operators[#k] == nil then
             operators[#k] = {}
@@ -150,9 +154,12 @@ function Expression:lex1(str, tokens)
                 num = tonumber(considered, 2)
             elseif consider('0x[0-9A-Fa-f]+') then
                 num = tonumber(considered, 16)
-            elseif consider('0[0-7]+') then
+            elseif consider('0[0-9]+') then
+                if considered:match('[89]') then
+                    return "bad octal number: "..considered..here
+                end
                 num = tonumber(considered, 8)
-            elseif consider('[1-9][0-9]*') then
+            elseif consider('[0-9]*') then
                 num = tonumber(considered)
             end
             if num == nil then
@@ -168,6 +175,13 @@ function Expression:lex1(str, tokens)
             consume(#considered)
         elseif consider_operator() then
             insert(tokens, {type='operator', value=considered})
+            consume(#considered)
+        elseif consider('%w+') then
+            local num = self.variables[considered]
+            if num == nil then
+                return 'undefined variable "'..considered..'"'
+            end
+            insert(tokens, {type='number', value=num})
             consume(#considered)
         else
             local chr = rest:sub(1, 1)

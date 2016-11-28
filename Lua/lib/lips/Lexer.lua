@@ -329,6 +329,7 @@ function Lexer:lex_include_binary(_yield)
     local data = util.readfile(fn, true)
     _yield('DIR', 'BIN', fn, 0)
     _yield('STRING', data, fn, 0)
+    _yield('EOF', self.EOF, self.fn, self.line)
 end
 
 function Lexer:lex_expression(yield)
@@ -392,6 +393,9 @@ function Lexer:lex(_yield)
             yield('SEP', ',')
         elseif self.chr == '[' then
             self:nextc()
+            if self.chr:find('%d') then
+                self:error('variable names cannot begin with a number')
+            end
             local buff = self:read_chars('[%w_]')
             if self.chr ~= ']' then
                 self:error('invalid variable name')
@@ -402,6 +406,13 @@ function Lexer:lex(_yield)
             end
             self:nextc()
             yield('VAR', buff)
+            self:read_spaces()
+            if self.chr == '@' then
+                -- old syntax; nothing to do here
+            else
+                buff = self:read_chars('[^;\n]')
+                yield('EXPR', buff)
+            end
         elseif self.chr == ']' then
             self:error('unmatched closing bracket')
         elseif self.chr == '(' then
@@ -433,6 +444,9 @@ function Lexer:lex(_yield)
             self:lex_string(yield)
         elseif self.chr == '@' then
             self:nextc()
+            if self.chr:find('%d') then
+                self:error('variable names cannot begin with a number')
+            end
             local buff = self:read_chars('[%w_]')
             yield('VARSYM', buff)
         elseif self.chr == '%' then

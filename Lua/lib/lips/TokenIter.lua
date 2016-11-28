@@ -18,6 +18,7 @@ end
 
 TokenIter.arg_types = {
     NUM = true,
+    EXPR = true,
     REG = true,
     VARSYM = true,
     LABELSYM = true,
