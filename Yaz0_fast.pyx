@@ -1,7 +1,8 @@
 # decoder ripped from: http://www.amnoid.de/gc/yaz0.txt
 
-ctypedef unsigned long ulong
-ctypedef unsigned char uchar
+from libc.stdint cimport uint32_t, uint8_t
+ctypedef uint32_t ulong
+ctypedef uint8_t uchar
 
 cdef ulong get_size(uchar *comp):
     return comp[4]*0x1000000 + comp[5]*0x10000 + comp[6]*0x100 + comp[7]

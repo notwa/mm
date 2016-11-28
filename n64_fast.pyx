@@ -1,11 +1,9 @@
 # Based on uCON64's N64 checksum algorithm by Andreas Sterbenz
 
-ctypedef unsigned long ulong
-ctypedef unsigned char uchar
-
+from libc.stdint cimport uint32_t, uint8_t
 # ulong must be 32 bits since we expect them to overflow as such
-# TODO: test on different machines
-assert(sizeof(ulong) == 4)
+ctypedef uint32_t ulong
+ctypedef uint8_t uchar
 
 from zlib import crc32
 
