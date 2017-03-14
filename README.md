@@ -21,6 +21,7 @@ that means, if you want to use a script,
 you **must** preserve the directory structure.
 you **cannot,** say, extract one file from [this repo's archive][arch]
 and expect it to work.
+
 [bizhawk]: //github.com/tasvideos/bizhawk
 [arch]: //github.com/notwa/mm/archive/master.zip
 
@@ -47,6 +48,7 @@ i have written a handful of ROM and RAM hacks for Majora's Mask and Ocarina of T
 these have all been written in the custom assembler syntax of
 [_lips,_ a MIPS assembler written in Lua.][lips]
 _lips_ is included in this repository; you do not need to acquire it separately.
+
 [lips]: //github.com/notwa/lips
 
 you only need to run `Lua/inject.lua` in Bizhawk
