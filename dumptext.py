@@ -414,7 +414,7 @@ args = sys.argv[1:]
 
 # OoT NTSC 1.0
 dirname = 'ad69c91157f6705e8ab06c79fe08aad47bb57ba7'
-codefile = dirname+'/0027 V00A87000'
+codefile = dirname+'/0027 V00A87000 code'
 jp_start = 0xF98AC
 en_start = 0xFD9EC
 en_end = 0x101D94
@@ -425,10 +425,10 @@ else:
     verbose = False
 
 if args[0] == 'jp':
-    textfile = dirname+'/0019 V008EB000'
+    textfile = dirname+'/0019 V008EB000 jpn_message_data_static'
     dumpit(codefile, textfile, 'jp', jp_start, en_start - jp_start)
 elif args[0] == 'en':
-    textfile = dirname+'/0022 V0092D000'
+    textfile = dirname+'/0022 V0092D000 nes_message_data_static'
     dumpit(codefile, textfile, 'en', en_start, en_end - en_start)
 else:
     raise Exception('unknown language to dump')
