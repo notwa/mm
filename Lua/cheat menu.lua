@@ -1,3 +1,5 @@
+require = depend or require
+
 require "lib.setup"
 require "boilerplate"
 require "addrs"
@@ -250,7 +252,7 @@ local time_menu = oot and Menu{
         Oneshot("Time flow: Slow (iSoT)", Setter{[addrs.time_speed]=-2}),
         Oneshot("Time flow: Stopped",     Setter{[addrs.time_speed]=-3}),
         Oneshot("Time flow: Backwards",   Setter{[addrs.time_speed]=-5}),
-        Oneshot("Disable time flow (Scene)", Setter{[addrs.scene_time_speed]=0}),
+        --Oneshot("Disable time flow (Scene)", Setter{[addrs.scene_time_speed]=0}),
         Oneshot("Timestop glitch", timestop),
         Text(""),
         Back(),

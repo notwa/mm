@@ -1,3 +1,4 @@
+print('hi mom')
 require "lib.setup"
 require "boilerplate"
 local a = require "addrs"
@@ -63,16 +64,16 @@ masks.deku(iv.deku)
 --for k, f in pairs(quantities) do f(0) end
 a.upgrades(0x00120000) -- deku nut 20 and deku stick 10
 a.quest_items(0x10003000)
-AL(0x3D7, 5) -- unknown
+AL(0x3D7, 1)(5) -- unknown
 scene_flag_set(9, 0, 10)
 scene_flag_set(94, 2, 0)
 scene_flag_set(111, 4, 10)
-AL(0xE6C, 0x1D4C) -- unknown
-AL(0xE70, 0x1D4C) -- unknown
-AL(0xE74, 0x1DB0) -- unknown
-AL(0xEE8, 0x0013000A) -- unknown
-AL(0xEEC, 0x1770) -- unknown
-AL(0xEF4, 0x000A0027) -- unknown
+AL(0xE6C, 4)(0x1D4C) -- unknown
+AL(0xE70, 4)(0x1D4C) -- unknown
+AL(0xE74, 4)(0x1DB0) -- unknown
+AL(0xEE8, 4)(0x0013000A) -- unknown
+AL(0xEEC, 4)(0x1770) -- unknown
+AL(0xEF4, 4)(0x000A0027) -- unknown
 event_flag_set(2, 5)
 event_flag_set(2, 4)
 event_flag_set(2, 3)

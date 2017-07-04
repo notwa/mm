@@ -17,6 +17,12 @@ return {
         actor  = 0x39A4F0,
         LLsize = 0x10,
     },
+    ["M USGC64"] = {
+        save   = 0x1ED830,
+        global = 0x381260,
+        actor  = 0x39A4F0,
+        LLsize = 0x10,
+    },
     ["M EU10"] = {
         save   = 0x1E6B50,
         global = 0x3DDFC0,

@@ -515,7 +515,7 @@ return {
     [0x1FD]="Biggoron",
     [0x1FE]="Hot Spring Water",
     [0x1FF]="Gabora (Assistant)",
-    [0x200]="Invader Poe", -- aliens?
+    [0x200]="Invader Poe", -- aliens? controls romani/cremia schedules?
     [0x201]="Goron Elder's Son",
     [0x202]="Anju",
     [0x203]=unset,

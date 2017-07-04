@@ -126,10 +126,10 @@ def parse_jp_text(f):
             if verbose:
                 bs += b'[no skip]'
         elif x == 0x81BC: # 0x1B
-            if verbose:
+            if True or verbose:
                 bs += b'[two-choice]'
         elif x == 0x81B8: # 0x1C
-            if verbose:
+            if True or verbose:
                 bs += b'[three-choice]'
         elif x == 0x86A4: # 0x1D
             bs += b'[weight]'
@@ -413,7 +413,7 @@ import sys
 args = sys.argv[1:]
 
 # OoT NTSC 1.0
-dirname = 'ad69c91157f6705e8ab06c79fe08aad47bb57ba7'
+dirname = 'dump/oot-US10-ad69c91157f6705e8ab06c79fe08aad47bb57ba7'
 codefile = dirname+'/0027 V00A87000 code'
 jp_start = 0xF98AC
 en_start = 0xFD9EC

@@ -167,7 +167,8 @@ local asms = {
     ['O EUDB MQ'] = {'print.asm'},
 
 --  ['M US10'] = {'beta.asm'},
-    ['M US10'] = {'spawn mm.asm'},
+--  ['M US10'] = {'spawn mm.asm'},
+    ['M US10'] = {'_.asm'},
     ['M JP10'] = {'spawn mm early.asm'},
 }
 

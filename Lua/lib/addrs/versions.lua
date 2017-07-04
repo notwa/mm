@@ -57,4 +57,5 @@ return { -- md5 and sha1 hashes of .z64s
 
     -- Hacks
     ["8B88986EC8A637ED8C2FC5BF956FA949479B3430"] = "O BQ11", -- beta quest "V1" (no fix)
+    ["FE2453E7BA38454F9C8BF219B0B89AE614CD08E9"] = "M USGC64",
 }
