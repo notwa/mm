@@ -404,6 +404,7 @@ return {
     warp_destination    = AG(0x18878, 4),
     fade_type           = AG(0x1887F, 1),
     entrance_entered    = AG(0x18B48, 1),
+    fade_timer          = AG(0x18C01, 1),
 
     link_actor = setmetatable({
         item_in_hand    = AA(0x148, 1),

@@ -46,4 +46,8 @@ return {
     captains        = 0x44,
     giants          = 0x49,
     fierce_deity    = 0x35,
+
+    kokiri_sword    = 0x4D,
+    razor_sword     = 0x4E,
+    gilded_sword    = 0x4F,
 }

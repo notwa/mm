@@ -41,6 +41,7 @@ return {
     rupee_accumulator   = AL(0x4078, 2),
     spring_water_timers = AL(0x41D8, 0xC0),
     pictograph_picture  = AL(0x1390, 0x2BC0),
+    current_save        = AL(0x3F50, 4),
     title_screen_mod    = AL(0x3F5C, 4),
     entrance_mod        = AL(0x3F60, 4),
     voidout_type        = AL(0x3F64, 4),

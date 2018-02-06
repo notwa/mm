@@ -1,4 +1,3 @@
-print('hi mom')
 require "lib.setup"
 require "boilerplate"
 local a = require "addrs"
@@ -17,11 +16,18 @@ end
 
 require "flag manager"
 
--- TODO: just force a song of time cutscene to reset most things
+-- TODO: re-enable this once i stop it from breaking on (J).
+--for i=a.link.addr, a.link.addr + a.link.type - 1, 4 do W4(i, 0) end
 
-for i=a.link.addr, a.link.addr + a.link.type - 1, 4 do
-    W4(i, 0)
-end
+-- new stuff
+if a.current_save() == 0xFF then a.current_save(2) end
+a.warp_begin(1)
+a.warp_destination(0xD800)
+a.cutscene_status_2(3)
+a.target_style(1)
+a.sot_count(1)
+--a.fade_timer(0x3C) -- doesn't help...
+-- TODO: force dialog after scene is loaded with SoT stored? could be nice
 
 a.exit_value(0xD800)
 --a.mask_worn(0)
@@ -35,7 +41,7 @@ a.time(0x3FFF)
 a.transformation(4)
 a.have_tatl(1)
 --a.owl_save(0)
-a.sot_count(2)
+--a.sot_count(2)
 a.max_hearts(0x30)
 a.hearts(0x30)
 a.magic_level(1)
@@ -47,9 +53,9 @@ a.has_normal_magic(1)
 --a.owls_hit(0)
 for k, f in pairs(inv) do f(-1) end
 for k, f in pairs(masks) do f(-1) end
-inv.b_button_item(0x4D) -- TODO: add to item values table
-inv.b_button_goron(0x4D)
-inv.b_button_zora(0x4D)
+inv.b_button_item(iv.kokiri_sword)
+inv.b_button_goron(iv.kokiri_sword)
+inv.b_button_zora(iv.kokiri_sword)
 inv.b_button_deku(iv.deku_nuts)
 inv.c_left_item(iv.ocarina)
 inv.c_down_item(-1)
