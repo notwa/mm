@@ -1,5 +1,5 @@
 local function scene_flag_get_bb(scene, word, bit_)
-    local byte = scene*0x14 + word*4 + math.floor(3 - bit_/8)
+    local byte = scene*0x14 + word*4 + 3 - math.floor(bit_/8)
     byte = byte + addrs.scene_flags_ingame.addr
     local bitmask = bit.lshift(1, bit_ % 8)
     return byte, bitmask
