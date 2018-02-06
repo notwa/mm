@@ -30,6 +30,11 @@ return {
         AL(0x1383, 1),
     },
 
+    epona_scene         = AL(0x1384, 2), -- this is where you left epona
+    epona_x             = AL(0x1386, 2), -- NOT where she currently is
+    epona_y             = AL(0x1388, 2),
+    epona_z             = AL(0x138A, 2),
+    epona_angle         = AL(0x138C, 2),
     checksum            = AL(0x138E, 2),
     disable_pause       = nil,
     hookshot_ba         = nil,

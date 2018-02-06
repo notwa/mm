@@ -147,7 +147,7 @@ return {
     fairies_gbt         = AL(0xD6, 1),
     fairies_stt         = AL(0xD7, 1),
     strange_string      = AL(0xDE, 6),
-    scene_flags_save    = AL(0x470, 0x960),
+    scene_flags_save    = AL(0xF8, 0xD20), -- 0x1C per scene instead of 0x14!
   --clock_town_map      = AL(0xEB2, 1),
     slulltula_count_wf  = AL(0xEC0, 2),
     slulltula_count_gb  = AL(0xEC2, 2),
