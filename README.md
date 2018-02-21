@@ -9,12 +9,12 @@ there is also a great deal of general [documentation and notes
 on the wikis][cm] hosted at CloudModding.
 
 [bt]: //github.com/EntranceJew/zelda-binary-templates
-[cm]: http://cloudmodding.com/wiki
+[cm]: //cloudmodding.com/wiki
 
 ## Lua Scripts
 
 this repo contains a ton of Lua scripts
-written for [the latest version of Bizhawk.][bizhawk]
+written for [version 2.2.1 of Bizhawk.][bizhawk]
 all the scripts you'll want to use are in the root Lua directory,
 and their dependencies are in further subdirectories.
 that means, if you want to use a script,
@@ -22,7 +22,7 @@ you **must** preserve the directory structure.
 you **cannot,** say, extract one file from [this repo's archive][arch]
 and expect it to work.
 
-[bizhawk]: //github.com/tasvideos/bizhawk
+[bizhawk]: http://tasvideos.org/BizHawk.html
 [arch]: //github.com/notwa/mm/archive/master.zip
 
 a summary of each script is available in [the Lua README.md file,][luarm]
@@ -76,9 +76,10 @@ the versions listed above are rough estimates, and newer versions of software
 are likely to work fine.
 
 if you're on Windows, and you're not afraid of the (\*nix) console,
-you can set up [cygwin](//cygwin.com)
+you can set up [msys2](//www.msys2.org/)
 to install binaries of bash, python, and gcc.
-then all that's left is to compile LuaJIT yourself.
+then all that's left is to compile LuaJIT yourself,
+or you can [grab a 64-bit binary built by myself.](//eaguru.guru/t/luajit.7z)
 
 last, but not least, you will need the approriate ROM for the ROM hack.
 you will probably need to change the hard-coded paths to the ROMs.
@@ -124,7 +125,8 @@ some sheets have been put together to dump data in.
 some of them can be used to predict the result of glitches.
 
 * [Event Flags][eventflags]
-  are being documented here.
+  are being documented here. this hasn't changed in a while,
+  so there's now also [a copy on tcrf.](tcrfevent)
 
 * [Memory Addresses][gs_addrs]
   updates more frequently than [the Lua equivalent.][noice]
@@ -135,18 +137,21 @@ some of them can be used to predict the result of glitches.
   which uses updated names, among other things.
   a [4 megabyte csv dump of all exits][csv] is also available.
 
+<!--
 * [Get Item Manipulation][gim]  
   mzxrules did the original OoT one, i just jammed in MM's data for the item table and chest contents.
   *spoilers:* no desirable results besides light arrows, if it were even possible.
   _potential crashes are not taken account for._
+-->
 
 [eventflags]: //docs.google.com/spreadsheets/d/181V9dR5vBROdCVB4FkljG5oz2O4gGU5OTAkoPQX9X10/edit?usp=sharing
+[tcrfevent]: //tcrf.net/Proto:The_Legend_of_Zelda:_Majora%27s_Mask/Debug_Version/Event_Editor#week_event_reg
 [gs_addrs]: //docs.google.com/spreadsheets/d/1HD8yZM1Jza3O8zO28n3k_Rjwdx58RSMA03915l51oDA/edit?usp=sharing
 [noice]: /Lua/lib/addrs/M/common.lua
-[gim]: //docs.google.com/spreadsheets/d/17LsLbF6aRePVRxisui8azPtDBfPmjugWIf91wPuXTsY
 [ed]: //docs.google.com/spreadsheets/d/1e9kDyAW0gxXHFWS-GNEtVIo-rp39wQJJOtf3B0ehhqY
 [calc]: /Lua/exit%20calculator.lua
 [csv]: //eaguru.guru/t/_exits.csv
+[gim]: //docs.google.com/spreadsheets/d/17LsLbF6aRePVRxisui8azPtDBfPmjugWIf91wPuXTsY
 
 ## save files
 
