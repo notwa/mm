@@ -30,6 +30,10 @@ lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 # assume first entry is makerom (0x1060), and second entry begins from makerom
 dma_sig = b"\x00\x00\x00\x00\x00\x00\x10\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x60"
 
+# hacky
+heresay = os.path.split(sys.argv[0])[0]
+oot_filenames_src = os.path.join(heresay, "fn O US10.txt")
+
 def dump_wrap(data, fn, size):
     try:
         kind = detect_format(BytesIO(data), fn)
@@ -161,7 +165,7 @@ def dump_rom(fn, uncompress=True):
                        'fa5f5942b27480d60243c2d52c0e93e26b9e6b86',
                       ):
             # filenames inferred from debug rom
-            with open('fn O US10.txt') as f2:
+            with open(oot_filenames_src) as f2:
                 names = f2.readlines()
             names = [n.strip() for n in names]
         with SubDir(romhash):
