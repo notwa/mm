@@ -260,7 +260,13 @@ int main(int argc, char *argv[])
 
 			long csize = encodeYaz0(bufi, bufo + 16, size) + 16;
 
-			fwrite(bufo, csize, 1, stdout);
+			// pad compressed file to be a multiple of 16 bytes.
+			long ceilsize = (csize + 15) & ~0xF;
+			for (long i = csize; i < ceilsize; i++) {
+				bufo[i] = 0;
+			}
+
+			fwrite(bufo, ceilsize, 1, stdout);
 			free(bufo);
 		}
 		free(bufi);
