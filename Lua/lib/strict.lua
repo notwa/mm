@@ -5,7 +5,7 @@ if mt == nil then
 end
 
 function mt.__newindex(t, n, v)
-    if n == '_TEMP_BIZHAWK_RULES_' then
+    if n == '_TEMP_BIZHAWK_RULES_' or n == 'VERSION_OVERRIDE' then
         rawset(t, n, v)
         return
     end
