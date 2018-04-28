@@ -140,7 +140,7 @@ a.epona_scene(53)
 a.epona_x(-1420)
 a.epona_y(257)
 a.epona_z(-1285)
-a.epona_angle(10922) -- should actually be 35500? maybe?
+a.epona_angle(10922) -- 35500 before playing Song of Time once. weird.
 
 local scene_count = 0x78
 
