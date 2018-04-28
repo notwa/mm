@@ -29,6 +29,7 @@ lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 # shoutouts to spinout182
 # assume first entry is makerom (0x1060), and second entry begins from makerom
 dma_sig = b"\x00\x00\x00\x00\x00\x00\x10\x60\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x60"
+dma_sig_ique = b"\x00\x00\x00\x00\x00\x00\x10\x50\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x50"
 
 # hacky
 heresay = os.path.split(sys.argv[0])[0]
@@ -43,6 +44,17 @@ def dump_wrap(data, fn, size):
     if kind is not None:
         fn += '.' + kind
     dump_as(data, fn, size)
+
+def try_deflate(fn, compressed, size):
+    # love you zoinkity
+    import zlib
+    decomp = zlib.decompressobj(-zlib.MAX_WBITS)
+    data = bytearray()
+    data.extend(decomp.decompress(compressed))
+    while decomp.unconsumed_tail:
+        data.extend(decomp.decompress(decomp.unconsumed_tail))
+    data.extend(decomp.flush())
+    return data
 
 def z_dump_file(f, i=0, name=None, uncompress=True):
     vs = R4(f.read(4)) # virtual start
@@ -85,8 +97,12 @@ def z_dump_file(f, i=0, name=None, uncompress=True):
                 dump(compressed, fn+'.Yaz0', len(compressed))
         else:
             if uncompress:
-                lament('unknown compression; skipping:', fn)
-                lament(compressed[:4])
+                data = try_deflate(fn, compressed, size)
+                if data is None or len(data) == 0:
+                    lament('unknown compression; skipping:', fn)
+                    lament(compressed[:4])
+                else:
+                    dump(data, fn, size)
             else:
                 lament('unknown compression:', fn)
                 dump(compressed, fn, len(compressed))
@@ -100,12 +116,13 @@ def z_find_dma(f):
         data = f.read(16)
         if len(data) == 0: # EOF
             break
-        if data == dma_sig[:16]:
-            rest = dma_sig[16:]
-            if f.read(len(rest)) == rest:
-                return f.tell() - len(rest) - 16
-            else:
-                f.seek(len(rest), 1)
+        for sig in (dma_sig, dma_sig_ique):
+            if data == sig[:16]:
+                rest = sig[16:]
+                if f.read(len(rest)) == rest:
+                    return f.tell() - len(rest) - 16
+                else:
+                    f.seek(len(rest), 1)
 
 def z_dump(f, names=None, uncompress=True):
     f.seek(0x1060) # skip header when finding dmatable
