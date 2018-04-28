@@ -1,4 +1,16 @@
 return {
+    ["O CNIQ"] = {
+        save   = 0x137F40,
+        global = 0x1D5A20,
+        actor  = 0x1E7F70,
+        LLsize = 0x10,
+    },
+    ["O TWIQ"] = {
+        save   = 0x137300,
+        global = 0x1D4DE0,
+        actor  = 0x1E7330,
+        LLsize = 0x10,
+    },
     ["M US10"] = {
         save   = 0x1EF670,
         global = 0x3E6B20,
