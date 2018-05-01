@@ -1,16 +1,4 @@
 return {
-    ["O CNIQ"] = {
-        save   = 0x137F40,
-        global = 0x1D5A20,
-        actor  = 0x1E7F70,
-        LLsize = 0x10,
-    },
-    ["O TWIQ"] = {
-        save   = 0x137300,
-        global = 0x1D4DE0,
-        actor  = 0x1E7330,
-        LLsize = 0x10,
-    },
     ["M US10"] = {
         save   = 0x1EF670,
         global = 0x3E6B20,
@@ -124,6 +112,24 @@ return {
         save   = 0x11B168,
         global = 0x1C9660,
         actor  = 0x1DBBB0,
+        LLsize = 0x10,
+    },
+    ["O JPZC"] = {
+        save   = 0x11B148,
+        global = 0x1C9660,
+        actor  = 0x1DBBB0,
+        LLsize = 0x10,
+    },
+    ["O CNIQ"] = {
+        save   = 0x137F40,
+        global = 0x1D5A20,
+        actor  = 0x1E7F70,
+        LLsize = 0x10,
+    },
+    ["O TWIQ"] = {
+        save   = 0x137300,
+        global = 0x1D4DE0,
+        actor  = 0x1E7330,
         LLsize = 0x10,
     },
     ["O USGC MQ"] = {
