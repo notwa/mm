@@ -184,7 +184,8 @@ function TokenIter:special()
 
     local args = {}
     while true do
-        local arg = self:advance()
+        self:advance()
+        local arg = self.t
         if not self.arg_types[arg.tt] then
             self:error('invalid argument type', arg.tt)
         else

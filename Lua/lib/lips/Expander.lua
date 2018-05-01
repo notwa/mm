@@ -31,6 +31,8 @@ function Expander:pop(kind)
         ret = self.s[self.i]
     elseif kind == 'CPU' then
         ret = self:register(data.registers)
+    elseif kind == 'FPU' then
+        ret = self:register(data.fpu_registers)
     elseif kind == 'DEREF' then
         ret = self:deref()
     elseif kind == 'CONST' then

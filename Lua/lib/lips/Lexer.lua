@@ -3,6 +3,7 @@ local char = string.char
 local find = string.find
 local format = string.format
 local insert = table.insert
+local unpack = rawget(_G, 'unpack') or table.unpack
 
 local path = string.gsub(..., "[^.]+$", "")
 local data = require(path.."data")
@@ -15,6 +16,7 @@ local simple_escapes = {
     ['"']   = 0x22,
     ['a']   = 0x07,
     ['b']   = 0x08,
+    ['e']   = 0x1B,
     ['f']   = 0x0C,
     ['n']   = 0x0A,
     ['r']   = 0x0D,
@@ -263,6 +265,18 @@ function Lexer:lex_string(yield)
             local simple = simple_escapes[self.chr]
             if simple then
                 insert(bytes, simple)
+            elseif self.chr == 'x' then
+                self:nextc()
+                local hex = self.chrchr
+                if not self.chr:find('[0-9a-fA-F]') then
+                    self:error('invalid hex escape sequence: \\x'..hex)
+                end
+                self:nextc()
+                if not self.chr:find('[0-9a-fA-F]') then
+                    self:error('invalid hex escape sequence: \\x'..hex)
+                end
+                local byte = tonumber(hex, 16)
+                insert(bytes, byte)
             else
                 self:error('unknown escape sequence')
             end
@@ -276,32 +290,27 @@ function Lexer:lex_string(yield)
     yield('STRING', bytes)
 end
 
-function Lexer:lex_string_naive(yield) -- no escape sequences
-    if self.chr ~= '"' then
-        self:error('expected opening double quote')
-    end
-    self:nextc()
-    local buff = self:read_chars('[^"\n]')
-    if self.chr ~= '"' then
-        self:error('expected closing double quote')
-    end
-    self:nextc()
-    yield('STRING', buff)
-end
-
 function Lexer:lex_filename(_yield)
     self:read_spaces()
-    local fn
-    self:lex_string_naive(function(tt, tok)
-        fn = tok
+    local fn = ''
+    self:lex_string(function(tt, tok)
+        fn = char(unpack(tok))
     end)
     _yield('STRING', fn, self.fn, self.line)
 
-    if self.chr ~= '\n' then
+    self:read_spaces()
+    if self.chr == ';' or self.chrchr == '//' then
+        self:skip_to_EOL()
+    end
+    if self.chr == '\n' then
+        _yield('EOL', '\n', self.fn, self.line)
+        self:nextc()
+    elseif self.ord == self.EOF then
+        _yield('EOL', '\n', self.fn, self.line)
+        self.was_EOL = true
+    else
         self:error('expected EOL after filename')
     end
-    _yield('EOL', '\n', self.fn, self.line)
-    self:nextc()
 
     return fn
 end

@@ -49,9 +49,10 @@ end
 local overrides = {}
 -- note: "self" is an instance of Expander
 
+local fpu_tob = {}
 local function tob_override(self, name)
     -- handle all the addressing modes for lw/sw-like instructions
-    local dest = self:pop('CPU')
+    local dest = fpu_tob[name] and self:pop('FPU') or self:pop('CPU')
     local offset, base
     if self:peek('DEREF') then
         offset = 0
@@ -95,6 +96,9 @@ end
 
 for k, v in pairs(data.instructions) do
     if v[2] == 'tob' then
+        overrides[k] = tob_override
+    elseif v[2] == 'Tob' then
+        fpu_tob[k] = true
         overrides[k] = tob_override
     end
 end

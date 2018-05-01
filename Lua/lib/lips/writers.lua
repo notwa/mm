@@ -82,4 +82,32 @@ function writers.make_tester()
     end
 end
 
+function writers.make_gameshark()
+    local buff = {}
+    local max = -1
+    return function(pos, b)
+        if pos then
+            pos = pos % 0x80000000
+            buff[pos] = b
+            if pos > max then
+                max = pos
+            end
+        elseif max >= 0 then
+            for i=0, max, 2 do
+                local a = buff[i+0]
+                local b = buff[i+1]
+                a = a and ("%02X"):format(a)
+                b = b and ("%02X"):format(b)
+                if a and b then
+                    print(('81%06X %s'):format(i, a..b))
+                elseif a then
+                    print(('80%06X 00%s'):format(i, a))
+                elseif b then
+                    print(('80%06X 00%s'):format(i + 1, b))
+                end
+            end
+        end
+    end
+end
+
 return writers

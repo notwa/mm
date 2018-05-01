@@ -144,22 +144,39 @@ function Expression:lex1(str, tokens)
         local here = " (#"..tostring(pos)..")"
         if consider(' +') then
             consume(#considered)
-        elseif consider('[0-9.]') then
+        elseif consider('[0-9.]') or consider('[%%$#]') then
             local num
             if consider('((0|[1-9][0-9]*)%.[0-9]*|%.[0-9]+)(e0|e[1-9][0-9]*)?') then
                 num = tonumber(considered)
             elseif consider('(0|[1-9][0-9]*)e(0|[1-9][0-9]*)') then
                 num = tonumber(considered)
-            elseif consider('[0-1]+b') then
-                num = tonumber(considered, 2)
+            elseif consider('%%[0-9]+') then
+                if considered:match('[2-9]') then
+                    return "bad binary number: "..considered..here
+                end
+                num = tonumber(considered:sub(2), 2)
+            elseif consider('$[0-9A-Fa-f]+') then
+                num = tonumber(considered:sub(2), 16)
             elseif consider('0x[0-9A-Fa-f]+') then
-                num = tonumber(considered, 16)
+                num = tonumber(considered:sub(3), 16)
+            elseif consider('0o[0-9]+') then
+                if considered:match('[89]') then
+                    return "bad octal number: "..considered..here
+                end
+                num = tonumber(considered:sub(3), 8)
+            elseif consider('0b[0-9]+') then
+                if considered:match('[2-9]') then
+                    return "bad binary number: "..considered..here
+                end
+                num = tonumber(considered:sub(3), 2)
             elseif consider('0[0-9]+') then
                 if considered:match('[89]') then
                     return "bad octal number: "..considered..here
                 end
-                num = tonumber(considered, 8)
-            elseif consider('[0-9]*') then
+                num = tonumber(considered:sub(2), 8)
+            elseif consider('#[0-9]+') then
+                num = tonumber(considered:sub(2))
+            elseif consider('[0-9]+') then
                 num = tonumber(considered)
             end
             if num == nil then
@@ -176,7 +193,7 @@ function Expression:lex1(str, tokens)
         elseif consider_operator() then
             insert(tokens, {type='operator', value=considered})
             consume(#considered)
-        elseif consider('%w+') then
+        elseif consider('[%w_]+') then
             local num = self.variables[considered]
             if num == nil then
                 return 'undefined variable "'..considered..'"'
