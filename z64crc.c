@@ -16,7 +16,10 @@ CRC_SEEDS[] = {
     0xA3886759, // 6103
     0,
     0xDF26F436, // 6105
-    0x1FEA617A  // 6106
+    0x1FEA617A, // 6106
+    0xF8CA4DDC, // iQue 1
+    0xF8CA4DDC, // iQue 2
+    0xF8CA4DDC  // iQue 3
 };
 
 const static u32
@@ -27,7 +30,10 @@ BOOTCODE_CRCS[] = {
     0x0B050EE0, // 6103
     0,
     0x98BC2C86, // 6105
-    0xACC8580A  // 6106
+    0xACC8580A, // 6106
+    0xCD19FEF1, // iQue 1
+    0xB98CED9A, // iQue 2
+    0xE71C2766  // iQue 3
 };
 
 #define N_CRC (sizeof(CRC_SEEDS) / sizeof(CRC_SEEDS[0]))
