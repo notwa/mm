@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
+from hashlib import sha1
+from io import BytesIO
 import argparse
 import os
 import os.path
 import sys
 import zlib
-from io import BytesIO
-from hashlib import sha1
+
+from heuristics import detect_format
+from util import *
 
 # check for cython
 try:
@@ -23,9 +26,6 @@ if fast:
 else:
     import Yaz0
     import n64
-
-from util import *
-from heuristics import detect_format
 
 lament = lambda *args, **kwargs: print(*args, file=sys.stderr, **kwargs)
 
