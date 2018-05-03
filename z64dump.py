@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
+import argparse
+import os
+import os.path
 import sys
-import os, os.path
 import zlib
 from io import BytesIO
 from hashlib import sha1
@@ -339,9 +341,25 @@ def create_rom(d, compression=None, nocomplist=None):
         z_write_dma(f, dma)
         fix_rom(f)
 
-def run(args):
-    import argparse
+class StoreIntList(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        super().__init__(option_strings, dest, **kwargs)
 
+    def __call__(self, parser, namespace, values, option_string=None):
+        ints = getattr(namespace, self.dest, None)
+        if ints is None:
+            ints = []
+
+        # TODO: iterate over a pretty lenient regexp matcher.
+        for v in values.split(','):
+            if v == '':
+                continue
+            n = int(v)
+            ints.append(n)
+
+        setattr(namespace, self.dest, ints)
+
+def run(args):
     parser = argparse.ArgumentParser(
         description="z64dump: construct and deconstruct Zelda N64 ROMs")
 
@@ -353,7 +371,7 @@ def run(args):
         help="only update CIC checksums")
     parser.add_argument(
         '-D', '--no-decompress', action='store_true',
-        help="(deconstruction) leave compressed files compressed")
+        help="(deconstruction) do not decompress files")
     parser.add_argument(
         '-C', '--no-compress', action='store_const', const=None, dest='compression',
         help="(construction) do not compress files")
@@ -363,10 +381,11 @@ def run(args):
     parser.add_argument(
         '-z', '--zlib', action='store_const', const='zlib', dest='compression',
         help="(construction) use deflate (zlib) compression")
+    parser.add_argument(
+        '-s', '--skip', default=None, action=StoreIntList,
+        help="skip compression for the given comma-delimited file indices")
 
     a = parser.parse_args(args)
-
-    nocomplist = None  # file indices to skip compression on
 
     for path in a.path:
         if a.fix:
@@ -379,7 +398,7 @@ def run(args):
 
         # directories are technically files, so check this first
         if os.path.isdir(path):
-            create_rom(path, a.compression, nocomplist)
+            create_rom(path, a.compression, a.skip)
         elif os.path.isfile(path):
             dump_rom(path, not a.no_decompress)
         else:
