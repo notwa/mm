@@ -106,6 +106,8 @@ local function dump_all_exits(fn)
     f:close()
 end
 
+globalize{dump_all_exits=dump_all_exits}
+
 local old_value = -1
 while true do
     local exit_value = addrs.exit_value()

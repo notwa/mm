@@ -130,6 +130,8 @@ some of them can be used to predict the result of glitches.
   a huge laggy mess that brings google docs to its knees.
   this has pretty much been deprecated by the [exit calculator][calc] script,
   which uses updated names, among other things.
+  just load the script and type `dump_all_exits()` in the Lua console,
+  and the csv will be written to `Lua/data/_exits.csv`.
   a [4 megabyte csv dump of all exits][csv] is also available.
 
 <!--
@@ -139,11 +141,11 @@ some of them can be used to predict the result of glitches.
   _potential crashes are not taken account for._
 -->
 
-[eventflags]: //docs.google.com/spreadsheets/d/181V9dR5vBROdCVB4FkljG5oz2O4gGU5OTAkoPQX9X10/edit?usp=sharing
+[eventflags]: //docs.google.com/spreadsheets/d/181V9dR5vBROdCVB4FkljG5oz2O4gGU5OTAkoPQX9X10
 [tcrfevent]: //tcrf.net/Proto:The_Legend_of_Zelda:_Majora%27s_Mask/Debug_Version/Event_Editor#week_event_reg
-[gs_addrs]: //docs.google.com/spreadsheets/d/1HD8yZM1Jza3O8zO28n3k_Rjwdx58RSMA03915l51oDA/edit?usp=sharing
+[gs_addrs]: //docs.google.com/spreadsheets/d/1HD8yZM1Jza3O8zO28n3k_Rjwdx58RSMA03915l51oDA
 [noice]: /Lua/lib/addrs/M/common.lua
 [ed]: //docs.google.com/spreadsheets/d/1e9kDyAW0gxXHFWS-GNEtVIo-rp39wQJJOtf3B0ehhqY
-[calc]: /Lua/exit%20calculator.lua
+[calc]: /Lua/monitor%20exits.lua
 [csv]: //eaguru.guru/t/_exits.csv
 [gim]: //docs.google.com/spreadsheets/d/17LsLbF6aRePVRxisui8azPtDBfPmjugWIf91wPuXTsY
