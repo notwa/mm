@@ -35,7 +35,8 @@ BOOTCODE_CRCS[] = {
 // crc32 code via https://gist.github.com/notwa/5689243
 // in turn via http://www.geocities.ws/malbrain/crc_c.html
 
-static const u32 crc32_tbl[] = {
+static const u32
+crc32_tbl[] = {
     0x00000000, 0x1DB71064, 0x3B6E20C8, 0x26D930AC,
     0x76DC4190, 0x6B6B51F4, 0x4DB26158, 0x5005713C,
     0xEDB88320, 0xF00F9344, 0xD6D6A3E8, 0xCB61B38C,
@@ -90,8 +91,9 @@ calc_crc(u8 *data, int bootcode, u8 *lookup) {
     for (size_t i = 0x1000; i < 0x101000; i += 4) {
         u32 d = R4(data + i);
 
-        if (t6 + d < t6)
+        if (t6 + d < t6) {
             t4++;
+        }
 
         t6 += d;
 
@@ -101,10 +103,11 @@ calc_crc(u8 *data, int bootcode, u8 *lookup) {
 
         t5 += r;
 
-        if (t2 > d)
+        if (t2 > d) {
             t2 ^= r;
-        else
+        } else {
             t2 ^= t6 ^ d;
+        }
 
         if (bootcode == 5) {
             u32 o = i & 0xFF;
@@ -134,12 +137,15 @@ crc_version(u8 *buf) {
     // otherwise returns version index
     u32 bootsum = ~calc_crc32(buf + 0x40, 0x1000 - 0x40, ~0);
 
-    if (bootsum == 0)
+    if (bootsum == 0) {
         return -1;
+    }
 
-    for (int i = 0; i < N_CRC; i++)
-        if (bootsum == BOOTCODE_CRCS[i])
+    for (int i = 0; i < N_CRC; i++) {
+        if (bootsum == BOOTCODE_CRCS[i]) {
             return i;
+        }
+    }
 
     return -1;
 }
@@ -150,8 +156,9 @@ fix_crc(u8 *buf) {
     // otherwise returns version index
     // and modifies the buffer
     int bootcode = crc_version(buf);
-    if (bootcode < 0)
+    if (bootcode < 0) {
         return bootcode;
+    }
 
     calc_crc_ret crcs = calc_crc(buf, bootcode, buf + 0x750);
     W4(buf + 0x10, crcs.crc1);
@@ -201,7 +208,11 @@ main(int argc, char *argv[]) {
         fwrite(buf, size, 1, f);
         fclose(f);
 
-        printf("%i\t%s\n", bootcode + 6100, argv[i]);
+        if (bootcode <= 6) {
+            printf("%i\t%s\n", bootcode + 6100, argv[i]);
+        } else {
+            printf("iQue %i\t%s\n", bootcode - 6, argv[i]);
+        }
 
         free(buf);
     }
