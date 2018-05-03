@@ -340,39 +340,48 @@ def create_rom(d, compression=None, nocomplist=None):
         fix_rom(f)
 
 def run(args):
-    decompress = True
-    compression = None
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="z64dump: construct and deconstruct Zelda N64 ROMs")
+
+    parser.add_argument(
+        'path', metavar='ROM or folder', nargs='+',
+        help="ROM to deconstruct, or folder to construct")
+    parser.add_argument(
+        '-f', '--fix', action='store_true',
+        help="only update CIC checksums")
+    parser.add_argument(
+        '-D', '--no-decompress', action='store_true',
+        help="(deconstruction) leave compressed files compressed")
+    parser.add_argument(
+        '-C', '--no-compress', action='store_const', const=None, dest='compression',
+        help="(construction) do not compress files")
+    parser.add_argument(
+        '-y', '--yaz', action='store_const', const='yaz', dest='compression',
+        help="(construction) use yaz (Yaz0) compression")
+    parser.add_argument(
+        '-z', '--zlib', action='store_const', const='zlib', dest='compression',
+        help="(construction) use deflate (zlib) compression")
+
+    a = parser.parse_args(args)
+
     nocomplist = None  # file indices to skip compression on
-    fix = False
 
-    for arg in args:
-        if arg == '-f':
-            fix = not fix
-            continue
-        if arg == '-c':
-            decompress = not decompress
-            continue
-        if arg == '-n':
-            compression = None
-            continue
-        if arg == '-y':
-            compression = 'yaz'
-            continue
-        if arg == '-z':
-            compression = 'zlib'
-            continue
-
-        path = arg
-        if fix:
-            with open(path, 'r+b') as f:
-                fix_rom(f)
+    for path in a.path:
+        if a.fix:
+            if os.path.isdir(path):
+                lament("only ROM files are fixable:", path)
+            else:
+                with open(path, 'r+b') as f:
+                    fix_rom(f)
             continue
 
         # directories are technically files, so check this first
         if os.path.isdir(path):
-            create_rom(path, compression, nocomplist)
+            create_rom(path, a.compression, nocomplist)
         elif os.path.isfile(path):
-            dump_rom(path, decompress)
+            dump_rom(path, not a.no_decompress)
         else:
             lament('no-op:', path)
 
