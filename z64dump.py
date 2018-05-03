@@ -2,6 +2,7 @@
 
 import sys
 import os, os.path
+import zlib
 from io import BytesIO
 from hashlib import sha1
 
@@ -45,9 +46,8 @@ def dump_wrap(data, fn, size):
         fn += '.' + kind
     dump_as(data, fn, size)
 
-def try_deflate(fn, compressed, size):
+def inflate(compressed):
     # love you zoinkity
-    import zlib
     decomp = zlib.decompressobj(-zlib.MAX_WBITS)
     data = bytearray()
     data.extend(decomp.decompress(compressed))
@@ -56,14 +56,20 @@ def try_deflate(fn, compressed, size):
     data.extend(decomp.flush())
     return data
 
-def z_dump_file(f, i=0, name=None, uncompress=True):
+def deflate_headerless(data):
+    wbits = -15  # disable header/trailer by negating windowBits
+    zobj = zlib.compressobj(wbits=wbits)
+    compressed = zobj.compress(data) + zobj.flush()
+    return compressed
+
+def z_dump_file(f, i=0, name=None, decompress=True):
     vs = R4(f.read(4)) # virtual start
     ve = R4(f.read(4)) # virtual end
     ps = R4(f.read(4)) # physical start
     pe = R4(f.read(4)) # physical end
     here = f.tell()
 
-    dump = uncompress and dump_wrap or dump_as
+    dump = decompress and dump_wrap or dump_as
 
     if vs == ve == ps == pe == 0:
         return False
@@ -90,14 +96,14 @@ def z_dump_file(f, i=0, name=None, uncompress=True):
         f.seek(ps)
         compressed = f.read(pe - ps)
         if compressed[:4] == b'Yaz0':
-            if uncompress:
+            if decompress:
                 data = Yaz0.decode(compressed)
                 dump(data, fn, size)
             else:
                 dump(compressed, fn+'.Yaz0', len(compressed))
         else:
-            if uncompress:
-                data = try_deflate(fn, compressed, size)
+            if decompress:
+                data = inflate(compressed)
                 if data is None or len(data) == 0:
                     lament('unknown compression; skipping:', fn)
                     lament(compressed[:4])
@@ -124,7 +130,7 @@ def z_find_dma(f):
                 else:
                     f.seek(len(rest), 1)
 
-def z_dump(f, names=None, uncompress=True):
+def z_dump(f, names=None, decompress=True):
     f.seek(0x1060) # skip header when finding dmatable
     addr = z_find_dma(f)
     if addr == None:
@@ -139,17 +145,17 @@ def z_dump(f, names=None, uncompress=True):
     i = 0
     if names:
         for n in names:
-            if z_dump_file(f, i, n, uncompress):
+            if z_dump_file(f, i, n, decompress):
                 i += 1
             else:
                 lament("ran out of filenames")
                 break
-    while z_dump_file(f, i, None, uncompress):
+    while z_dump_file(f, i, None, decompress):
         i += 1
     if names and i > len(names):
         lament("extraneous filenames")
 
-def dump_rom(fn, uncompress=True):
+def dump_rom(fn, decompress=True):
     with open(fn, 'rb') as f:
         data = f.read()
 
@@ -187,7 +193,7 @@ def dump_rom(fn, uncompress=True):
             names = [n.strip() for n in names]
         with SubDir(romhash):
             f.seek(0)
-            z_dump(f, names, uncompress)
+            z_dump(f, names, decompress)
 
 def z_read_file(path, fn=None):
     if fn == None:
@@ -244,9 +250,12 @@ def fix_rom(f):
 def align(x):
     return (x + 15) // 16 * 16
 
-def create_rom(d, compress=False):
+def create_rom(d, compression=None, nocomplist=None):
     root, _, files = next(os.walk(d))
     files.sort()
+
+    if nocomplist is None:
+        nocomplist = []
 
     rom_size = 64*1024*1024
     with open(d+'.z64', 'w+b') as f:
@@ -278,18 +287,26 @@ def create_rom(d, compress=False):
             else:
                 start_v = align(start_v)
                 start_p = align(start_p)
-                if compress and unempty:
+                if compression and unempty and i not in nocomplist:
                     lament('Comp…: {}'.format(fn))
-                    data = Yaz0.encode(data)
+                    if compression == 'yaz':
+                        data = Yaz0.encode(data)
+                    elif compression == 'zlib':
+                        data = deflate_headerless(data)
+                    else:
+                        raise Exception("unsupported compression: " + compression)
                     size_p = len(data)
-                    lament("Ratio: {:3}%".format(int(size_p / size_v * 100)))
+                    lament("Ratio: {:3.0%}".format(size_p / size_v))
                     compressed = True
 
             if unempty:
                 ps = start_p
                 if compressed:
                     pe = align(start_p + size_p)
-                    ve = vs + int.from_bytes(data[4:8], 'big')
+                    if compression == 'yaz':
+                        ve = vs + int.from_bytes(data[4:8], 'big')
+                    else:
+                        ve = vs + size_v
                 else:
                     pe = 0
                     ve = vs + size_v
@@ -323,24 +340,39 @@ def create_rom(d, compress=False):
         fix_rom(f)
 
 def run(args):
-    compress = False
+    decompress = True
+    compression = None
+    nocomplist = None  # file indices to skip compression on
     fix = False
-    for path in args:
-        if path == '-c':
-            compress = not compress
-            continue
-        if path == '-f':
+
+    for arg in args:
+        if arg == '-f':
             fix = not fix
             continue
+        if arg == '-c':
+            decompress = not decompress
+            continue
+        if arg == '-n':
+            compression = None
+            continue
+        if arg == '-y':
+            compression = 'yaz'
+            continue
+        if arg == '-z':
+            compression = 'zlib'
+            continue
+
+        path = arg
         if fix:
             with open(path, 'r+b') as f:
                 fix_rom(f)
             continue
+
         # directories are technically files, so check this first
         if os.path.isdir(path):
-            create_rom(path, compress)
+            create_rom(path, compression, nocomplist)
         elif os.path.isfile(path):
-            dump_rom(path, not compress)
+            dump_rom(path, decompress)
         else:
             lament('no-op:', path)
 
