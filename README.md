@@ -121,7 +121,7 @@ some of them can be used to predict the result of glitches.
 
 * [Event Flags][eventflags]
   are being documented here. this hasn't changed in a while,
-  so there's now also [a copy on tcrf.](tcrfevent)
+  so there's now also [a copy on tcrf.][tcrfevent]
 
 * [Memory Addresses][gs_addrs]
   updates more frequently than [the Lua equivalent.][noice]
