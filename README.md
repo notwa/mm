@@ -14,7 +14,7 @@ on the wikis][cm] hosted at CloudModding.
 ## Lua Scripts
 
 this repo contains a ton of Lua scripts
-written for [version 2.2.1 of Bizhawk.][bizhawk]
+written for [version 2.2.2 of Bizhawk.][bizhawk]
 all the scripts you'll want to use are in the root Lua directory,
 and their dependencies are in further subdirectories.
 that means, if you want to use a script,
@@ -81,7 +81,7 @@ to install binaries of bash, python, and gcc.
 then all that's left is to compile LuaJIT yourself,
 or you can [grab a 64-bit binary built by myself.](//eaguru.guru/t/luajit.7z)
 
-last, but not least, you will need the approriate ROM for the ROM hack.
+last, but not least, you will need the appropriate ROM for the ROM hack.
 you will probably need to change the hard-coded paths to the ROMs.
 *(note to self: change scripts to take the required ROM as their first argument)*
 
