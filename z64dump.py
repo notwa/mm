@@ -252,7 +252,7 @@ def fix_rom(f):
 def align(x):
     return (x + 15) // 16 * 16
 
-def create_rom(d, compression=None, nocomplist=None):
+def create_rom(d, compression=None, nocomplist=None, keep_inplace=False):
     root, _, files = next(os.walk(d))
     files.sort()
 
@@ -282,8 +282,8 @@ def create_rom(d, compression=None, nocomplist=None):
             unempty = size_v > 0
             compressed = size_v >= 4 and data[:4] == b'Yaz0'
 
-            if i <= 2:
-                # makerom, boot, dmadata need to be exactly where they were
+            if i <= 2 or keep_inplace:
+                # makerom, boot, dmadata need to be exactly where they were.
                 start_v = vs
                 start_p = start_v
             else:
@@ -396,9 +396,10 @@ def run(args):
                     fix_rom(f)
             continue
 
-        # directories are technically files, so check this first
+        # directories are technically files, so check this first:
         if os.path.isdir(path):
-            create_rom(path, a.compression, a.skip)
+            keep_inplace = a.compression == None
+            create_rom(path, a.compression, a.skip, keep_inplace)
         elif os.path.isfile(path):
             dump_rom(path, not a.no_decompress)
         else:
