@@ -22,6 +22,8 @@ def try_actor(f):
         return False
     f.seek(-section_size, 2)
     section_start = f.tell()
+    if section_start + 12 >= file_size:
+        return False
     data_offset = R4(f.read(4))
     data_size = R4(f.read(4))
     misc_size = R4(f.read(4))
