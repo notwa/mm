@@ -59,9 +59,9 @@ spawn:
     nop
 return:
 // render actor number
-    call    simple_text, 0x0001001C, 0x88CCFFFF, fmt, s0
+    call    simple_text, 0x000F001B, 0x88CCFFFF, fmt, s0
 // render actor variable
-    call    simple_text, 0x0006001C, 0xFFCC88FF, fmt, s3
+    call    simple_text, 0x0014001B, 0xFFCC88FF, fmt, s3
 // done
     sh      s0, anum
     sw      s1, hold_delay
