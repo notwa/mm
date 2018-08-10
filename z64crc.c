@@ -22,7 +22,7 @@ CRC_SEEDS[] = {
     0xF8CA4DDC  // iQue 3
 };
 
-const static u32
+static const u32
 BOOTCODE_CRCS[] = {
     0,
     0x6170A4A1, // 6101
@@ -87,51 +87,45 @@ calc_crc(u8 *data, int bootcode, u8 *lookup) {
     calc_crc_ret ret = {};
 
     u32 seed = CRC_SEEDS[bootcode];
-    u32 t1 = seed;
-    u32 t2 = seed;
-    u32 t3 = seed;
-    u32 t4 = seed;
-    u32 t5 = seed;
-    u32 t6 = seed;
+    // registers noted for one game's 6102 disassembly:
+    u32 r1 = seed; // T4, ???
+    u32 r2 = seed; // A2, ???
+    u32 r3 = seed; // T3, collective xor
+    u32 r4 = seed; // T2, r6 overflow counter
+    u32 r5 = seed; // S0, rotated summation
+    u32 r6 = seed; // A3, summation
 
     for (size_t i = 0x1000; i < 0x101000; i += 4) {
         u32 d = R4(data + i);
-
-        if (t6 + d < t6) {
-            t4++;
+        if (r6 + d < r6) {
+            r4++;
         }
-
-        t6 += d;
-
-        t3 ^= d;
-
-        u32 r = ROL(d, d & 0x1F);
-
-        t5 += r;
-
-        if (t2 > d) {
-            t2 ^= r;
+        r6 += d;
+        r3 ^= d;
+        u32 rot = ROL(d, d & 0x1F); // A0
+        r5 += rot;
+        if (r2 < d) {
+            r2 ^= r6 ^ d;
         } else {
-            t2 ^= t6 ^ d;
+            r2 ^= rot;
         }
-
         if (bootcode == 5) {
             u32 o = i & 0xFF;
-            t1 += R4(lookup + o) ^ d;
+            r1 += d ^ R4(lookup + o);
         } else {
-            t1 += t5;
+            r1 += d ^ r5;
         }
     }
 
     if (bootcode == 3) {
-        ret.crc1 = (t6 ^ t4) + t3;
-        ret.crc2 = (t5 ^ t2) + t1;
+        ret.crc1 = (r6 ^ r4) + r3;
+        ret.crc2 = (r5 ^ r2) + r1;
     } else if (bootcode == 6) {
-        ret.crc1 = t6 * t4 + t3;
-        ret.crc2 = t5 * t2 + t1;
+        ret.crc1 = r6 * r4 + r3;
+        ret.crc2 = r5 * r2 + r1;
     } else {
-        ret.crc1 = t6 ^ t4 ^ t3;
-        ret.crc2 = t5 ^ t2 ^ t1;
+        ret.crc1 = r6 ^ r4 ^ r3;
+        ret.crc2 = r5 ^ r2 ^ r1;
     }
 
     return ret;
@@ -147,7 +141,7 @@ crc_version(u8 *buf) {
         return -1;
     }
 
-    for (int i = 0; i < N_CRC; i++) {
+    for (int i = 0; i < (int)N_CRC; i++) {
         if (bootsum == BOOTCODE_CRCS[i]) {
             return i;
         }
