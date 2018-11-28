@@ -20,20 +20,23 @@ local injection_points = {
         ow_addr = 0x1737C4,
         ow_before = 0x0C05CD50,
     },
+
     ['M JP10'] = {
         inject_addr = 0x780000,
         inject_maxlen = 0x5A800,
         ow_addr = 0x1701A8,
         ow_before = 0x0C05BCD4,
     },
+
     ['O US10'] = {
-        inject_addr = 0x3BC000,
-        inject_maxlen = 0x1E800,
+        inject_addr = 0x152890,
+        inject_maxlen = 0x5F00,
         --ow_addr = 0x0A19C8,
         --ow_before = 0x0C0283EE,
         ow_addr = 0x0A0C3C,
         ow_before = 0x0C028231,
     },
+
     ['O EUDB MQ'] = {
         inject_addr = 0x700000,
         inject_maxlen = 0x100000,
