@@ -155,7 +155,7 @@ function Expression:lex1(str, tokens)
                     return "bad binary number: "..considered..here
                 end
                 num = tonumber(considered:sub(2), 2)
-            elseif consider('$[0-9A-Fa-f]+') then
+            elseif consider('[$][0-9A-Fa-f]+') then
                 num = tonumber(considered:sub(2), 16)
             elseif consider('0x[0-9A-Fa-f]+') then
                 num = tonumber(considered:sub(3), 16)
@@ -226,7 +226,7 @@ end
 
 function Expression:lex(str)
     local tokens = {}
-    err = self:lex1(str, tokens)
+    local err = self:lex1(str, tokens)
     if err then return tokens, err end
     err = self:lex2(tokens)
     return tokens, err
