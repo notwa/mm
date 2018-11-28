@@ -16,7 +16,7 @@
 [starting_exit]: 0x8014533C
 [default_save]: 0x801C6898
 
-[link_object_ptr]: 0x803FFFF4 // actually just an offset of link_actor?
+[link_object_ptr]: 0x803FFFF4 ; actually just an offset of link_actor?
 
 [scene_record_size]: 0x14
 

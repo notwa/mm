@@ -25,7 +25,7 @@
 [SetTextXY]:        0x800CBEC8
 [SetTextString]:    0x800CC588
 [TxtPrinter]:       0x800CC480
-[InitTxtStruct]:    0x800CC4AC // unused here; we set it up inline
+[InitTxtStruct]:    0x800CC4AC ; unused here; we set it up inline
 [DoTxtStruct]:      0x800CC508
 [UpdateTxtStruct]:  0x800CC550
 

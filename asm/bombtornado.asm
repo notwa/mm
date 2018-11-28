@@ -17,7 +17,7 @@
 
 [at_bomb]: 0x0009
 
-[rotate_amount]: 0x3E567750 // pi/15
+[rotate_amount]: 0x3E567750 ; pi/15
 
 // F12 = input (single), F0 = output (single), F4 = output (double)
 [sinf]: 0x80088350
