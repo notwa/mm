@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 //version 1.0 (20050707) by shevious
 //Thanks to thakis for yaz0dec 1.0.
@@ -27,6 +28,7 @@ simpleEnc(u8 *src, int size, int pos, long *pMatchPos)
     int startPos = pos - 0x1000;
     long numBytes = 1;
     long matchPos = 0;
+    int i;
 
     int end = size - pos;
     // maximum runlength for 3 byte encoding
@@ -35,7 +37,7 @@ simpleEnc(u8 *src, int size, int pos, long *pMatchPos)
 
     if (startPos < 0)
         startPos = 0;
-    for (int i = startPos; i < pos; i++) {
+    for (i = startPos; i < pos; i++) {
         int j;
         for (j = 0; j < end; j++) {
             if (src[i + j] != src[j + pos])
@@ -143,8 +145,9 @@ encodeYaz0(u8 *src, u8 *dst, int srcSize)
 
         // write eight codes
         if (validBitCount == 8) {
+            int j;
             dst[dstPos++] = currCodeByte;
-            for (int j = 0; j < bufPos; j++)
+            for (j = 0; j < bufPos; j++)
                 dst[dstPos++] = buf[j];
 
             currCodeByte = 0;
@@ -154,8 +157,9 @@ encodeYaz0(u8 *src, u8 *dst, int srcSize)
     }
 
     if (validBitCount > 0) {
+        int j;
         dst[dstPos++] = currCodeByte;
-        for (int j = 0; j < bufPos; j++)
+        for (j = 0; j < bufPos; j++)
             dst[dstPos++] = buf[j];
 
         currCodeByte = 0;
@@ -192,6 +196,8 @@ decompress(u8 *src, u8 *dst, int uncompressedSize)
             long dist = ((byte1 & 0xF) << 8) | byte2;
             long copySource = dstPlace - (dist + 1);
 
+            int i;
+
             long numBytes = byte1 >> 4;
             if (numBytes == 0) {
                 numBytes = src[srcPlace++] + 0x12;
@@ -200,7 +206,7 @@ decompress(u8 *src, u8 *dst, int uncompressedSize)
             }
 
             // copy run
-            for(int i = 0; i < numBytes; ++i) {
+            for(i = 0; i < numBytes; ++i) {
                 dst[dstPlace++] = dst[copySource++];
             }
         }
