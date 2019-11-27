@@ -475,12 +475,12 @@ return {
     [0]="from center",
         "from turtle",
         "from shop",
-        "from Mikau's room",
-        "from Evan's room",
+        "from Lulu's room",
+        "from Evan and Mikau's room",
         "from Japa's room",
         "from Tijo's room",
-        "after something?", -- TODO: ???
-        "after concert?",
+        "in front of stage", -- TODO: when is this used exactly?
+        "on stage", -- TODO: when is this used exactly?
     },
 
     {name="Trading Post",
@@ -655,8 +655,8 @@ return {
     {name="(Zora Hall Rooms)",
     [0]="Tijo's room",
         "Japas' room",
-        "Mikau's room",
-        "Evan's room",
+        "Lulu's room",
+        "Evan and Mikau's room",
         "after playing song to Japas",
         "Zora Shop",
         "after playing song to Evan",
