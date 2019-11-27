@@ -858,7 +858,7 @@ return {
         "from Mayor's Residence",
         "from Shooting Gallery",
         "from Stock Pot Inn (lower)",
-        "from Stock pot Inn (upper)",
+        "from Stock Pot Inn (upper)",
         "from Milk Bar",
     },
 
