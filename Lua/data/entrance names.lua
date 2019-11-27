@@ -479,7 +479,7 @@ return {
         "from Evan's room",
         "from Japa's room",
         "from Tijo's room",
-        "after something?",
+        "after something?", -- TODO: ???
         "after concert?",
     },
 
@@ -489,15 +489,15 @@ return {
     },
 
     {name="Romani Ranch",
-    [0]="from milk road",
+    [0]="from Milk Road",
         "after minigame",
         "from Barn",
-        "from mama's house",
-        "from cucco shack",
-        "from doggy Racetrack",
-        "in front of Barn (a)",
+        "from Mama's House",
+        "from Cucco Shack",
+        "from Doggy Racetrack",
+        "in front of Barn (a)", -- TODO: when are these used exactly?
         "in front of Barn (b)",
-        "in front of house",
+        "in front of House",
         "in front of Barn (c)",
         "in front of Romani",
         "in front of Barn, facing other way",
