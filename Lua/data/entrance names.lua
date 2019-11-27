@@ -520,7 +520,7 @@ return {
         "getting Zora Mask",
         "in front of Mikau's grave",
         "from Owl Statue",
-        "getting kicked out of Pirates'",
+        "being kicked out of Pirates'",
         "after beating minigame",
     },
 
