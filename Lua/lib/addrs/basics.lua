@@ -108,6 +108,12 @@ return {
         actor  = 0x1D93B0,
         LLsize = 0x10,
     },
+    ["O EUDB"] = {
+        save   = 0x15E680,
+        global = 0x212060,
+        actor  = 0x2245F0,
+        LLsize = 0x30,
+    },
     ["O JPGC"] = {
         save   = 0x11B168,
         global = 0x1C9660,
