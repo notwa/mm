@@ -38,6 +38,25 @@ dma_sig_ique = b"\x00\x00\x00\x00\x00\x00\x10\x50\x00\x00\x00\x00\x00\x00\x00\x0
 heresay = os.path.split(sys.argv[0])[0]
 oot_filenames_src = os.path.join(heresay, "fn O US10.txt")
 
+oot_gc_debug = (
+    'cfecfdc58d650e71a200c81f033de4e6d617a9f6',
+    '50bebedad9e0f10746a52b07239e47fa6c284d03',
+    'cee6bc3c2a634b41728f2af8da54d9bf8cc14099',
+    'f5fbcebf1e00397effb83163fc97e463a815cce9',
+)
+
+oot_n64_ntsc = (
+    # NTSC 1.0 (U) and (J)
+    'ad69c91157f6705e8ab06c79fe08aad47bb57ba7',
+    'c892bbda3993e66bd0d56a10ecd30b1ee612210f',
+    # NTSC 1.1 (U) and (J)
+    'd3ecb253776cd847a5aa63d859d8c89a2f37b364',
+    'dbfc81f655187dc6fefd93fa6798face770d579d',
+    # NTSC 1.2 (U) and (J)
+    '41b3bdc48d98c48529219919015a1af22f5057c2',
+    'fa5f5942b27480d60243c2d52c0e93e26b9e6b86',
+)
+
 def dump_wrap(data, fn, size):
     try:
         kind = detect_format(BytesIO(data), fn)
@@ -173,22 +192,12 @@ def dump_rom(fn, decompress=True):
         romhash = sha1(f.read()).hexdigest()
 
         names = None
-        if romhash == '50bebedad9e0f10746a52b07239e47fa6c284d03':
+        if romhash in oot_gc_debug:
             # OoT debug rom filenames
             f.seek(0xBE80)
             names = f.read(0x6490).split(b'\x00')
             names = [str(n, 'utf-8') for n in names if n != b'']
-        if romhash in (
-                       # NTSC 1.0 (U) and (J)
-                       'ad69c91157f6705e8ab06c79fe08aad47bb57ba7',
-                       'c892bbda3993e66bd0d56a10ecd30b1ee612210f',
-                       # NTSC 1.1 (U) and (J)
-                       'd3ecb253776cd847a5aa63d859d8c89a2f37b364',
-                       'dbfc81f655187dc6fefd93fa6798face770d579d',
-                       # NTSC 1.2 (U) and (J)
-                       '41b3bdc48d98c48529219919015a1af22f5057c2',
-                       'fa5f5942b27480d60243c2d52c0e93e26b9e6b86',
-                      ):
+        elif romhash in oot_n64_ntsc:
             # filenames inferred from debug rom
             with open(oot_filenames_src) as f2:
                 names = f2.readlines()
