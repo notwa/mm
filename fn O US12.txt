@@ -17,9 +17,9 @@ item_name_static
 map_name_static
 do_action_static
 message_static
-message_data_static
 message_texture_static
 nes_font_static
+message_data_static
 nes_message_data_static
 staff_message_data_static
 map_grand_static

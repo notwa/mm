@@ -37,6 +37,8 @@ dma_sig_ique = b"\x00\x00\x00\x00\x00\x00\x10\x50\x00\x00\x00\x00\x00\x00\x00\x0
 # hacky
 heresay = os.path.split(sys.argv[0])[0]
 oot_filenames_src = os.path.join(heresay, "fn O US10.txt")
+oot_filenames_1_2_src = os.path.join(heresay, "fn O US12.txt")
+mm_filenames_src = os.path.join(heresay, "fn M US10.txt")
 
 oot_gc_debug = (
     'cfecfdc58d650e71a200c81f033de4e6d617a9f6',
@@ -52,9 +54,16 @@ oot_n64_ntsc = (
     # NTSC 1.1 (U) and (J)
     'd3ecb253776cd847a5aa63d859d8c89a2f37b364',
     'dbfc81f655187dc6fefd93fa6798face770d579d',
+)
+
+oot_n64_ntsc_1_2 = (
     # NTSC 1.2 (U) and (J)
     '41b3bdc48d98c48529219919015a1af22f5057c2',
     'fa5f5942b27480d60243c2d52c0e93e26b9e6b86',
+)
+
+mm_n64_u = (
+    'd6133ace5afaa0882cf214cf88daba39e266c078',
 )
 
 def dump_wrap(data, fn, size):
@@ -197,13 +206,22 @@ def dump_rom(fn, decompress=True):
             f.seek(0xBE80)
             names = f.read(0x6490).split(b'\x00')
             names = [str(n, 'utf-8') for n in names if n != b'']
+        elif romhash in mm_n64_u:
+            # filenames inferred from log files
+            with open(mm_filenames_src) as f2:
+                names = f2.readlines()
         elif romhash in oot_n64_ntsc:
             # filenames inferred from debug rom
             with open(oot_filenames_src) as f2:
                 names = f2.readlines()
-            names = [n.strip() for n in names]
+        elif romhash in oot_n64_ntsc_1_2:
+            # filenames inferred from debug rom
+            with open(oot_filenames_1_2_src) as f2:
+                names = f2.readlines()
         with SubDir(romhash):
             f.seek(0)
+            if names is not None:
+                names = [n.strip() for n in names]
             z_dump(f, names, decompress)
 
 def z_read_file(path, fn=None):
