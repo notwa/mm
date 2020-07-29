@@ -14,7 +14,7 @@ on the wikis][cm] hosted at CloudModding.
 ## Lua Scripts
 
 this repo contains a ton of Lua scripts
-written for [version 2.2.2 of Bizhawk.][bizhawk]
+written for [version 2.4.2 of Bizhawk.][bizhawk]
 all the scripts you'll want to use are in the root Lua directory,
 and their dependencies are in further subdirectories.
 that means, if you want to use a script,
