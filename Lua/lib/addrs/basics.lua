@@ -168,5 +168,40 @@ return {
         global = 0x1C8A10,
         actor  = 0x1DAFD0,
         LLsize = 0x30,
-    }
+    },
+
+    ["O BB"] = {
+        save   = 0x11B228,
+        global = 0x1C9720,
+        actor  = 0x1DBC70,
+        LLsize = 0x10,
+    },
+
+    ["O BB2"] = {
+        save   = 0x11B188,
+        global = 0x1C96A0,
+        actor  = 0x1DBBF0,
+        LLsize = 0x10,
+    },
+
+    ["M BB"] = {
+        save   = 0x1EFA70,
+        global = 0x3E6EE0,
+        actor  = 0x400170,
+        LLsize = 0x10,
+    },
+
+    ["O CNIQ BB"] = {
+        save   = 0x137F40,
+        global = 0x1D5A20,
+        actor  = 0x1E7F70,
+        LLsize = 0x10,
+    },
+
+    ["O ENIQ BB"] = {
+        save   = 0x137E00,
+        global = 0x1D58E0,
+        actor  = 0x1E7E30,
+        LLsize = 0x10,
+    },
 }
