@@ -11,9 +11,9 @@ local same = {
 rawset(_G, 'Actor', function() end)
 
 return function(hash)
-    local version = versions[hash] or VERSION_OVERRIDE
+    local version = versions[hash] or rawget(_G, 'VERSION_OVERRIDE')
     if version == nil then
-        error('unknown rom')
+        error('unknown ROM; try setting VERSION_OVERRIDE')
         return
     end
     local v = version:sub(1, 2)
