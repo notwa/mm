@@ -46,8 +46,8 @@ local function handle_eat_input(handle, ctrl, pressed)
             ctrl.enter = ctrl.A
         end
 
-        joypad.set({}, 1)
-        joypad.setanalog({["X Axis"]=false, ["Y Axis"]=false}, 1)
+        --joypad.set({}, 1)
+        --joypad.setanalog({["X Axis"]=false, ["Y Axis"]=false}, 1)
     end
     handle:update(ctrl, pressed)
 end

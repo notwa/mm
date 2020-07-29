@@ -11,30 +11,16 @@ require "flag manager"
 
 -- TODO: make OoT versions for most of these menus
 
---[[ control schemes:
-normal:         (alt_input = false; eat_input = false)
-    L opens the menu
-    L selects menu items
-    D-Pad navigates up/down items and left/right through pages
-alternate:      (alt_input = true;  eat_input = false)
-    L+R opens/closes the menu
-    L goes back a menu (or closes)
-    R selects menu items
-    L+Z hides the menu without closing (FIXME: interferes with back button)
-    D-Pad navigates
-greedy:         (alt_input = false; eat_input = true)
+--[[ control scheme:
     L opens/closes the menu
-    while the menu is open, the game receives no inputs
+    (while the menu is open, the game is paused)
     D-Pad/Joystick/C-Buttons navigate through items and pages
     A select menu items
     B/R go back a menu (or closes)
     Z hides the menu without closing
-    TODO: joystick, a/b button etc
-greedy alt:     (alt_input = true;  eat_input = true)
-    same as greedy but pauses the game while in menu
-    (enables run_while_paused)
 --]]
 
+-- don't change these; the other modes are mostly broken:
 local run_while_paused = true
 local alt_input = true
 local eat_input = true
