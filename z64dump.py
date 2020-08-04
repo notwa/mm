@@ -72,7 +72,7 @@ def dump_wrap(data, fn, size):
     except Exception as e:
         lament(fn, e)
         kind = None
-    else:
+    if kind is not None:
         fn += '.' + kind
     dump_as(data, fn, size)
 
