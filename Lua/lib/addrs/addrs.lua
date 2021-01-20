@@ -2,10 +2,10 @@ local basics = require "addrs.basics"
 local versions = require "addrs.versions"
 
 local same = {
+    ["O JP09"] = "O US09",
     ["O JP10"] = "O US10",
     ["O JP11"] = "O US11",
     ["O JP12"] = "O US12",
-    --["O JPGC MQ"] = "O USGC", -- maybe?
 }
 
 rawset(_G, 'Actor', function() end)

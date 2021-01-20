@@ -1,1 +1,1 @@
--- dummy file; please edit O US10.lua instead
+-- dummy file; please edit O/US10.lua instead

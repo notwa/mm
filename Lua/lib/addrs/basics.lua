@@ -204,4 +204,11 @@ return {
         actor  = 0x1E7E30,
         LLsize = 0x10,
     },
+
+    ["O US09"] = {
+        save   = 0x11A3C0,
+        global = 0x1C82A0,
+        actor  = 0x1DA830,
+        LLsize = 0x30,
+    },
 }
